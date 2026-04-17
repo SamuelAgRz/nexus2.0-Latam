@@ -1,0 +1,39 @@
+name: system-evals
+
+on:
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  evals:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+
+      - name: Run tests
+        run: pytest -q
+
+      - name: Run system evals
+        env:
+          SYSTEM_UNDER_TEST_URL: ${{ secrets.SYSTEM_UNDER_TEST_URL }}
+          SYSTEM_API_KEY: ${{ secrets.SYSTEM_API_KEY }}
+          SYSTEM_TIMEOUT_SECONDS: 90
+        run: |
+          python scripts/run_system_eval.py \
+            --dataset evals/datasets/system_eval_cases.yaml \
+            --output evals/results/ci_run.json
+
+      - name: Summarize results
+        run: python scripts/summarize_results.py --input evals/results/ci_run.json

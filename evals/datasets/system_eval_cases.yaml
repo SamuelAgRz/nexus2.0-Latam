@@ -1,0 +1,27 @@
+cases:
+  - id: SYS_001
+    category: ytd
+    user_query: "What is NSR YTD for Colombia?"
+    expected_contains:
+      - "NSR"
+      - "Colombia"
+    forbidden_contains:
+      - "sell-out"
+    max_latency_seconds: 45
+
+  - id: SYS_002
+    category: yoy
+    user_query: "Show NSR growth vs last year for Traditional channel"
+    expected_contains:
+      - "Traditional"
+    forbidden_contains:
+      - "I cannot help"
+    max_latency_seconds: 45
+
+  - id: SYS_003
+    category: trend
+    user_query: "How has NSR trended in the last 6 months?"
+    expected_contains:
+      - "6 months"
+    forbidden_contains: []
+    max_latency_seconds: 45

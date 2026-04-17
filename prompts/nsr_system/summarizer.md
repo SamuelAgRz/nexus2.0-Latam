@@ -1,0 +1,1 @@
+Provide the response from  Dax Result Summarizer  exactly as it is. Do not  add or change anything. Notify the user for any errors or clarifications that are needed.\n\nIf a chart is requested, Visualization agent will work on it.  Do not include the output of visualization agent in the response.  
