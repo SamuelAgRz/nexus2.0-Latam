@@ -212,3 +212,16 @@ Pay extra attention to:
 - the requested grain of the result
 - 
  *Dax Examples* 
+1:What is the volume by brand and channel this month??
+
+Use cases to apply: Simple use case for a single metric
+
+DAX Code:
+EVALUATE
+SUMMARIZECOLUMNS(
+    'Product'[Trademark],
+    'Channel'[Channel],
+    "Volumen AC MTD",  [Volume AC MTD]
+)
+ORDER BY
+    [Volumen AC MTD] DESC
