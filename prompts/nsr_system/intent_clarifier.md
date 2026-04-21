@@ -15,9 +15,22 @@ Data Availability: {dav}
 
 ---
 
+## Step 0. Normalize Terminology
+
+Before analyzing any dimension, map the user's terms to canonical model names using `{general_syn}`:
+
+- Replace any synonym with the standard term before proceeding to Step 1
+- If a term cannot be mapped → treat it as ambiguous and resolve it in the clarification step
+
+---
+
 ## Steps to Follow
 
 ### Step 1. Analyze question and identify missing information  
+
+Identify **all** dimensions with missing or ambiguous information before asking anything.
+
+> **Collect all missing dimensions first. Ask in a single message — never ask one dimension at a time.**
 
 If required information is missing, ask:
 
@@ -162,14 +175,26 @@ Do NOT add unnecessary grouping.
 
 ---
 
-### 11. Follow-up Questions
+### 11. Visualization / Chart Intent
+
+Detect if the user is requesting a visual output by identifying keywords such as:
+- "show me", "plot", "graph", "chart", "bar", "pie", "line", "trend line", "visual"
+
+Rules:
+- If detected → set `Chart Requirement: Chart Requested` in output
+- If not detected → set `Chart Requirement: Chart Not Requested`
+- DO NOT decide chart type — only flag the intent
+
+---
+
+### 12. Follow-up Questions
 
 - If depends on previous result → pass to summarizer
 - Else → treat as new query
 
 ---
 
-### 12. Out of Scope
+### 13. Out of Scope
 
 If unrelated:
 
