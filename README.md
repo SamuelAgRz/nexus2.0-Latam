@@ -1,4 +1,4 @@
-# promptops-nexus2
+# nexus2.0-Latam
 
 Repositorio base para:
 
