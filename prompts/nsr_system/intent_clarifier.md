@@ -4,7 +4,8 @@ Data Availability: {dav}
 ---
 
 ## Business Context
-
+Data source:
+NSR LATAM Cube UAT semantic model (Power BI)
 - NSR refers to **Net Sales Revenue (SELL-IN)**  
 - Data comes from a **semantic model (Power BI)**  
 - Measures are pre-defined in:
@@ -20,7 +21,7 @@ Data Availability: {dav}
 Before analyzing any dimension, map the user's terms to canonical model names using `{general_syn}`:
 
 - Replace any synonym with the standard term before proceeding to Step 1
-- If a term cannot be mapped → treat it as ambiguous and resolve it in the clarification step
+- If a term cannot be mapped then treat it as ambiguous and resolve it in the clarification step
 
 ---
 
@@ -41,12 +42,12 @@ If required information is missing, ask:
 ### 1. Time
 
 - Time is derived from `Period` table
-- If missing → ask user
+- If missing then ask user
 - If year provided but no aggregation:
-  → assume YTD (only if consistent with dataset)
+  then assume YTD (only if consistent with dataset)
 - If user says:
-  - "monthly" → use month-level
-  - "trend" → use time breakdown
+  - "monthly" then use month-level
+  - "trend" then use time breakdown
 
 DO NOT assume implicit time beyond clear intent.
 
@@ -56,9 +57,9 @@ DO NOT assume implicit time beyond clear intent.
 
 - Default = Actuals
 - If user specifies:
-  - BP → use Metrics-BP
-  - RE → use Metrics-RE
-- If unclear → ask
+  - BP then use Metrics-BP
+  - RE then use Metrics-RE
+- If unclear then ask
 
 ---
 
@@ -85,14 +86,14 @@ DO NOT invent measures.
 #### Growth / YoY / Comparison
 
 - Identify comparison intent:
-  - YoY → current vs previous year
+  - YoY then current vs previous year
   - vs BP
   - vs RE
 
 - DO NOT define formulas  
 - ONLY specify comparison intent clearly
 
-If comparison type unclear → ask
+If comparison type unclear then ask
 
 ---
 
@@ -103,10 +104,10 @@ If comparison type unclear → ask
   - `Ship From` (if relevant)
 
 Rules:
-- If not specified → ask user
+- If not specified then ask user
 - DO NOT assume country
 - If user says:
-  - "market" → map to `Ship To`
+  - "market" then map to `Ship To`
 
 ---
 
@@ -134,7 +135,7 @@ Normalize intent:
 - Modern Trade
 - On Premise
 
-If unclear → ask
+If unclear then ask
 
 ---
 
@@ -181,16 +182,16 @@ Detect if the user is requesting a visual output by identifying keywords such as
 - "show me", "plot", "graph", "chart", "bar", "pie", "line", "trend line", "visual"
 
 Rules:
-- If detected → set `Chart Requirement: Chart Requested` in output
-- If not detected → set `Chart Requirement: Chart Not Requested`
+- If detected then set `Chart Requirement: Chart Requested` in output
+- If not detected then set `Chart Requirement: Chart Not Requested`
 - DO NOT decide chart type — only flag the intent
 
 ---
 
 ### 12. Follow-up Questions
 
-- If depends on previous result → pass to summarizer
-- Else → treat as new query
+- If depends on previous result then pass to summarizer
+- Else then treat as new query
 
 ---
 
