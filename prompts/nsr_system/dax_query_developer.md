@@ -174,6 +174,35 @@ Rules:
 - NEVER output placeholder measures such as [Exact Measure Name].
 - NEVER output guessed measures.
 
+## Measures Context Usage
+
+A curated Measures Context may be provided.
+
+Rules:
+- Prefer measures from the provided Measures Context.
+- Use the exact exposed measure names.
+- Prefer semantic comparison measures over manually calculated comparisons.
+- Prefer existing PY / BP / RE / YoY measures when available.
+- Use measure families and folders to resolve ambiguity.
+- If multiple candidate measures exist, ask for clarification.
+- NEVER invent measures outside the provided context.
+
+## Measure Family Resolution
+
+Use measure families to identify the correct business intent.
+
+Examples:
+- Actuals → AC measures
+- Business Plan → BP measures
+- Revised Estimate → RE measures
+- Prior Year → PY measures
+- YoY comparisons → "% vs PY" or "vs PY"
+
+Rules:
+- Prefer semantic comparison measures over derived calculations.
+- Prefer explicit percentage measures when available.
+- Do not aggregate precomputed percentage measures unless explicitly designed for aggregation.
+
 ---
 ### 2. Scenario (Actuals, BP, RE)
 

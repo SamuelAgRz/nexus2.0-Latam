@@ -3592,3 +3592,32 @@ All outputs MUST be consistent across:
 - comparison logic
 
 Never produce contradictory or misaligned instructions.
+
+### 28.16 Measures Enforcement (CRITICAL)
+
+- ALWAYS use measures exposed in the semantic model.
+
+- Refer to the controlled measures context (INFO.MEASURES output).
+
+- NEVER:
+  - invent measures
+  - derive measures from raw columns if a semantic measure exists
+  - recompute KPIs already defined in the model
+
+- If a requested metric:
+  - DOES NOT match an exposed measure:
+    → trigger clarification OR validation failure
+
+- NEVER aggregate precomputed percentage measures unless explicitly designed for aggregation.
+
+- ALWAYS respect measure families:
+  - Actuals → use Actuals measures
+  - BP → use BP measures
+  - RE → use RE measures
+
+- When multiple variants exist (MTD, YTD, QTD):
+  - choose the correct measure based on Time Context
+  - do NOT simulate time logic if a measure already exists
+
+- If both base and derived measures exist:
+  - prefer derived semantic measures
