@@ -653,26 +653,59 @@ Dax Developer
   "business_question": "",
   "metric": {
     "name": "",
-    "family": ""
+    "family": "",
+    "semantic_measure_hint": "",
+    "requires_exact_measure_resolution": true
   },
-  "scenario": "",
+  "scenario": {
+    "value": "AC | BP | RE",
+    "label": ""
+  },
   "time": {
-    "year": "",
-    "period": "",
-    "grain": ""
+    "semantic_type": "CURRENT_DAY | CURRENT_WEEK | CURRENT_MONTH | CURRENT_QUARTER | CURRENT_YEAR | SPECIFIC_DATE | SPECIFIC_WEEK | SPECIFIC_MONTH | SPECIFIC_QUARTER | SPECIFIC_YEAR | LATEST_AVAILABLE_DATE_IN_PERIOD | CUSTOM_RANGE",
+    "relative_period": "TODAY | THIS_WEEK | THIS_MONTH | THIS_QUARTER | THIS_YEAR | LATEST_AVAILABLE | NONE",
+    "grain": "DAY | WEEK | MONTH | QUARTER | YEAR",
+    "calendar": "445",
+    "requires_period_table": true,
+    "date_value": null,
+    "year": null,
+    "month": null,
+    "week": null,
+    "period_label": "",
+    "selection_rule": {
+      "type": "NONE | MAX_AVAILABLE_DATE_WITHIN_PERIOD",
+      "period_grain": ""
+    }
   },
   "geography": {
-    "type": "",
-    "value": ""
+    "governance_filter": {
+      "table": "Ship From",
+      "column": "Country",
+      "operator": "=",
+      "value": "Colombia",
+      "mandatory": true
+    },
+    "analysis_geography": {
+      "type": "",
+      "value": null
+    }
   },
   "breakdown": [],
-  "filters": [],
+  "filters": [
+    {
+      "table": "",
+      "column": "",
+      "operator": "",
+      "value": "",
+      "mandatory": true
+    }
+  ],
   "comparison": {
-    "type": "",
+    "type": "NONE | YOY | VS_PY | VS_2PY | VS_BP | VS_RE",
     "against": ""
   },
   "ranking": {
-    "type": "",
+    "type": "NONE | TOP | BOTTOM",
     "top_n": null
   },
   "visualization_required": false,
@@ -683,6 +716,16 @@ Dax Developer
 }
 ```
 
+### Data Request Contract Rules
+
+- The output MUST use this schema exactly.
+- Do NOT use the legacy time format: `{ "year": "", "period": "", "grain": "" }`.
+- Do NOT output natural-language filters.
+- Every filter MUST be a structured JSON object.
+- Geography governance for Colombia MUST always be represented in `geography.governance_filter`.
+- If a specific date is requested, use `time.semantic_type = "SPECIFIC_DATE"` and populate `time.date_value`.
+- If today is requested, use `time.semantic_type = "CURRENT_DAY"` and `time.relative_period = "TODAY"`.
+- If latest available date inside a period is requested, use `time.semantic_type = "LATEST_AVAILABLE_DATE_IN_PERIOD"` and `selection_rule.type = "MAX_AVAILABLE_DATE_WITHIN_PERIOD"`.
 ---
 
 ## C. Visualization
