@@ -396,6 +396,40 @@ Return:
 INTENT_INVALID
 ```
 
+Y después de `# 4. Measures Policy`, pega esto:
+
+
+# 4.1 Measure Resolution Policy
+
+The DAX Developer MUST resolve the metric to an exact exposed semantic measure from `{dav}`.
+
+Use the structured intent fields:
+
+- metric.name
+- metric.family
+- metric.semantic_measure_hint
+- scenario.value
+- time.grain
+- currency if available
+
+Rules:
+
+- If `metric.semantic_measure_hint` maps clearly to exactly one exposed measure in `{dav}`, use that measure.
+- If the exact measure cannot be resolved from `{dav}`, return `INTENT_INVALID`.
+- Do NOT use generic measure names like `[NSR]` unless `[NSR]` exists exactly in `{dav}`.
+- Do NOT invent `[NSR]`, `[Sales]`, `[Revenue]`, or `[Net Sales Revenue]`.
+
+Example:
+
+If intent says:
+
+```json
+"metric": {
+  "name": "NSR",
+  "family": "Revenue / NSR",
+  "semantic_measure_hint": "Bottler Net Revenue AC (LC)"
+}
+```
 ---
 
 # 5. Time Rules
