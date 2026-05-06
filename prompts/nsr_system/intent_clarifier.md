@@ -378,6 +378,7 @@ Instead, use the following contract:
   "week": null,
   "period_label": ""
 }
+```
 ---
 
 # 10. Comparison Semantics
