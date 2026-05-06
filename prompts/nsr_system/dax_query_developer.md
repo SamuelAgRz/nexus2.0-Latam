@@ -396,9 +396,6 @@ Return:
 INTENT_INVALID
 ```
 
-Y después de `# 4. Measures Policy`, pega esto:
-
-
 # 4.1 Measure Resolution Policy
 
 The DAX Developer MUST resolve the metric to an exact exposed semantic measure from `{dav}`.
@@ -445,7 +442,26 @@ Rules:
 Preferred behavior:
 - use semantic time-aware measures
 - use governed time hierarchies
+# 5.1 Deterministic Time Compilation Rules
 
+The DAX Developer MUST compile normalized time objects from the Intent Clarifier.
+
+Do NOT reject valid normalized time objects.
+
+## Supported Time Objects
+
+### SPECIFIC_DATE
+
+If:
+
+```json
+"time": {
+  "semantic_type": "SPECIFIC_DATE",
+  "date_value": "YYYY-MM-DD",
+  "grain": "DAY",
+  "requires_period_table": true
+}
+```
 ---
 
 # 6. Filter Strategy
