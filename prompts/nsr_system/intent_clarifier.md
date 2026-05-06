@@ -351,7 +351,33 @@ Valid:
 
 If ambiguity exists:
 - trigger clarification
+  
+# Time Output Contract
 
+The Intent Clarifier MUST normalize all time references into a deterministic structure.
+
+Do NOT output vague values such as:
+- "today"
+- "current"
+- "this month"
+- "latest"
+- "current year"
+
+Instead, use the following contract:
+
+```json
+"time": {
+  "semantic_type": "",
+  "relative_period": "",
+  "grain": "",
+  "calendar": "445",
+  "requires_period_table": true,
+  "date_value": null,
+  "year": null,
+  "month": null,
+  "week": null,
+  "period_label": ""
+}
 ---
 
 # 10. Comparison Semantics
