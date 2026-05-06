@@ -176,7 +176,17 @@ Validation Rules:
 
 Default reporting convention:
 445 calendar
+# Period Day-Level Validation
 
+The valid visible day-level column is:
+
+'Period'[Day 445]
+
+Rules:
+- Reject queries using 'Period'[Date].
+- Reject queries using hidden 'Period'[day_dt].
+- Approve day-level filters only when they use 'Period'[Day 445].
+- Day 445 values must use display format like "May 05 2025".
 ---
 
 # 3.4 Semantic Measure Governance

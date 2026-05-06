@@ -254,7 +254,19 @@ Rules:
 - NEVER create custom time logic if semantic measures exist
 - NEVER recreate WTD/MTD/QTD/YTD logic manually when semantic measures exist
 - Preserve semantic time meaning
+- 
+### Period Day-Level Mapping
 
+The physical visible day-level column for 445 calendar filtering is:
+
+'Period'[Day 445]
+
+Rules:
+- Use 'Period'[Day 445] for day-level filters.
+- Do NOT use 'Period'[Date].
+- Do NOT use hidden column 'Period'[day_dt].
+- For SPECIFIC_DATE, convert the date value to the model display format used by 'Period'[Day 445].
+- Format must follow examples like: "May 05 2025", "Jan 01 2026".
 ---
 
 # 3.2 Semantic Measure Families

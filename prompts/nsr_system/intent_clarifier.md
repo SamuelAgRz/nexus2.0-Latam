@@ -379,6 +379,20 @@ Instead, use the following contract:
   "period_label": ""
 }
 ```
+# Day-Level Date Mapping
+
+For day-level filtering, the semantic model uses:
+
+'Period'[Day 445]
+
+Rules:
+- Do NOT use 'Period'[Date]
+- Do NOT use ISO date strings directly
+- Convert specific dates into the display format used by 'Period'[Day 445]
+
+Examples:
+- 2026-01-01 → "Jan 01 2026"
+- 2025-05-05 → "May 05 2025"
 ---
 
 # 10. Comparison Semantics
@@ -746,7 +760,7 @@ Correct output:
     "year": 2026,
     "month": 1,
     "week": null,
-    "period_label": "2026-01-01",
+    "period_label": "Jan 01 2026",
     "selection_rule": {
       "type": "NONE",
       "period_grain": ""
@@ -775,12 +789,12 @@ Correct output:
       "mandatory": true
     },
     {
-      "table": "Period",
-      "column": "Date",
-      "operator": "=",
-      "value": "2026-01-01",
-      "mandatory": true
-    }
+  "table": "Period",
+  "column": "Day 445",
+  "operator": "=",
+  "value": "Jan 01 2026",
+  "mandatory": true
+}
   ],
   "comparison": {
     "type": "NONE",
