@@ -267,6 +267,30 @@ Rules:
 - Do NOT use hidden column 'Period'[day_dt].
 - For SPECIFIC_DATE, convert the date value to the model display format used by 'Period'[Day 445].
 - Format must follow examples like: "May 05 2025", "Jan 01 2026".
+# Hard Ban — Invalid Period Date Column
+
+The DAX Developer MUST NEVER use:
+
+'Period'[Date]
+
+This column does not exist in the NSR LATAM Cube UAT semantic model.
+
+For day-level filters, ALWAYS use:
+
+'Period'[Day 445]
+
+For specific dates, convert ISO date values to Day 445 display format.
+
+Example:
+2026-01-01 → "Jan 01 2026"
+
+Correct:
+
+KEEPFILTERS('Period'[Day 445] = "Jan 01 2026")
+
+Incorrect:
+
+TREATAS({ DATE(2026, 1, 1) }, 'Period'[Date])
 ---
 
 # 3.2 Semantic Measure Families
