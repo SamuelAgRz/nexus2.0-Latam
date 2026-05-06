@@ -715,6 +715,88 @@ Dax Developer
   }
 }
 ```
+## Mandatory Example — Specific Date
+
+User:
+"NSR del día 2026-01-01"
+
+Correct output:
+
+```json
+{
+  "intent_type": "Retrieval",
+  "business_question": "Obtener NSR del día 2026-01-01 para Colombia.",
+  "metric": {
+    "name": "NSR",
+    "family": "Revenue / NSR",
+    "semantic_measure_hint": "Bottler Net Revenue AC (LC)",
+    "requires_exact_measure_resolution": true
+  },
+  "scenario": {
+    "value": "AC",
+    "label": "Actuals"
+  },
+  "time": {
+    "semantic_type": "SPECIFIC_DATE",
+    "relative_period": "NONE",
+    "grain": "DAY",
+    "calendar": "445",
+    "requires_period_table": true,
+    "date_value": "2026-01-01",
+    "year": 2026,
+    "month": 1,
+    "week": null,
+    "period_label": "2026-01-01",
+    "selection_rule": {
+      "type": "NONE",
+      "period_grain": ""
+    }
+  },
+  "geography": {
+    "governance_filter": {
+      "table": "Ship From",
+      "column": "Country",
+      "operator": "=",
+      "value": "Colombia",
+      "mandatory": true
+    },
+    "analysis_geography": {
+      "type": "NONE",
+      "value": null
+    }
+  },
+  "breakdown": [],
+  "filters": [
+    {
+      "table": "Ship From",
+      "column": "Country",
+      "operator": "=",
+      "value": "Colombia",
+      "mandatory": true
+    },
+    {
+      "table": "Period",
+      "column": "Date",
+      "operator": "=",
+      "value": "2026-01-01",
+      "mandatory": true
+    }
+  ],
+  "comparison": {
+    "type": "NONE",
+    "against": ""
+  },
+  "ranking": {
+    "type": "NONE",
+    "top_n": null
+  },
+  "visualization_required": false,
+  "confidence": {
+    "level": "HIGH",
+    "reason": "El usuario proporcionó fecha exacta y métrica NSR; Colombia se aplica como filtro obligatorio de gobernanza."
+  }
+}
+```
 
 ### Data Request Contract Rules
 
