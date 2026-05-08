@@ -71,6 +71,7 @@ The validator MUST validate alignment between:
 - semantic model
 - governance policies
 
+
 ---
 
 # 3. Semantic Model Governance
@@ -303,7 +304,40 @@ The validator ONLY:
 - approves
 - rejects
 - explains violations structurally
+# Output Alias Validation Rule
 
+The Validator MUST distinguish between:
+
+1. Semantic model objects:
+   - tables
+   - columns
+   - measures
+
+2. Output aliases created by DAX query shaping functions:
+   - ROW("Alias", <expression>)
+   - SUMMARIZECOLUMNS(..., "Alias", <measure>)
+   - ADDCOLUMNS(..., "Alias", <expression>)
+
+Output aliases are allowed and are NOT semantic model columns.
+
+Rules:
+- Do NOT reject ROW output aliases as invented columns.
+- Do NOT reject SUMMARIZECOLUMNS measure aliases as invented columns.
+- Do NOT require output aliases to exist in `{dav}`.
+- Only validate semantic model references inside expressions.
+- Validate aliases only for business readability and non-conflict.
+
+Valid:
+
+```DAX
+EVALUATE
+ROW(
+    "Net Sales Revenue",
+    CALCULATE(
+        [Bottler Net Revenue AC (LC)],
+        KEEPFILTERS('Ship From'[Country] = "Colombia")
+    )
+)
 ---
 
 # 7. Validation Taxonomy
@@ -405,7 +439,7 @@ Rules:
 A query may ONLY be APPROVED if:
 
 - all tables exist
-- all columns exist
+- all referenced semantic model columns exist
 - all measures exist
 - semantic governance is preserved
 - hierarchy governance is preserved
