@@ -216,6 +216,32 @@ The Validator MUST reject any query referencing:
 'Date'[Date]
 ```
 
+## SUMMARIZECOLUMNS Filter Validation
+
+Reject queries using direct boolean filter expressions inside SUMMARIZECOLUMNS.
+
+Reject patterns like:
+
+KEEPFILTERS('Period'[Day 445] = "...")
+
+KEEPFILTERS('Ship From'[Country] = "...")
+
+inside SUMMARIZECOLUMNS.
+
+Reason:
+These patterns may trigger semantic ambiguity errors in the NSR LATAM semantic model.
+
+Approved pattern:
+
+FILTER(
+    ALL('Period'[Day 445]),
+    'Period'[Day 445] = "..."
+)
+
+FILTER(
+    ALL('Ship From'[Country]),
+    'Ship From'[Country] = "Colombia"
+)
 ---
 
 ## Invalid Generic Measures

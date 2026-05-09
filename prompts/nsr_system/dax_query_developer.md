@@ -269,6 +269,38 @@ Unless they exist EXACTLY in `{dav}`.
 
 The DAX Developer MUST use official semantic hierarchy columns.
 
+## SUMMARIZECOLUMNS Filter Safety Rules
+
+Inside SUMMARIZECOLUMNS, NEVER use direct boolean filter expressions like:
+
+KEEPFILTERS('Period'[Day 445] = "Jan 02 2026")
+
+KEEPFILTERS('Ship From'[Country] = "Colombia")
+
+These patterns may fail in the NSR LATAM semantic model with:
+
+"A single value for column cannot be determined"
+
+Instead, ALWAYS use table filter expressions.
+
+Correct patterns:
+
+FILTER(
+    ALL('Period'[Day 445]),
+    'Period'[Day 445] = "Jan 02 2026"
+)
+
+FILTER(
+    ALL('Ship From'[Country]),
+    'Ship From'[Country] = "Colombia"
+)
+
+Rules:
+- Inside SUMMARIZECOLUMNS prefer FILTER(ALL(...))
+- Avoid direct boolean filter expressions
+- Avoid ambiguous scalar filter resolution
+- Prefer explicit table filter semantics
+  
 ---
 
 ## Product Hierarchy
@@ -772,9 +804,21 @@ Avoid unnecessary complexity.
 
 ## Primary
 
-```DAX
-KEEPFILTERS()
-```
+# Preferred Filtering Strategy
+
+Inside CALCULATE:
+- Prefer KEEPFILTERS()
+
+Inside SUMMARIZECOLUMNS:
+- Prefer FILTER(ALL(...))
+
+Use FILTER(ALL(...)) for:
+- Day 445 filtering
+- Colombia governance filtering
+- Explicit dimension filtering
+
+Reason:
+The NSR LATAM semantic model may produce scalar ambiguity errors with direct boolean filters inside SUMMARIZECOLUMNS.
 
 Use for:
 
