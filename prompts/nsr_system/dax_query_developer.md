@@ -187,6 +187,21 @@ Rules:
 - NEVER bypass Colombia restrictions
 - ALWAYS preserve governance filtering
 
+## Redundant Filter Avoidance
+
+If a governance or time filter is already applied as a SUMMARIZECOLUMNS filter argument using FILTER(ALL(...)), do NOT repeat the same filter inside CALCULATE.
+
+Preferred:
+
+"Net Sales Revenue", [Bottler Net Revenue AC (LC)]
+
+Avoid:
+
+"Net Sales Revenue",
+CALCULATE(
+    [Bottler Net Revenue AC (LC)],
+    KEEPFILTERS('Ship From'[Country] = "Colombia")
+)
 ---
 
 # 5. Valid Semantic Tables

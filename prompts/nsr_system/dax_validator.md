@@ -218,30 +218,45 @@ The Validator MUST reject any query referencing:
 
 ## SUMMARIZECOLUMNS Filter Validation
 
-Reject queries using direct boolean filter expressions inside SUMMARIZECOLUMNS.
+Inside `SUMMARIZECOLUMNS`, reject direct boolean filters when they are passed as filter arguments.
 
-Reject patterns like:
+Reject this pattern:
 
-KEEPFILTERS('Period'[Day 445] = "...")
-
-KEEPFILTERS('Ship From'[Country] = "...")
-
-inside SUMMARIZECOLUMNS.
-
-Reason:
-These patterns may trigger semantic ambiguity errors in the NSR LATAM semantic model.
-
-Approved pattern:
-
-FILTER(
-    ALL('Period'[Day 445]),
-    'Period'[Day 445] = "..."
+```DAX
+SUMMARIZECOLUMNS(
+    'Channel'[LT1.1 - Trade Channel],
+    KEEPFILTERS('Period'[Day 445] = "Jan 02 2026"),
+    KEEPFILTERS('Ship From'[Country] = "Colombia"),
+    "Net Sales Revenue", [Bottler Net Revenue AC (LC)]
 )
-
-FILTER(
-    ALL('Ship From'[Country]),
-    'Ship From'[Country] = "Colombia"
+```
+```
+SUMMARIZECOLUMNS(
+    'Channel'[LT1.1 - Trade Channel],
+    FILTER(
+        ALL('Period'[Day 445]),
+        'Period'[Day 445] = "Jan 02 2026"
+    ),
+    FILTER(
+        ALL('Ship From'[Country]),
+        'Ship From'[Country] = "Colombia"
+    ),
+    "Net Sales Revenue", [Bottler Net Revenue AC (LC)]
 )
+```
+Important distinction:
+
+Do NOT reject `KEEPFILTERS(...)` inside `CALCULATE(...)` only because it appears inside the measure expression.
+
+This is acceptable:
+
+```DAX
+"Net Sales Revenue",
+CALCULATE(
+    [Bottler Net Revenue AC (LC)],
+    KEEPFILTERS('Ship From'[Country] = "Colombia")
+)
+```
 ---
 
 ## Invalid Generic Measures
