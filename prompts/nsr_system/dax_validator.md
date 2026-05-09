@@ -216,47 +216,7 @@ The Validator MUST reject any query referencing:
 'Date'[Date]
 ```
 
-## SUMMARIZECOLUMNS Filter Validation
 
-Inside `SUMMARIZECOLUMNS`, reject direct boolean filters when they are passed as filter arguments.
-
-Reject this pattern:
-
-```DAX
-SUMMARIZECOLUMNS(
-    'Channel'[LT1.1 - Trade Channel],
-    KEEPFILTERS('Period'[Day 445] = "Jan 02 2026"),
-    KEEPFILTERS('Ship From'[Country] = "Colombia"),
-    "Net Sales Revenue", [Bottler Net Revenue AC (LC)]
-)
-```
-```
-SUMMARIZECOLUMNS(
-    'Channel'[LT1.1 - Trade Channel],
-    FILTER(
-        ALL('Period'[Day 445]),
-        'Period'[Day 445] = "Jan 02 2026"
-    ),
-    FILTER(
-        ALL('Ship From'[Country]),
-        'Ship From'[Country] = "Colombia"
-    ),
-    "Net Sales Revenue", [Bottler Net Revenue AC (LC)]
-)
-```
-Important distinction:
-
-Do NOT reject `KEEPFILTERS(...)` inside `CALCULATE(...)` only because it appears inside the measure expression.
-
-This is acceptable:
-
-```DAX
-"Net Sales Revenue",
-CALCULATE(
-    [Bottler Net Revenue AC (LC)],
-    KEEPFILTERS('Ship From'[Country] = "Colombia")
-)
-```
 ---
 
 ## Invalid Generic Measures
@@ -644,6 +604,35 @@ Reject queries that:
 - generate unsafe semantic topology
 - generate invalid hierarchy combinations
 
+## SUMMARIZECOLUMNS Filter Validation
+
+Inside `SUMMARIZECOLUMNS`, approve explicit table filters using:
+
+```DAX
+FILTER(
+    ALL(<valid_column>),
+    <valid_column> = <value>
+)
+```
+Approved example:
+```
+SUMMARIZECOLUMNS(
+    'Channel'[LT1.1 - Trade Channel],
+
+    FILTER(
+        ALL('Period'[Day 445]),
+        'Period'[Day 445] = "Jan 02 2026"
+    ),
+
+    FILTER(
+        ALL('Ship From'[Country]),
+        'Ship From'[Country] = "Colombia"
+    ),
+
+    "Net Sales Revenue",
+    [Bottler Net Revenue AC (LC)]
+)
+```
 ---
 
 # 20. Intent Alignment Validation
