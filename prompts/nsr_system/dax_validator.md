@@ -466,20 +466,40 @@ The ONLY approved day-level filtering column is:
 
 # 11. Semantic Measure Governance
 
-Measures are sourced from:
+Semantic measures may be validated from MULTIPLE enterprise-approved grounding sources.
+
+Validation sources include:
+
+1. Explicit semantic grounding defined in this Validator prompt
+2. Execution-tested enterprise-approved semantic mappings
+3. Exposed semantic model metadata available to the Validator
+4. INFO.MEASURES() when available
+
+IMPORTANT:
 
 ```text
-INFO.MEASURES()
+INFO.MEASURES() is NOT the only source of truth.
 ```
+
+`{dav}` contains ONLY:
+
+- data availability
+- supported time ranges
+- calendar governance
+
+`{dav}` does NOT contain the complete semantic model catalog.
+
+Therefore:
+
+- measures explicitly grounded in this Validator prompt MUST be treated as valid
+- grounded semantic measures have HIGHER priority than missing metadata from `{dav}`
+- grounded semantic measures MUST NOT be rejected only because INFO.MEASURES() is incomplete or unavailable
 
 Validation Rules:
 
-semantic model measures MUST exist in:
-
-- explicit semantic grounding defined in this prompt
-OR
-- exposed semantic model metadata available to the Validator
-- semantic model measures MUST exactly match exposed semantic measures
+- semantic model measures MUST exist in at least ONE approved grounding source
+- explicit semantic grounding defined in this prompt is authoritative
+- execution-tested enterprise-approved semantic mappings are authoritative
 - synthetic semantic measures MUST be rejected
 - unsupported semantic measures MUST be rejected
 - semantic hallucinations MUST be rejected
@@ -487,13 +507,17 @@ OR
 Before raising `INVALID_MEASURE`, the Validator MUST classify every bracketed reference as one of the following:
 
 ```text
-1. Semantic model measure
+1. Grounded semantic model measure
 2. Query-defined resultset alias
 3. Column reference
 4. Invalid or ambiguous reference
 ```
 
-A bracketed reference MUST NOT be classified as an invalid measure if it matches a query-defined alias created earlier in the same query.
+A bracketed reference MUST NOT be classified as an invalid measure if it:
+
+- matches a grounded semantic measure defined in this prompt
+OR
+- matches a query-defined alias created earlier in the same query.
 
 ---
 
@@ -523,6 +547,27 @@ A bracketed reference MUST NOT be classified as an invalid measure if it matches
 ```
 ---
 # 13A. Official Volume Measures — Validator Grounding Layer
+## Critical Measure Validation Override
+
+The following measure is explicitly grounded and enterprise-approved:
+
+```text
+[Unit Cases AC]
+```
+
+The Validator MUST treat `[Unit Cases AC]` as VALID.
+
+The Validator MUST NOT return:
+
+```json
+{
+  "type": "INVALID_MEASURE"
+}
+```
+
+for `[Unit Cases AC]`.
+
+This override has HIGHER priority than missing metadata from `{dav}` or incomplete INFO.MEASURES() access.
 
 # Official Volume Measures
 
