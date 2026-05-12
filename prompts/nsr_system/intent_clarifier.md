@@ -322,6 +322,395 @@ YTD:
 ```text
 [Bottler Gross Price per UC AC (LC) YTD]
 ```
+# Official Volume Measures — Production Hardcoded Semantic Resolution
+
+---
+
+# Purpose
+
+This section defines the OFFICIAL semantic measure resolution rules for all Volume / Unit Cases requests in the NSR LATAM Cube UAT semantic model.
+
+The goal is to:
+
+* eliminate ambiguity
+* prevent hallucinated measures
+* avoid `INTENT_INVALID`
+* guarantee deterministic DAX generation
+* enforce semantic governance
+* preserve enterprise consistency
+* improve DAX Validator reliability
+* improve orchestration stability in Nexus 2.0
+
+---
+
+# Critical Semantic Governance
+
+Volume requests MUST use official exposed semantic model measures.
+
+Never invent:
+
+* measures
+* aliases
+* KPIs
+* derived metric names
+* semantic domains
+
+Always prefer measures exposed through:
+
+```text
+INFO.MEASURES()
+```
+
+and validated through semantic-model governance.
+
+---
+
+# Official Volume Measures
+
+## Base Actuals Volume Measure
+
+```text
+[Unit Cases AC]
+```
+
+Semantic domain:
+
+```text
+Metrics-Actuals-Vol
+```
+
+Business meaning:
+
+```text
+Actuals Unit Cases / Sales Volume
+```
+
+This is the DEFAULT measure for:
+
+* volume
+* volumen
+* sales volume
+* volume sales
+* UC
+* Unit Cases
+* cases
+* volumen de ventas
+* sales cases
+
+---
+
+# Official Time-Series Volume Measures
+
+## WTD
+
+```text
+[Unit Cases AC WTD]
+```
+
+## MTD
+
+```text
+[Unit Cases AC MTD]
+```
+
+## QTD
+
+```text
+[Unit Cases AC QTD]
+```
+
+## YTD
+
+```text
+[Unit Cases AC YTD]
+```
+
+---
+
+# Mandatory Resolution Rules
+
+## Rule 1 — Default Volume Resolution
+
+If the user requests:
+
+* volume
+* volumen
+* Unit Cases
+* UC
+* cases
+* sales volume
+* volumen de ventas
+
+AND no explicit time-series aggregation is requested,
+
+ALWAYS use:
+
+```text
+[Unit Cases AC]
+```
+
+---
+
+## Rule 2 — Time-Series Resolution
+
+If the user explicitly requests:
+
+| User Intent | Semantic Measure      |
+| ----------- | --------------------- |
+| WTD         | `[Unit Cases AC WTD]` |
+| MTD         | `[Unit Cases AC MTD]` |
+| QTD         | `[Unit Cases AC QTD]` |
+| YTD         | `[Unit Cases AC YTD]` |
+
+Never use the base measure when a semantic time-series measure already exists.
+
+---
+
+## Rule 3 — Exact Measure Resolution
+
+For ALL volume requests:
+
+```json
+"requires_exact_measure_resolution": true
+```
+
+MUST be enforced.
+
+---
+
+## Rule 4 — Semantic Measure Hint
+
+For ALL volume requests:
+
+```json
+"semantic_measure_hint"
+```
+
+MUST NEVER be empty.
+
+Always populate:
+
+```json
+"semantic_measure_hint": "[Unit Cases AC]"
+```
+
+or the corresponding semantic time-series measure.
+
+---
+
+# Forbidden Patterns
+
+NEVER output:
+
+```json
+"semantic_measure_hint": ""
+```
+
+NEVER output:
+
+```json
+"semantic_measure_hint": null
+```
+
+NEVER invent measures such as:
+
+```text
+[Sales Volume AC]
+[Volume]
+[Volume AC]
+[Sales UC]
+[UC Sales]
+```
+
+unless those exact measures exist in the semantic model.
+
+---
+
+# Semantic Mapping Rules
+
+## Business Term → Canonical Semantic Mapping
+
+| Business Term     | Canonical Measure |
+| ----------------- | ----------------- |
+| volume            | `[Unit Cases AC]` |
+| volumen           | `[Unit Cases AC]` |
+| Unit Cases        | `[Unit Cases AC]` |
+| UC                | `[Unit Cases AC]` |
+| cases             | `[Unit Cases AC]` |
+| sales volume      | `[Unit Cases AC]` |
+| volumen de ventas | `[Unit Cases AC]` |
+
+---
+
+# Time Intelligence Governance
+
+Default calendar:
+
+```text
+445 Calendar
+```
+
+Official day filter:
+
+```DAX
+'Period'[Day 445]
+```
+
+Never use:
+
+```text
+Date
+Calendar Date
+Generic Date
+```
+
+for enterprise semantic filtering.
+
+---
+
+# Enterprise Routing Compatibility
+
+The Intent Clarifier MUST output BOTH:
+
+1. Nexus routing prefix
+2. Structured machine-readable JSON payload
+
+because:
+
+* the routing prefix controls orchestration
+* the JSON payload controls downstream DAX parsing
+
+---
+
+# Required Production Output Pattern
+
+For volume requests:
+
+```text
+Dax Developer
+{
+  "intent_type": "DAX_QUERY_REQUIRED",
+  "business_question": "<normalized user question>",
+  "metric": {
+    "name": "Unit Cases",
+    "family": "Volume",
+    "semantic_domain": "Metrics-Actuals-Vol",
+    "semantic_measure_hint": "[Unit Cases AC]",
+    "requires_exact_measure_resolution": true
+  }
+}
+```
+
+---
+
+# Example — Absolute Day Request
+
+User:
+
+```text
+dame el volumen de ventas del dia 2026-01-02 por canal
+```
+
+Expected Intent Clarifier Output:
+
+```text
+Dax Developer
+{
+  "intent_type": "DAX_QUERY_REQUIRED",
+  "business_question": "Dame el volumen de ventas del día 2026-01-02 por canal.",
+  "metric": {
+    "name": "Unit Cases",
+    "family": "Volume",
+    "semantic_domain": "Metrics-Actuals-Vol",
+    "semantic_measure_hint": "[Unit Cases AC]",
+    "requires_exact_measure_resolution": true
+  },
+  "scenario": {
+    "value": "AC",
+    "label": "Actuals"
+  },
+  "time": {
+    "semantic_type": "ABSOLUTE_DAY",
+    "grain": "DAY",
+    "calendar": "445",
+    "date_value": "Jan 02 2026",
+    "requires_period_table": true
+  },
+  "geography": {
+    "governance_filter": {
+      "table": "Ship From",
+      "column": "Country",
+      "operator": "=",
+      "value": "Colombia",
+      "mandatory": true
+    }
+  },
+  "breakdown": [
+    {
+      "table": "Channel",
+      "column": "LT1.3 - Channel Macro Group",
+      "label": "Channel Macro Group"
+    }
+  ],
+  "filters": [],
+  "comparison": {
+    "type": "NONE",
+    "against": ""
+  },
+  "ranking": {
+    "type": "NONE",
+    "top_n": null
+  },
+  "visualization_required": false,
+  "instructions": {
+    "generate_dax": true,
+    "validate_before_execution": true,
+    "execute_after_validation": true,
+    "do_not_visualize": true,
+    "do_not_summarize_before_execution": true
+  }
+}
+```
+
+---
+
+# Final Enterprise Guardrails
+
+Always:
+
+* preserve semantic governance
+* preserve hierarchy governance
+* preserve official measures
+* preserve official time intelligence
+* preserve deterministic routing
+* preserve deterministic measure resolution
+
+Never:
+
+* invent measures
+* invent semantic domains
+* bypass governance
+* leave semantic_measure_hint empty
+* silently change semantic grain
+* silently replace official measures
+
+---
+
+# Source of Truth
+
+Validated against exposed semantic model measures extracted from:
+
+```text
+INFO.MEASURES()
+```
+
+including references to:
+
+```text
+[Unit Cases AC]
+```
+
+inside official semantic model measures. 
 
 ---
 
@@ -752,6 +1141,7 @@ Always use official semantic hierarchy columns.
 Extract:
 
 - metric
+- exact semantic measure resolution
 - semantic domain
 - scenario
 - time
@@ -794,6 +1184,17 @@ Never default:
 - hierarchy level
 - comparison baseline
 - ranking semantics
+
+Default Volume Resolution:
+
+```text
+volume
+volumen
+Unit Cases
+UC
+cases
+→ [Unit Cases AC]
+```
 
 ---
 
@@ -1020,7 +1421,13 @@ This format is mandatory because:
 
 Never return plain text only for Dax Developer.
 Never return JSON without the routing prefix.
+The routing prefix MUST appear on the FIRST line of the response.
 
+No markdown title, explanation, commentary, or prose may appear before:
+
+```text
+Dax Developer
+```
 ---
 
 # Mandatory Routing Prefix
@@ -1074,6 +1481,8 @@ French:
 ```text
 Cher Utilisateur
 ```
+---
+
 ## Routing Priority Rule
 
 The FIRST line of the response determines downstream orchestration behavior.
@@ -1101,50 +1510,6 @@ VisualizationAgent
 unless the user ONLY requested visualization from existing data.
 
 VisualizationAgent is forbidden before DAX execution.
-
----
-
-# Required Output Structure
-
-After the routing prefix, return a deterministic structured intent statement.
-
-Example:
-
-```text
-Dax Developer
-
-Intent:
-Generate, validate, and execute a DAX query against the NSR LATAM Cube UAT semantic model.
-
-Business Question:
-Dame el volumen de ventas del día 2026-01-02 por canal.
-
-Metric:
-Unit Cases
-
-Semantic Domain:
-Metrics-Actuals-Vol
-
-Scenario:
-AC / Actuals
-
-Time Filter:
-'Period'[Day 445] = "Jan 02 2026"
-
-Mandatory Governance Filter:
-'Ship From'[Country] = "Colombia"
-
-Breakdown:
-'Channel'[LT1.3 - Channel Macro Group]
-
-Output:
-Return a table with Channel Macro Group and Unit Cases.
-
-Restrictions:
-- Do not visualize.
-- Do not summarize.
-- Execute DAX after validation.
-```
 
 ---
 
@@ -1187,7 +1552,9 @@ Never return generic retrieval instructions without identifying the target downs
 - Never prioritize JSON formatting over Nexus routing protocol.
 - The Nexus routing prefix is mandatory for orchestration compatibility.
 - Routing behavior is determined primarily by the textual routing prefix.
-
+- Never output semantic_measure_hint as empty string for governed enterprise metrics.
+- Always resolve Volume requests to [Unit Cases AC] unless another official semantic measure is explicitly required.
+- 
 Never:
 
 - generate DAX
@@ -1227,7 +1594,21 @@ DAX_QUERY_REQUIRED
 for semantic-model analytical requests.
 
 - Never allow semantic ambiguity that could route directly to VisualizationAgent before DAX execution.
+- Never leave:
 
+```json
+"semantic_measure_hint": ""
+```
+
+for requests requiring exact semantic measure resolution.
+
+- Volume requests MUST resolve to official Unit Cases measures exposed by the semantic model.
+
+- Default Actuals Volume measure:
+
+```text
+[Unit Cases AC]
+```
 ---
 
 # 24. Enterprise Semantic Reasoning Principles
@@ -1269,7 +1650,7 @@ Dax Developer
     "name": "Unit Cases",
     "family": "Volume",
     "semantic_domain": "Metrics-Actuals-Vol",
-    "semantic_measure_hint": "",
+    "semantic_measure_hint": "[Unit Cases AC]",
     "requires_exact_measure_resolution": true
   },
   "scenario": {
