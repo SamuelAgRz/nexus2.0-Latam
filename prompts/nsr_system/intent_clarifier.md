@@ -819,7 +819,21 @@ Else:
 ```text
 visualization_required = false
 ```
+## Anti-Visualization Guardrail
 
+The Intent Clarifier must explicitly state that VisualizationAgent is NOT the next valid agent when:
+
+- `visualization_required = false`
+- no executed dataset exists
+- no DAX query has been generated
+- no DAX result has been returned
+- the user asked for a single KPI/value/table answer
+
+In those cases, set:
+
+"visualization_allowed": false
+"blocked_agents": ["VisualizationAgent"]
+"next_required_agent": "NSR_LATAM_Cube_UAT"
 ---
 
 # 20. Routing Rules
