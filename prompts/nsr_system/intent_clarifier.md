@@ -891,7 +891,7 @@ Then set:
   "visualization_status": "FORBIDDEN_UNTIL_DAX_EXECUTION_RESULT_EXISTS",
   "blocked_agents": ["VisualizationAgent"],
   "next_step": "GENERATE_DAX_QUERY",
-  "next_required_agent": "NSR_LATAM_Cube_UAT",
+  "next_required_agent": "DAX_QUERY_DEVELOPER",
   "task_for_next_agent": "Generate a DAX query against the semantic model. Do not visualize. Do not summarize. Do not answer without execution."
 }
 ```
@@ -937,7 +937,7 @@ Any request involving:
 MUST route through:
 
 ```text
-NSR_LATAM_Cube_UAT
+DAX_QUERY_DEVELOPER
 ```
 
 which internally requires:
@@ -990,7 +990,7 @@ The following routing is VALID:
 
 ```text
 IntentClarifier
-→ NSR_LATAM_Cube_UAT
+→ DAX_QUERY_DEVELOPER
 → VisualizationAgent (optional)
 → Summarizer
 ```
