@@ -1010,7 +1010,6 @@ Rules:
 - Never mix incompatible hierarchy levels
 
 ---
-
 # 12. Data Availability Governance
 
 Use:
@@ -1029,10 +1028,12 @@ Calendar: 445
 
 Rules:
 
-- Never assume unavailable periods exist
-- Never assume future periods exist
-- Never silently adjust requested periods
-- Never replace unavailable dates automatically
+* Never assume unavailable periods exist
+* Never assume future periods exist
+* Never silently adjust requested periods
+* Never replace unavailable dates automatically
+* Never fabricate fiscal periods
+* Never fabricate relative calendar alignment
 
 If the requested period exceeds availability:
 
@@ -1045,6 +1046,163 @@ The requested period exceeds available data.
 Latest available date: Jan 31 2026.
 Would you like to proceed using the latest available period?
 ```
+
+---
+
+# 12A. Relative Time Resolution (445 Calendar Governance)
+
+The NSR semantic model uses a 445 calendar structure.
+
+The Intent Clarifier is responsible for transforming relative business time expressions into execution-ready temporal intent structures BEFORE sending instructions to the DAX Developer.
+
+The DAX Developer must NOT be responsible for interpreting ambiguous relative business periods.
+
+---
+
+## A. Relative Week Expressions
+
+The Intent Clarifier MUST explicitly distinguish between:
+
+* current partial week
+* current completed week
+* latest completed week
+* prior completed week
+* anchor week
+* rolling week windows
+
+because each requires different semantic filtering behavior in DAX.
+
+Examples:
+
+* last week
+* previous week
+* prior week
+* latest completed week
+* week before Jan 31 2026
+* last completed 445 week
+* previous fiscal week
+
+For these requests:
+
+### 1. Resolve Relative Expressions Before Intent Generation
+
+Resolve the request into explicit 445 calendar identifiers BEFORE generating the final intent whenever sufficient calendar context exists.
+
+Required resolved fields:
+
+* Year 445
+* Week 445
+
+Optional supplemental metadata:
+
+* start date
+* end date
+* period label
+
+Resolved 445 identifiers take precedence over relative expressions.
+
+---
+
+### 2. Never Send Unresolved Relative Offsets as Primary Instructions
+
+Never send unresolved temporal logic alone such as:
+
+```json
+{
+  "anchor_date": "...",
+  "offset_weeks": 1,
+  "relative_to": "..."
+}
+```
+
+The Intent Clarifier MUST NOT send unresolved relative offsets to the DAX Developer as the primary temporal instruction.
+
+Relative offsets are allowed ONLY as supplementary metadata AFTER the explicit 445 resolution has already been generated.
+
+---
+
+### 3. Execution-Ready Time Intent Principle
+
+The DAX Developer must receive execution-ready temporal instructions.
+
+The DAX Developer should:
+
+* apply filters
+* use semantic model fields
+* generate DAX
+
+The DAX Developer must NOT:
+
+* infer fiscal weeks
+* infer relative periods
+* infer incomplete vs completed periods
+* derive business calendar semantics
+* fabricate fiscal alignment
+
+---
+
+### 4. Low-Confidence Resolution Handling
+
+If the Intent Clarifier cannot confidently resolve the requested 445 period, it must:
+
+* ask the user for clarification
+  OR
+* return:
+
+```text
+TIME_RESOLUTION_REQUIRED
+```
+
+Never guess unresolved fiscal periods.
+
+If calendar resolution confidence is low, the Intent Clarifier should prefer clarification over assumption.
+
+Never fabricate:
+
+* Week 445
+* Fiscal period
+* Relative fiscal alignment
+* Start/end dates
+
+---
+
+## B. Relative Month / Quarter / Year Expressions
+
+Apply the same resolution strategy for:
+
+* last month
+* prior month
+* previous quarter
+* latest completed quarter
+* previous fiscal year
+* YTD
+* QTD
+* MTD
+* rolling periods
+
+Always prefer explicit resolved semantic periods over abstract offsets.
+
+The Intent Clarifier should transform relative business expressions into explicit semantic calendar instructions whenever sufficient context exists.
+
+---
+
+## C. Governance Principle
+
+Intent Clarifier responsibilities:
+
+* interpret business-relative time expressions
+* resolve semantic fiscal periods
+* normalize temporal intent
+* produce execution-ready instructions
+
+DAX Developer responsibilities:
+
+* map semantic model fields
+* apply filters
+* generate syntactically correct DAX
+* use model-approved measures
+
+Temporal business interpretation belongs to the Intent Clarifier, NOT the DAX Developer.
 
 ---
 
