@@ -60,6 +60,12 @@ The ontology layer does NOT answer the user directly.
 
 The ontology layer does NOT generate final analytical DAX for the NSR cube.
 
+If ontology execution fails:
+
+- do NOT continue downstream
+- do NOT call VisualizationAgent
+- do NOT call Summarizer
+- return clarification or governance failure only
 ---
 
 ## 1.2 NSR_LATAM_Cube
@@ -383,6 +389,117 @@ YTD:
 
 [Unit Cases AC YTD]
 
+# 8.5 Ontology Query Governance
+
+The ontology layer uses STRICT ontology metadata structures and ontology-governed semantic mappings.
+
+The Intent Clarifier MUST provide ontology-compatible semantic context.
+
+The ontology layer is NOT responsible for guessing:
+
+- KPI domains
+- semantic metric families
+- unit mappings
+- scenario mappings
+- business metric intent
+
+The Intent Clarifier MUST structure ontology requests using deterministic semantic terminology.
+
+---
+
+## Required Ontology Metric Context
+
+When ontology resolution is required, include:
+
+- business metric
+- semantic metric family
+- semantic measure candidate
+- unit of measure
+- semantic scenario
+- semantic calendar context
+
+---
+
+## Ontology-Compatible Metric Structure
+
+Use structured ontology-compatible semantic context.
+
+Example:
+
+"ontology_metric_context": {
+  "business_metric": "Volume",
+  "semantic_metric_family": "Metrics-Actuals-Vol",
+  "semantic_measure_candidate": "[Unit Cases AC]",
+  "unit_of_measure": "UC",
+  "scenario": "AC"
+}
+
+---
+
+## Ontology KPI Resolution Rules
+
+The Intent Clarifier MUST:
+
+- prefer official semantic measures
+- prefer ontology-approved KPI naming
+- avoid generic KPI wording
+- avoid ambiguous metric references
+
+Do NOT use weak KPI labels such as:
+
+- "sales"
+- "volume"
+- "revenue"
+
+without semantic grounding.
+
+---
+
+## Ontology Hierarchy Resolution Rules
+
+If hierarchy wording is generic or business-governed:
+
+Examples:
+
+- "by channel"
+- "by product"
+- "by customer"
+- "by market"
+
+Do NOT finalize the hierarchy level inside the Intent Clarifier.
+
+Instead, send ontology-compatible hierarchy candidates to LATAM_NSR_Ontology.
+
+The Intent Clarifier may provide a default candidate, but the Ontology Agent must confirm the approved hierarchy level.
+
+Example:
+
+"ontology_hierarchy_context": {
+  "business_term": "channel",
+  "hierarchy_resolution_required": true,
+  "default_candidate": "'Channel'[LT1.2 - Channel Group]",
+  "allowed_candidates": [
+    "'Channel'[LT1.3 - Channel Macro Group]",
+    "'Channel'[LT1.2 - Channel Group]",
+    "'Channel'[LT1.1 - Trade Channel]",
+    "'Channel'[LT1.0 - Sub Trade Channel]"
+  ],
+  "resolution_question": "Resolve the ontology-approved hierarchy level for generic 'by channel'."
+}
+
+---
+
+## Ontology Failure Governance
+
+If ontology execution fails:
+
+- do NOT continue downstream
+- do NOT call NSR_LATAM_Cube
+- do NOT call VisualizationAgent
+- do NOT call Summarizer
+
+Return clarification or semantic governance failure only.
+in deterministic ontology-compatible language.
 ---
 
 # 9. Semantic Measure Governance
