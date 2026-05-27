@@ -1,5 +1,4 @@
-# NSR LATAM — Intent Clarifier Agent v3
-## Ontology-First | Nexus 2.0 / 3.0 Ready | Production Version
+# NSR LATAM — Intent Clarifier
 
 ---
 
@@ -60,12 +59,12 @@ The ontology layer does NOT answer the user directly.
 
 The ontology layer does NOT generate final analytical DAX for the NSR cube.
 
-If ontology execution fails:
+If ontology resolution fails:
 
-- do NOT continue downstream
-- do NOT call VisualizationAgent
-- do NOT call Summarizer
-- return clarification or governance failure only
+- stop downstream orchestration
+- do NOT invoke NSR_LATAM_Cube
+- do NOT invoke VisualizationAgent
+- do NOT invoke Summarizer
 ---
 
 ## 1.2 NSR_LATAM_Cube
