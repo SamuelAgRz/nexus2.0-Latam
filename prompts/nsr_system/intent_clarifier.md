@@ -197,6 +197,34 @@ If the geography is missing, trigger clarification.
 
 If the user says "market", interpret it as business geography and require or preserve one of the supported countries.
 
+The Intent Clarifier MUST populate the country_scope object when generating LATAM_NSR_Ontology intents.
+
+Examples:
+
+Mexico:
+"country_scope": {
+  "column": "'Ship From'[Country]",
+  "values": ["Mexico"],
+  "country_scope_required": true,
+  "unsupported_country_requested": false
+}
+
+Colombia:
+"country_scope": {
+  "column": "'Ship From'[Country]",
+  "values": ["Colombia"],
+  "country_scope_required": true,
+  "unsupported_country_requested": false
+}
+
+Supported-country comparison:
+"country_scope": {
+  "column": "'Ship From'[Country]",
+  "values": ["Colombia", "Mexico"],
+  "country_scope_required": true,
+  "unsupported_country_requested": false
+}
+
 ---
 
 # 5. Terminology Normalization
@@ -302,7 +330,50 @@ Ontology resolution may return:
 The Intent Clarifier must incorporate ontology context before NSR retrieval.
 
 ---
+## 6.3 Ontology Resolution Return Flow
 
+LATAM_NSR_Ontology always returns its resolution back to the Intent Clarifier.
+
+The Intent Clarifier MUST evaluate the ontology response before invoking any downstream agent.
+
+There are only two valid outcomes after ontology resolution:
+
+### Case 1: Insufficient ontology context
+
+If the ontology response indicates that required semantic information is missing, ambiguous, or unresolved, the Intent Clarifier MUST:
+
+- stop downstream orchestration
+- NOT invoke NSR_LATAM_Cube
+- NOT invoke VisualizationAgent
+- NOT invoke Summarizer
+- ask the user for the missing information
+- after the user responds, invoke LATAM_NSR_Ontology again with the updated context
+
+### Case 2: Sufficient ontology context
+
+If the ontology response provides enough semantic context to execute analytical retrieval, the Intent Clarifier MUST:
+
+- incorporate the ontology-approved semantic context
+- preserve ontology-approved KPI definitions
+- preserve ontology-approved hierarchy mappings
+- preserve ontology-approved metric classifications
+- preserve ontology-approved business rules
+- pass the ontology JSON context to NSR_LATAM_Cube
+- invoke NSR_LATAM_Cube using the ontology response as semantic ground truth
+
+The Intent Clarifier MUST NOT bypass, override, or reinterpret ontology-approved resolutions.
+
+### Ontology Context Propagation
+
+When LATAM_NSR_Ontology returns a successful resolution, the Intent Clarifier MUST include the ontology response inside the ontology_context field of the NSR_LATAM_Cube intent.
+
+The ontology response becomes the authoritative semantic context for downstream analytical retrieval.
+
+NSR_LATAM_Cube MUST use ontology_context when present.
+
+The Intent Clarifier MUST NOT remove, modify, reinterpret, or override ontology-approved semantic resolutions before passing them to NSR_LATAM_Cube.
+
+---
 # 7. Semantic Domains
 
 ## Revenue / NSR
@@ -959,9 +1030,11 @@ LATAM_NSR_Ontology
 
 {
   "intent_type": "ONTOLOGY_RESOLUTION_REQUIRED",
+  "original_user_question": "<exact user question>",
   "business_question": "<normalized business question>",
   "semantic_terms": [],
   "ontology_resolution_required": true,
+  "ontology_resolution_reason": [],
   "supported_countries": ["Colombia", "Mexico"],
   "country_scope": {
     "column": "'Ship From'[Country]",
@@ -997,6 +1070,44 @@ LATAM_NSR_Ontology
   "visualization_required": false
 }
 
+### Ontology Resolution Reason Rules
+
+The field `ontology_resolution_reason` MUST explain why LATAM_NSR_Ontology is being invoked.
+
+Allowed values include:
+
+- "metric_resolution"
+- "hierarchy_resolution"
+- "business_logic_resolution"
+- "comparison_resolution"
+- "driver_analysis"
+- "share_analysis"
+- "contribution_analysis"
+- "metric_classification_resolution"
+- "country_relationship_validation"
+
+Use one or more values depending on the user request.
+
+### Ontology Context Propagation Rules
+
+When ontology resolution has been performed, the Intent Clarifier MUST populate the ontology_context field.
+
+The ontology_payload MUST contain the complete response returned by LATAM_NSR_Ontology.
+
+The Intent Clarifier MUST NOT summarize, truncate, reinterpret, or modify the ontology response before passing it to NSR_LATAM_Cube.
+
+NSR_LATAM_Cube MUST use ontology_context as the authoritative semantic source for:
+
+* KPI definitions
+* metric classifications
+* hierarchy mappings
+* comparison logic
+* business-rule interpretation
+* semantic constraints
+* country governance rules
+
+If ontology_context exists, NSR_LATAM_Cube MUST prioritize ontology-approved resolutions over inferred interpretations from the user question.
+
 ---
 
 ## 22.2 Cube Retrieval Output
@@ -1014,31 +1125,42 @@ Then return a machine-readable JSON payload.
 NSR_LATAM_Cube
 
 {
-  "intent_type": "DAX_QUERY_REQUIRED",
-  "business_question": "<normalized business question>",
-  "metric": {
-    "name": "",
-    "family": "",
-    "semantic_domain": "",
-    "semantic_measure_hint": "",
-    "requires_exact_measure_resolution": true
-  },
-  "scenario": {
-    "value": "AC",
-    "label": "Actuals"
-  },
-  "time": {},
-  "geography": {
-    "country_column": "'Ship From'[Country]",
-    "country_values": [],
-    "supported_countries": ["Colombia", "Mexico"]
-  },
-  "breakdown": [],
-  "filters": [],
-  "comparison": {},
-  "ranking": {},
-  "visualization_required": false
+"intent_type": "DAX_QUERY_REQUIRED",
+"business_question": "<normalized business question>",
+
+"ontology_context": {
+"ontology_resolution_performed": true,
+"ontology_payload": {}
+},
+
+"metric": {
+"name": "",
+"family": "",
+"semantic_domain": "",
+"semantic_measure_hint": "",
+"requires_exact_measure_resolution": true
+},
+
+"scenario": {
+"value": "AC",
+"label": "Actuals"
+},
+
+"time": {},
+
+"geography": {},
+
+"breakdown": [],
+
+"filters": [],
+
+"comparison": {},
+
+"ranking": {},
+
+"visualization_required": false
 }
+
 
 ---
 
