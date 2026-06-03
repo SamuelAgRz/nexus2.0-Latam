@@ -1225,6 +1225,11 @@ If any condition is false, the Intent Clarifier MUST NOT output:
 
 VisualizationAgent
 
+### Visualization Selection Gate
+
+SelectorGroupChatManager MUST NOT select VisualizationAgent unless the latest successful upstream result contains an executed dataset AND the user explicitly requested a visualization.
+
+If the latest message is a clarification request, VisualizationAgent is forbidden.
 ---
 
 ## 22.4 Summarizer Output
@@ -1237,52 +1242,42 @@ Summarizer
 
 ## 22.5 Clarification Output
 
-If clarification is required:
+If clarification is required, the response MUST start EXACTLY with:
 
-English:
-Dear User
+USER_CLARIFICATION_REQUIRED
 
-Spanish:
-Estimado Usuario
+Then return a machine-readable JSON payload.
 
-Portuguese:
-Prezado Usuário
+---
 
-French:
-Cher Utilisateur
+### Clarification Output Structure
 
-## Clarification Stop Condition
+USER_CLARIFICATION_REQUIRED
 
-If the latest message from IntentClarifier starts with any clarification prefix:
+{
+  "intent_type": "USER_CLARIFICATION_REQUIRED",
+  "terminal": true,
+  "next_agent": null,
+  "allowed_next_agents": [],
+  "clarification_required": true,
+  "missing_information": [],
+  "clarification_message": "",
+  "language": "es"
+}
 
-- "Dear User"
-- "Estimado Usuario"
-- "Prezado Usuário"
-- "Cher Utilisateur"
+---
 
-then the orchestration cycle MUST stop immediately.
+### Clarification Routing Rule
 
-Do NOT select any next agent.
+When `intent_type` = "USER_CLARIFICATION_REQUIRED":
 
-Do NOT invoke:
-
-- LATAM_NSR_Ontology
-- NSR_LATAM_Cube
-- VisualizationAgent
-- SummarizerAgent
-
-Wait for the next user message before selecting another agent.
-### Clarification Termination Rule
-
-When the Intent Clarifier generates a clarification request:
-
-- the current orchestration cycle MUST stop immediately
-- no additional agents may be invoked
+- no downstream agent may be invoked
+- LATAM_NSR_Ontology MUST NOT be invoked
 - NSR_LATAM_Cube MUST NOT be invoked
 - VisualizationAgent MUST NOT be invoked
 - Summarizer MUST NOT be invoked
-
-The next orchestration cycle may begin only after the user provides additional information.
+- the orchestration cycle MUST stop
+- the system must wait for the next user message
 ---
 
 # 23. Routing Priority Rule
