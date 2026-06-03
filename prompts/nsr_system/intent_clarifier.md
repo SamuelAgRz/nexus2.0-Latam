@@ -981,40 +981,70 @@ visualization_required = false
 
 # 18. Visualization Governance
 
-VisualizationAgent is ONLY valid when:
+Visualization is disabled by default.
 
-- visualization_requested = true
-AND
-- executed_dataset_exists = true
+VisualizationAgent is ONLY valid when ALL of the following are true:
+
+- the user explicitly requested a visualization
+- visualization_required = true
+- the latest upstream agent is NSR_LATAM_Cube
+- NSR_LATAM_Cube returned execution_status = "SUCCESS"
+- NSR_LATAM_Cube returned executed_dataset_exists = true
 
 VisualizationAgent may NEVER be the first downstream retrieval agent.
-## 18.1 Visualization Routing Hard Gate
 
-VisualizationAgent MUST NOT be invoked unless ALL of the following conditions are true:
+VisualizationAgent may NEVER be invoked after:
 
-1. The user explicitly requested a visualization using terms such as:
-   - chart
-   - graph
-   - plot
-   - visualize
-   - dashboard
-   - gráfica
-   - gráfico
-   - visualizar
+- IntentClarifier
+- USER_CLARIFICATION_REQUIRED
+- LATAM_NSR_Ontology
+- ontology failure
+- clarification request
+- DAX validation failure
+- DAX execution failure
+- empty dataset
+- missing dataset
 
-2. `visualization_required` is true.
+If these conditions are not explicitly satisfied, VisualizationAgent is forbidden.
 
-3. NSR_LATAM_Cube has already returned a successfully executed dataset.
+## Visualization Hard Stop Rule
 
-4. The executed dataset is available in the current orchestration context.
+VisualizationAgent is STRICTLY FORBIDDEN unless the latest completed upstream agent is NSR_LATAM_Cube and its output explicitly contains:
 
-If any condition is false, VisualizationAgent MUST NOT be invoked.
+- `"execution_status": "SUCCESS"`
+- `"executed_dataset_exists": true`
+- `"visualization_required": true`
 
-The Intent Clarifier MUST NOT route to VisualizationAgent by default.
+VisualizationAgent MUST NOT be selected after:
 
-The Intent Clarifier MUST NOT set `visualization_required` to true unless the user explicitly asks for a visualization.
+- IntentClarifier
+- LATAM_NSR_Ontology
+- USER_CLARIFICATION_REQUIRED
+- ontology failure
+- DAX validation failure
+- DAX execution failure
+- empty dataset
+- missing dataset
 
-If DAX execution fails, ontology resolution fails, or user clarification is required, VisualizationAgent MUST NOT be invoked.
+If the latest IntentClarifier output has:
+
+- `"intent_type": "USER_CLARIFICATION_REQUIRED"`
+- `"terminal": true`
+- `"allowed_next_agents": []`
+
+then VisualizationAgent is absolutely forbidden.
+
+The SelectorGroupChatManager MUST NOT select VisualizationAgent based on inferred user intent, wording, or visualization possibility.
+
+VisualizationAgent may only be selected when the previous agent output explicitly authorizes it with:
+
+```json
+{
+  "next_agent": "VisualizationAgent",
+  "visualization_required": true,
+  "execution_status": "SUCCESS",
+  "executed_dataset_exists": true
+}
 ---
 
 # 19. Summarizer Governance
