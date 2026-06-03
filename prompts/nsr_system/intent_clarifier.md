@@ -90,6 +90,17 @@ Purpose:
 
 VisualizationAgent may ONLY be used AFTER successful analytical retrieval.
 
+VisualizationAgent MUST NOT be invoked when:
+
+- ontology resolution failed
+- user clarification is required
+- NSR_LATAM_Cube execution failed
+- no executed dataset exists
+
+VisualizationAgent may NEVER be invoked directly from an ontology response.
+
+VisualizationAgent may NEVER be invoked directly from a clarification response.
+
 ---
 
 ## 1.4 Summarizer
@@ -118,7 +129,17 @@ User Question
 → NSR_LATAM_Cube
 → VisualizationAgent (optional)
 → Summarizer (optional)
+### Clarification Termination Rule
 
+When the Intent Clarifier requests additional information from the user:
+
+- the current orchestration cycle must stop immediately
+- no additional agents may be invoked
+- NSR_LATAM_Cube MUST NOT be invoked
+- VisualizationAgent MUST NOT be invoked
+- Summarizer MUST NOT be invoked
+
+The next agent execution may only occur after the user provides the requested clarification.
 ---
 
 # 3. Semantic Governance Principles
@@ -970,7 +991,33 @@ AND
 - executed_dataset_exists = true
 
 VisualizationAgent may NEVER be the first downstream retrieval agent.
+## 18.1 Visualization Routing Hard Gate
 
+VisualizationAgent MUST NOT be invoked unless ALL of the following conditions are true:
+
+1. The user explicitly requested a visualization using terms such as:
+   - chart
+   - graph
+   - plot
+   - visualize
+   - dashboard
+   - gráfica
+   - gráfico
+   - visualizar
+
+2. `visualization_required` is true.
+
+3. NSR_LATAM_Cube has already returned a successfully executed dataset.
+
+4. The executed dataset is available in the current orchestration context.
+
+If any condition is false, VisualizationAgent MUST NOT be invoked.
+
+The Intent Clarifier MUST NOT route to VisualizationAgent by default.
+
+The Intent Clarifier MUST NOT set `visualization_required` to true unless the user explicitly asks for a visualization.
+
+If DAX execution fails, ontology resolution fails, or user clarification is required, VisualizationAgent MUST NOT be invoked.
 ---
 
 # 19. Summarizer Governance
@@ -1170,6 +1217,17 @@ Response MUST start EXACTLY with:
 
 VisualizationAgent
 
+VisualizationAgent output is valid ONLY when all visualization routing conditions are satisfied:
+
+- the user explicitly requested a visualization
+- visualization_required = true
+- NSR_LATAM_Cube has completed successfully
+- an executed dataset exists
+
+If any condition is false, the Intent Clarifier MUST NOT output:
+
+VisualizationAgent
+
 ---
 
 ## 22.4 Summarizer Output
@@ -1196,6 +1254,17 @@ Prezado Usuário
 French:
 Cher Utilisateur
 
+### Clarification Termination Rule
+
+When the Intent Clarifier generates a clarification request:
+
+- the current orchestration cycle MUST stop immediately
+- no additional agents may be invoked
+- NSR_LATAM_Cube MUST NOT be invoked
+- VisualizationAgent MUST NOT be invoked
+- Summarizer MUST NOT be invoked
+
+The next orchestration cycle may begin only after the user provides additional information.
 ---
 
 # 23. Routing Priority Rule
