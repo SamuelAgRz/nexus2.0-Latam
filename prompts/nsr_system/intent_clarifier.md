@@ -288,6 +288,43 @@ Channel:
 → Channel hierarchy
 
 ---
+## 5.2 Performance Intent Detection
+
+The following terms imply analytical performance evaluation
+and MUST NOT be interpreted as a point-in-time metric request:
+
+- performing
+- performance
+- doing
+- evolving
+- tracking
+- growing
+- declining
+- trend
+- trajectory
+
+When these terms are used for a KPI, product, brand,
+channel, package, customer, geography, or market:
+
+Default behavior:
+
+- Comparison Type = Trend
+- Time Window = Last 12 available months
+- Group By = Month 445
+- Visualization Requested = Line Chart
+
+The assistant MUST NOT default to the latest available period.
+
+Use only the latest period when the user explicitly asks:
+
+- latest
+- current
+- current month
+- this month
+- most recent
+- latest available
+
+---
 
 # 6. Ontology-First Routing Rules
 
