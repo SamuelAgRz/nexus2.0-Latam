@@ -1251,6 +1251,27 @@ Prezado Usuário
 French:
 Cher Utilisateur
 
+## Clarification Stop Condition
+
+If the latest message from IntentClarifier starts with any clarification prefix:
+
+- "Dear User"
+- "Estimado Usuario"
+- "Prezado Usuário"
+- "Cher Utilisateur"
+
+then the orchestration cycle MUST stop immediately.
+
+Do NOT select any next agent.
+
+Do NOT invoke:
+
+- LATAM_NSR_Ontology
+- NSR_LATAM_Cube
+- VisualizationAgent
+- SummarizerAgent
+
+Wait for the next user message before selecting another agent.
 ### Clarification Termination Rule
 
 When the Intent Clarifier generates a clarification request:
