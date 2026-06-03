@@ -1289,7 +1289,6 @@ Dear User,
 
 Please specify whether you want data for Colombia or Mexico. This deployment only supports Colombia and Mexico.
 
-Chart Not Requested
 
 ---
 
