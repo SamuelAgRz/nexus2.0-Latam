@@ -1279,10 +1279,6 @@ The response MUST:
 * NOT generate next_agent fields
 * NOT generate allowed_next_agents fields
 
-The clarification response MUST end with:
-
-Chart Not Requested
-
 Example:
 
 Dear User,
