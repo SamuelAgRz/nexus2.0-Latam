@@ -711,8 +711,7 @@ If ontology execution fails:
 - do NOT call VisualizationAgent
 - do NOT call Summarizer
 
-Return clarification or semantic governance failure only.
-in deterministic ontology-compatible language.
+Return clarification or semantic governance failure only, in deterministic ontology-compatible language.
 ---
 
 # 9. Semantic Measure Governance
@@ -1045,14 +1044,15 @@ VisualizationAgent may only be selected when the previous agent output explicitl
   "execution_status": "SUCCESS",
   "executed_dataset_exists": true
 }
+```
 ---
 
 # 19. Summarizer Governance
 
 Summarizer is ONLY valid when:
-
 - no new retrieval is required
-- existing analytical output already exists
+- either existing analytical output exists
+- or a terminal execution error must be explained to the user
 
 ---
 
