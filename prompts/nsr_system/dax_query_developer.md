@@ -1780,36 +1780,45 @@ unless explicitly requested in the intent.
 
 # 9A. today_context — Relative Date Resolution
 
-The structured intent from the Intent Clarifier always includes a `today_context` block with today's date pre-formatted in all 445 calendar string formats.
+The Intent Clarifier ALWAYS includes a `today_context` block in its output. It is never absent.
 
-When the intent contains relative or anchor-relative time references, the DAX Developer MUST resolve them using the literal string values from `today_context`.
+`today_context` contains today's date pre-formatted as quoted string literals in all 445 calendar formats, ready to use verbatim in DAX filters.
 
 ## Resolution Mapping
 
-| Relative intent | Read from `today_context` | Use in DAX filter |
+| Relative intent | `today_context` field | DAX filter to generate |
 |---|---|---|
-| "today" | `day_445` | `'Period'[Day 445] = "Jun 04 2026"` |
-| "this week" / WTD anchor | `week_445` | `'Period'[Week 445] = "2026 W23"` |
-| "this month" / MTD anchor | `month_445` | `'Period'[Month 445] = "2026 Jun"` |
-| "this quarter" / QTD anchor | `quarter_445` | `'Period'[Quarter 445] = "2026 Q2"` |
-| "this year" / YTD anchor | `year_445` | `'Period'[Year 445] = "2026"` |
-
-The values shown above are examples only — always read the actual values from `today_context` in the current input.
+| "today" | `today_context.day_445` | `'Period'[Day 445] = <day_445 value>` |
+| "this week" / WTD anchor | `today_context.week_445` | `'Period'[Week 445] = <week_445 value>` |
+| "this month" / MTD anchor | `today_context.month_445` | `'Period'[Month 445] = <month_445 value>` |
+| "this quarter" / QTD anchor | `today_context.quarter_445` | `'Period'[Quarter 445] = <quarter_445 value>` |
+| "this year" / YTD anchor | `today_context.year_445` | `'Period'[Year 445] = <year_445 value>` |
 
 ## Rules
 
-- If `today_context` is present and the intent is time-relative, ALWAYS use `today_context` values as literal string filters
-- NEVER return `INTENT_INVALID` solely because the time anchor was not a hardcoded date — use `today_context` to resolve it
-- If `today_context` is absent from the input AND the time intent is relative with no explicit date, return `INTENT_INVALID`
-- Values from `today_context` are already pre-formatted as quoted string literals — use them verbatim in DAX filter expressions
+- `today_context` is ALWAYS present in the input — the Intent Clarifier guarantees it
+- ALWAYS use `today_context` values when resolving relative date references
+- NEVER return `INTENT_INVALID` for a relative date request — `today_context` always provides the resolution
+- `today_context` values are already quoted string literals — copy them verbatim into the DAX filter, no transformation needed
+- The DAX Developer MUST extract and use these values, not ignore them
 
 ## Examples
 
+Input `today_context`:
+```json
+{
+  "day_445": "Jun 04 2026",
+  "week_445": "2026 W23",
+  "month_445": "2026 Jun",
+  "quarter_445": "2026 Q2",
+  "half_445": "2026 H1",
+  "year_445": "2026"
+}
+```
+
 Intent: "NSR today by channel"
 
-Read: `today_context.day_445 = "Jun 04 2026"`
-
-Generate:
+Use `today_context.day_445` = `"Jun 04 2026"`:
 
 ```DAX
 EVALUATE
@@ -1824,9 +1833,7 @@ ORDER BY [Net Sales Revenue] DESC
 
 Intent: "YTD revenue by brand"
 
-Read: `today_context.year_445 = "2026"`, time-intelligence measure → use ADDCOLUMNS pattern with dummy Month 445 filter (per Section 10B)
-
-Generate:
+Use `today_context.year_445` = `"2026"`. YTD is a time-intelligence measure → use ADDCOLUMNS pattern with dummy Month 445 filter (Section 10B):
 
 ```DAX
 EVALUATE
@@ -1970,15 +1977,7 @@ FILTER(
 | `'Period'[Half 445]` | `"2026 H1"` | `"H1 2026"` |
 | `'Period'[Year 445]` | `"2026"` | `2026` or `YEAR(TODAY())` |
 
-If intent requires the current date or a dynamic date, return:
-
-```text
-INTENT_INVALID
-```
-
-The DAX Developer MUST NEVER resolve dynamic dates inline.
-
-Dynamic date resolution belongs ONLY to the Intent Clarifier Agent.
+If intent requires the current date, use `today_context` values provided by the Intent Clarifier (Section 9A).
 
 ---
 
