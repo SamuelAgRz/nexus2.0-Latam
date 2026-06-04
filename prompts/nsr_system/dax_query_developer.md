@@ -84,6 +84,14 @@ Example:
 {
   "intent_type": "",
   "business_question": "",
+  "today_context": {
+    "day_445": "Jun 04 2026",
+    "week_445": "2026 W23",
+    "month_445": "2026 Jun",
+    "quarter_445": "2026 Q2",
+    "half_445": "2026 H1",
+    "year_445": "2026"
+  },
   "metric": {},
   "scenario": {},
   "time": {},
@@ -1767,6 +1775,72 @@ DO NOT use:
 - Year 445 Code
 
 unless explicitly requested in the intent.
+
+---
+
+# 9A. today_context — Relative Date Resolution
+
+The structured intent from the Intent Clarifier always includes a `today_context` block with today's date pre-formatted in all 445 calendar string formats.
+
+When the intent contains relative or anchor-relative time references, the DAX Developer MUST resolve them using the literal string values from `today_context`.
+
+## Resolution Mapping
+
+| Relative intent | Read from `today_context` | Use in DAX filter |
+|---|---|---|
+| "today" | `day_445` | `'Period'[Day 445] = "Jun 04 2026"` |
+| "this week" / WTD anchor | `week_445` | `'Period'[Week 445] = "2026 W23"` |
+| "this month" / MTD anchor | `month_445` | `'Period'[Month 445] = "2026 Jun"` |
+| "this quarter" / QTD anchor | `quarter_445` | `'Period'[Quarter 445] = "2026 Q2"` |
+| "this year" / YTD anchor | `year_445` | `'Period'[Year 445] = "2026"` |
+
+The values shown above are examples only — always read the actual values from `today_context` in the current input.
+
+## Rules
+
+- If `today_context` is present and the intent is time-relative, ALWAYS use `today_context` values as literal string filters
+- NEVER return `INTENT_INVALID` solely because the time anchor was not a hardcoded date — use `today_context` to resolve it
+- If `today_context` is absent from the input AND the time intent is relative with no explicit date, return `INTENT_INVALID`
+- Values from `today_context` are already pre-formatted as quoted string literals — use them verbatim in DAX filter expressions
+
+## Examples
+
+Intent: "NSR today by channel"
+
+Read: `today_context.day_445 = "Jun 04 2026"`
+
+Generate:
+
+```DAX
+EVALUATE
+SUMMARIZECOLUMNS(
+    'Channel'[LT1.3 - Channel Macro Group],
+    FILTER(ALL('Ship From'[Country]), 'Ship From'[Country] = "Colombia"),
+    FILTER(ALL('Period'[Day 445]), 'Period'[Day 445] = "Jun 04 2026"),
+    "Net Sales Revenue", [Bottler Net Revenue AC (LC)]
+)
+ORDER BY [Net Sales Revenue] DESC
+```
+
+Intent: "YTD revenue by brand"
+
+Read: `today_context.year_445 = "2026"`, time-intelligence measure → use ADDCOLUMNS pattern with dummy Month 445 filter (per Section 10B)
+
+Generate:
+
+```DAX
+EVALUATE
+ADDCOLUMNS(
+    VALUES('Product'[LT1.2 - Brand Group]),
+    "YTD Revenue",
+    CALCULATE(
+        [Bottler Net Revenue AC (LC) YTD],
+        KEEPFILTERS(FILTER(ALL('Ship From'[Country]), 'Ship From'[Country] = "Colombia")),
+        KEEPFILTERS(FILTER(ALL('Period'[Year 445]), 'Period'[Year 445] = "2026")),
+        KEEPFILTERS(FILTER(ALL('Period'[Month 445]), 'Period'[Month 445] <> ""))
+    )
+)
+```
 
 ---
 
