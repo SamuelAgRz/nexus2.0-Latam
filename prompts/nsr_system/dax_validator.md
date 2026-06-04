@@ -464,6 +464,131 @@ The ONLY approved day-level filtering column is:
 
 ---
 
+## Period Column String Type Rule
+
+All `'Period'` columns are **string-typed** text columns in the NSR LATAM semantic model.
+
+Filter values MUST be quoted string literals.
+
+### Valid patterns
+
+```DAX
+'Period'[Year 445] = "2026"
+'Period'[Month 445] = "2026 Jan"
+'Period'[Week 445] = "2026 W01"
+'Period'[Quarter 445] = "2026 Q1"
+'Period'[Half 445] = "2026 H1"
+'Period'[Day 445] = "Jan 01 2026"
+```
+
+### Invalid patterns — reject as INVALID_FILTER
+
+```DAX
+'Period'[Year 445] = 2026
+'Period'[Year 445] = 2025
+```
+
+Unquoted numeric year values are type-incompatible with the string-typed `'Period'[Year 445]` column.
+
+Validation rule:
+
+- If any `'Period'` filter value is an unquoted integer or numeric expression → `INVALID_FILTER`, severity `CRITICAL`
+- If any `'Period'` filter value uses a DAX date function → `INVALID_FILTER`, severity `CRITICAL`
+
+---
+
+# 10A. Hard Ban — Dynamic Date Functions
+
+All `'Period'` columns are **string-typed** text columns.
+
+DAX date functions return date or numeric values and are type-incompatible with string columns.
+
+## Banned Functions in Period Filters
+
+Reject any query using the following inside a `'Period'` filter expression:
+
+```text
+TODAY()
+NOW()
+DATE()
+DATEVALUE()
+YEAR()
+MONTH()
+DAY()
+EOMONTH()
+EDATE()
+```
+
+Error type: `INVALID_FILTER`
+Severity: `CRITICAL`
+
+## Examples
+
+Reject:
+
+```DAX
+FILTER(
+    ALL('Period'[Year 445]),
+    'Period'[Year 445] = YEAR(TODAY())
+)
+```
+
+Reject:
+
+```DAX
+FILTER(
+    ALL('Period'[Day 445]),
+    'Period'[Day 445] = TODAY()
+)
+```
+
+Reject:
+
+```DAX
+FILTER(
+    ALL('Period'[Month 445]),
+    'Period'[Month 445] = DATE(2026, 1, 1)
+)
+```
+
+Approve:
+
+```DAX
+FILTER(
+    ALL('Period'[Year 445]),
+    'Period'[Year 445] = "2026"
+)
+```
+
+Approve:
+
+```DAX
+FILTER(
+    ALL('Period'[Day 445]),
+    'Period'[Day 445] = "Jan 01 2026"
+)
+```
+
+## Validation Rule
+
+If any `'Period'` filter expression contains a call to any of the banned functions, reject immediately with:
+
+```json
+{
+  "status": "NOT_APPROVED",
+  "errors": [
+    {
+      "type": "INVALID_FILTER",
+      "severity": "CRITICAL",
+      "message": "Dynamic date function used in 'Period' filter. All 'Period' columns are string-typed. Use quoted string literals only.",
+      "fix": "Replace the dynamic date function with a quoted string literal matching the semantic value format."
+    }
+  ]
+}
+```
+
+---
+
 # 11. Semantic Measure Governance
 
 Semantic measures may be validated from MULTIPLE enterprise-approved grounding sources.
@@ -1508,6 +1633,8 @@ A query may ONLY be APPROVED if:
 - query is executable
 - business meaning is preserved
 - 445 governance is preserved
+- all `'Period'` filter values are quoted string literals (not integers, not date expressions)
+- no dynamic date functions (`TODAY()`, `DATE()`, `NOW()`, `YEAR()`, etc.) used in `'Period'` filters
 
 If ANY critical validation fails:
 

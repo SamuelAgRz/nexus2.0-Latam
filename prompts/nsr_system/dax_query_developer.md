@@ -582,8 +582,14 @@ Column:
 Examples:
 
 ```text
-2025
-2026
+"2025"
+"2026"
+```
+
+Rule:
+
+```text
+Format = "YYYY" (quoted string — NOT a numeric integer)
 ```
 
 ---
@@ -1683,6 +1689,13 @@ Column:
 Valid examples:
 
 ```text
+"2025"
+"2026"
+```
+
+Invalid examples:
+
+```text
 2025
 2026
 ```
@@ -1690,7 +1703,10 @@ Valid examples:
 Rule:
 
 ```text
-4 digit year
+Format = "YYYY" (quoted string — NOT a numeric integer)
+
+'Period'[Year 445] stores year values as TEXT.
+Always use quoted string literals when filtering.
 ```
 
 ---
@@ -1800,6 +1816,95 @@ Examples:
 2026-01-01 → Jan 01 2026
 2025-05-05 → May 05 2025
 ```
+
+---
+
+# 10A. Hard Ban — Dynamic Date Functions
+
+All `'Period'` columns are **string-typed** text columns in the NSR LATAM semantic model.
+
+DAX date functions return date or numeric values.
+
+Passing a date function result into a string column comparison causes a type mismatch and query failure.
+
+## Banned Functions in Period Filters
+
+NEVER generate the following in any `'Period'` filter expression:
+
+```text
+TODAY()
+NOW()
+DATE()
+DATEVALUE()
+YEAR()
+MONTH()
+DAY()
+EOMONTH()
+EDATE()
+```
+
+## Rule
+
+ALWAYS use quoted string literals.
+
+NEVER compute or derive period values at query time.
+
+Valid:
+
+```DAX
+FILTER(
+    ALL('Period'[Year 445]),
+    'Period'[Year 445] = "2026"
+)
+```
+
+Invalid:
+
+```DAX
+FILTER(
+    ALL('Period'[Year 445]),
+    'Period'[Year 445] = YEAR(TODAY())
+)
+```
+
+Valid:
+
+```DAX
+FILTER(
+    ALL('Period'[Month 445]),
+    'Period'[Month 445] = "2026 Jan"
+)
+```
+
+Invalid:
+
+```DAX
+FILTER(
+    ALL('Period'[Month 445]),
+    'Period'[Month 445] = DATE(2026, 1, 1)
+)
+```
+
+## String Type Enforcement — All Period Columns
+
+| Column | Valid example | Invalid example |
+|--------|---------------|-----------------|
+| `'Period'[Day 445]` | `"Jan 01 2026"` | `DATE(2026,1,1)` |
+| `'Period'[Week 445]` | `"2026 W01"` | `2026` |
+| `'Period'[Month 445]` | `"2026 Jan"` | `DATE(2026,1,1)` |
+| `'Period'[Quarter 445]` | `"2026 Q1"` | `"Q1 2026"` |
+| `'Period'[Half 445]` | `"2026 H1"` | `"H1 2026"` |
+| `'Period'[Year 445]` | `"2026"` | `2026` or `YEAR(TODAY())` |
+
+If intent requires the current date or a dynamic date, return:
+
+```text
+INTENT_INVALID
+```
+
+The DAX Developer MUST NEVER resolve dynamic dates inline.
+
+Dynamic date resolution belongs ONLY to the Intent Clarifier Agent.
 
 ---
 
@@ -2288,6 +2393,8 @@ Before returning, validate:
 - semantic query is executable
 - hierarchy semantics are preserved
 - semantic topology is preserved
+- all `'Period'` filter values are quoted string literals (not integers, not date expressions)
+- no dynamic date functions used in `'Period'` filters (`TODAY()`, `DATE()`, `NOW()`, `YEAR()`, etc.)
 
 If validation fails:
 
