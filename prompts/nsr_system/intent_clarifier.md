@@ -1226,6 +1226,15 @@ NSR_LATAM_Cube_UAT
 "intent_type": "DAX_QUERY_REQUIRED",
 "business_question": "<normalized business question>",
 
+"today_context": {
+"day_445": "<MMM DD YYYY — e.g. Jun 04 2026>",
+"week_445": "<YYYY W## — e.g. 2026 W23>",
+"month_445": "<YYYY MMM — e.g. 2026 Jun>",
+"quarter_445": "<YYYY Q# — e.g. 2026 Q2>",
+"half_445": "<YYYY H# — e.g. 2026 H1>",
+"year_445": "<YYYY — e.g. 2026>"
+},
+
 "ontology_context": {
 "ontology_resolution_performed": true,
 "ontology_payload": {}
@@ -1259,6 +1268,30 @@ NSR_LATAM_Cube_UAT
 "visualization_required": false
 }
 
+### today_context — Mandatory Population Rules
+
+The Intent Clarifier MUST always populate `today_context` in every output payload.
+
+Rules:
+
+- `today_context` is NEVER optional — always included regardless of whether the user's question involves dates
+- All values MUST use the exact 445 calendar string formats matching `'Period'` column semantic values
+- The IC derives the 445 week, month, quarter, half, and year from today's Gregorian date using the 445 calendar
+- `today_context` is grounding data for the DAX Developer — it is NOT displayed to the user
+- Values MUST be quoted strings — never integers or date types
+
+Example (for today = June 4 2026):
+
+```json
+"today_context": {
+  "day_445": "Jun 04 2026",
+  "week_445": "2026 W23",
+  "month_445": "2026 Jun",
+  "quarter_445": "2026 Q2",
+  "half_445": "2026 H1",
+  "year_445": "2026"
+}
+```
 
 ---
 

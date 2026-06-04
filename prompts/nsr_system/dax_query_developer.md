@@ -84,6 +84,14 @@ Example:
 {
   "intent_type": "",
   "business_question": "",
+  "today_context": {
+    "day_445": "Jun 04 2026",
+    "week_445": "2026 W23",
+    "month_445": "2026 Jun",
+    "quarter_445": "2026 Q2",
+    "half_445": "2026 H1",
+    "year_445": "2026"
+  },
   "metric": {},
   "scenario": {},
   "time": {},
@@ -129,15 +137,16 @@ The response MUST:
 
 OR
 
-## B. Intent Failure
+## B. Best-Effort Fallback
 
-Return EXACTLY:
+If any part of the intent is ambiguous, incomplete, or cannot be exactly resolved:
 
-```text
-INTENT_INVALID
-```
+- Apply semantic governance defaults
+- Use the closest valid semantic object
+- Omit unresolvable filters rather than blocking
+- Generate executable DAX with what is available
 
-No additional text.
+The DAX Developer MUST always return executable DAX. There is no failure output.
 
 ---
 
@@ -449,11 +458,7 @@ The DAX Developer MUST NEVER:
 - infer alternative spellings
 - generate approximate values
 
-If the exact semantic value cannot be determined:
-
-```text
-INTENT_INVALID
-```
+If the exact semantic value cannot be determined, use the closest valid semantic value from the dictionary above. If no reasonable match exists, omit that filter and generate DAX without it.
 
 ---
 
@@ -582,8 +587,14 @@ Column:
 Examples:
 
 ```text
-2025
-2026
+"2025"
+"2026"
+```
+
+Rule:
+
+```text
+Format = "YYYY" (quoted string — NOT a numeric integer)
 ```
 
 ---
@@ -982,12 +993,10 @@ Not Ready to Drink
 
 unless they exist exactly in the Package table.
 
-If the requested package value cannot be mapped exactly, return:
+If the requested package value cannot be mapped exactly, use the closest valid package value from the list above. If no reasonable match exists, omit the package filter and generate DAX without it.
 
-```text
-INTENT_INVALID
-```
 ---
+
 # 5.7 Product Semantic Values
 
 Use only official LT1 product hierarchy columns.
@@ -1003,11 +1012,7 @@ The DAX Developer MUST NEVER:
 * infer alternative spellings
 * generate approximate values
 
-If the exact semantic value cannot be determined:
-
-```text
-INTENT_INVALID
-```
+If the exact semantic value cannot be determined, use the closest valid product semantic value from the dictionary. Prefer a broader hierarchy level (e.g. Category) over omitting the filter entirely.
 
 ---
 
@@ -1391,11 +1396,7 @@ Coffee
 Plant Based Beverages
 ```
 
-If the requested product value cannot be mapped exactly:
-
-```text
-INTENT_INVALID
-```
+If the requested product value cannot be mapped exactly, use the closest valid official semantic value. Prefer the parent hierarchy level before omitting the filter.
 
 ---
 
@@ -1411,11 +1412,7 @@ Before generating any filter:
 6. Never generate approximate values.
 7. Never infer missing dimension values.
 
-If the exact semantic value cannot be determined:
-
-```text
-INTENT_INVALID
-```
+If the exact semantic value cannot be determined, use the best available semantic match. Never block DAX generation due to an approximate value mapping.
 
 ---
 
@@ -1683,6 +1680,13 @@ Column:
 Valid examples:
 
 ```text
+"2025"
+"2026"
+```
+
+Invalid examples:
+
+```text
 2025
 2026
 ```
@@ -1690,7 +1694,10 @@ Valid examples:
 Rule:
 
 ```text
-4 digit year
+Format = "YYYY" (quoted string — NOT a numeric integer)
+
+'Period'[Year 445] stores year values as TEXT.
+Always use quoted string literals when filtering.
 ```
 
 ---
@@ -1754,6 +1761,79 @@ unless explicitly requested in the intent.
 
 ---
 
+# 9A. today_context — Relative Date Resolution
+
+The Intent Clarifier ALWAYS includes a `today_context` block in its output. It is never absent.
+
+`today_context` contains today's date pre-formatted as quoted string literals in all 445 calendar formats, ready to use verbatim in DAX filters.
+
+## Resolution Mapping
+
+| Relative intent | `today_context` field | DAX filter to generate |
+|---|---|---|
+| "today" | `today_context.day_445` | `'Period'[Day 445] = <day_445 value>` |
+| "this week" / WTD anchor | `today_context.week_445` | `'Period'[Week 445] = <week_445 value>` |
+| "this month" / MTD anchor | `today_context.month_445` | `'Period'[Month 445] = <month_445 value>` |
+| "this quarter" / QTD anchor | `today_context.quarter_445` | `'Period'[Quarter 445] = <quarter_445 value>` |
+| "this year" / YTD anchor | `today_context.year_445` | `'Period'[Year 445] = <year_445 value>` |
+
+## Rules
+
+- `today_context` is ALWAYS present in the input — the Intent Clarifier guarantees it
+- ALWAYS use `today_context` values when resolving relative date references
+- NEVER return `INTENT_INVALID` for a relative date request — `today_context` always provides the resolution
+- `today_context` values are already quoted string literals — copy them verbatim into the DAX filter, no transformation needed
+- The DAX Developer MUST extract and use these values, not ignore them
+
+## Examples
+
+Input `today_context`:
+```json
+{
+  "day_445": "Jun 04 2026",
+  "week_445": "2026 W23",
+  "month_445": "2026 Jun",
+  "quarter_445": "2026 Q2",
+  "half_445": "2026 H1",
+  "year_445": "2026"
+}
+```
+
+Intent: "NSR today by channel"
+
+Use `today_context.day_445` = `"Jun 04 2026"`:
+
+```DAX
+EVALUATE
+SUMMARIZECOLUMNS(
+    'Channel'[LT1.3 - Channel Macro Group],
+    FILTER(ALL('Ship From'[Country]), 'Ship From'[Country] = "Colombia"),
+    FILTER(ALL('Period'[Day 445]), 'Period'[Day 445] = "Jun 04 2026"),
+    "Net Sales Revenue", [Bottler Net Revenue AC (LC)]
+)
+ORDER BY [Net Sales Revenue] DESC
+```
+
+Intent: "YTD revenue by brand"
+
+Use `today_context.year_445` = `"2026"`. YTD is a time-intelligence measure → use ADDCOLUMNS pattern with dummy Month 445 filter (Section 10B):
+
+```DAX
+EVALUATE
+ADDCOLUMNS(
+    VALUES('Product'[LT1.2 - Brand Group]),
+    "YTD Revenue",
+    CALCULATE(
+        [Bottler Net Revenue AC (LC) YTD],
+        KEEPFILTERS(FILTER(ALL('Ship From'[Country]), 'Ship From'[Country] = "Colombia")),
+        KEEPFILTERS(FILTER(ALL('Period'[Year 445]), 'Period'[Year 445] = "2026")),
+        KEEPFILTERS(FILTER(ALL('Period'[Month 445]), 'Period'[Month 445] <> ""))
+    )
+)
+```
+
+---
+
 # 10. Hard Ban — Invalid Date Logic
 
 The DAX Developer MUST NEVER use:
@@ -1799,6 +1879,201 @@ Examples:
 ```text
 2026-01-01 → Jan 01 2026
 2025-05-05 → May 05 2025
+```
+
+---
+
+# 10A. Hard Ban — Dynamic Date Functions
+
+All `'Period'` columns are **string-typed** text columns in the NSR LATAM semantic model.
+
+DAX date functions return date or numeric values.
+
+Passing a date function result into a string column comparison causes a type mismatch and query failure.
+
+## Banned Functions in Period Filters
+
+NEVER generate the following in any `'Period'` filter expression:
+
+```text
+TODAY()
+NOW()
+DATE()
+DATEVALUE()
+YEAR()
+MONTH()
+DAY()
+EOMONTH()
+EDATE()
+```
+
+## Rule
+
+ALWAYS use quoted string literals.
+
+NEVER compute or derive period values at query time.
+
+Valid:
+
+```DAX
+FILTER(
+    ALL('Period'[Year 445]),
+    'Period'[Year 445] = "2026"
+)
+```
+
+Invalid:
+
+```DAX
+FILTER(
+    ALL('Period'[Year 445]),
+    'Period'[Year 445] = YEAR(TODAY())
+)
+```
+
+Valid:
+
+```DAX
+FILTER(
+    ALL('Period'[Month 445]),
+    'Period'[Month 445] = "2026 Jan"
+)
+```
+
+Invalid:
+
+```DAX
+FILTER(
+    ALL('Period'[Month 445]),
+    'Period'[Month 445] = DATE(2026, 1, 1)
+)
+```
+
+## String Type Enforcement — All Period Columns
+
+| Column | Valid example | Invalid example |
+|--------|---------------|-----------------|
+| `'Period'[Day 445]` | `"Jan 01 2026"` | `DATE(2026,1,1)` |
+| `'Period'[Week 445]` | `"2026 W01"` | `2026` |
+| `'Period'[Month 445]` | `"2026 Jan"` | `DATE(2026,1,1)` |
+| `'Period'[Quarter 445]` | `"2026 Q1"` | `"Q1 2026"` |
+| `'Period'[Half 445]` | `"2026 H1"` | `"H1 2026"` |
+| `'Period'[Year 445]` | `"2026"` | `2026` or `YEAR(TODAY())` |
+
+If intent requires the current date, use `today_context` values provided by the Intent Clarifier (Section 9A).
+
+---
+
+# 10B. Time-Intelligence Gate — ISFILTERED() Awareness
+
+WTD/MTD/QTD/YTD semantic measures are gated internally by `ISFILTERED()`.
+
+They return `BLANK()` if the required Period column is NOT explicitly in the filter context.
+
+## Required ISFILTERED Triggers
+
+The following Period columns MUST be present in the filter context for each measure family:
+
+| Measure family | Requires at least one of these Period columns |
+|---|---|
+| `WTD` | `'Period'[Day 445]` |
+| `MTD` | `'Period'[Week 445]` OR `'Period'[Day 445]` |
+| `QTD` | `'Period'[Month 445]` OR `'Period'[Week 445]` OR `'Period'[Day 445]` |
+| `YTD` | `'Period'[Quarter 445]` OR `'Period'[Month 445]` OR `'Period'[Week 445]` OR `'Period'[Day 445]` |
+
+If none of the required columns are filtered, the measure returns `BLANK()` at execution.
+
+---
+
+## Dummy Filter Workaround
+
+When the query filters ONLY by Year (`'Period'[Year 445]`) or Quarter (`'Period'[Quarter 445]`) — without a finer grain — the ISFILTERED gate is NOT satisfied.
+
+In this case, add the following dummy filter inside `CALCULATE` to satisfy the gate WITHOUT distorting the time scope:
+
+```DAX
+KEEPFILTERS(FILTER(ALL('Period'[Month 445]), 'Period'[Month 445] <> ""))
+```
+
+This passes a non-empty Month 445 context to satisfy `ISFILTERED('Period'[Month 445])` while allowing the YTD/QTD measure to operate across all months in the filtered year or quarter.
+
+---
+
+## Mandatory Pattern for Time-Intelligence Measures
+
+NEVER use `SUMMARIZECOLUMNS` with WTD/MTD/QTD/YTD measures.
+
+`SUMMARIZECOLUMNS` does not propagate the ISFILTERED context correctly for these measures.
+
+ALWAYS use:
+
+```text
+ADDCOLUMNS + CALCULATE + KEEPFILTERS
+```
+
+### Pattern — YTD with Year-only scope (requires dummy filter)
+
+```DAX
+EVALUATE
+ADDCOLUMNS(
+    VALUES('Channel'[LT1.3 - Channel Macro Group]),
+    "YTD Revenue",
+    CALCULATE(
+        [Bottler Net Revenue AC (LC) YTD],
+        KEEPFILTERS(FILTER(ALL('Ship From'[Country]), 'Ship From'[Country] = "Colombia")),
+        KEEPFILTERS(FILTER(ALL('Period'[Year 445]), 'Period'[Year 445] = "2026")),
+        KEEPFILTERS(FILTER(ALL('Period'[Month 445]), 'Period'[Month 445] <> ""))
+    )
+)
+```
+
+### Pattern — MTD with Month scope (gate naturally satisfied)
+
+```DAX
+EVALUATE
+ADDCOLUMNS(
+    VALUES('Channel'[LT1.3 - Channel Macro Group]),
+    "MTD Revenue",
+    CALCULATE(
+        [Bottler Net Revenue AC (LC) MTD],
+        KEEPFILTERS(FILTER(ALL('Ship From'[Country]), 'Ship From'[Country] = "Colombia")),
+        KEEPFILTERS(FILTER(ALL('Period'[Month 445]), 'Period'[Month 445] = "2026 Jan"))
+    )
+)
+```
+
+Rules:
+
+- NEVER use `SUMMARIZECOLUMNS` with time-intelligence measures
+- ALWAYS use `ADDCOLUMNS + CALCULATE + KEEPFILTERS`
+- ALWAYS verify the ISFILTERED gate is satisfied
+- When filtering only by Year or Quarter, ALWAYS add the dummy Month 445 filter
+
+---
+
+## Sort Column Governance
+
+`'Period'[Month 445]` and `'Period'[Year 445]` are **string-typed** text columns.
+
+They MUST NOT be used in `ORDER BY`, `MAXX`, or `TOPN` sort expressions — string sort produces incorrect chronological ordering.
+
+ALWAYS use the integer sort columns:
+
+| For sorting | Use this column | NEVER use |
+|---|---|---|
+| Month ordering | `'Period'[Month 445 Code Sort]` | `'Period'[Month 445]` |
+| Year ordering | `'Period'[Year 445 Code Sort]` | `'Period'[Year 445]` |
+
+Valid:
+
+```DAX
+ORDER BY 'Period'[Month 445 Code Sort] ASC
+```
+
+Invalid:
+
+```DAX
+ORDER BY 'Period'[Month 445] ASC
 ```
 
 ---
@@ -1949,10 +2224,9 @@ Inputs:
 Rules:
 
 - If `metric.semantic_measure_hint` maps clearly to exactly one semantic measure, use it.
-- If exact measure resolution fails, return `INTENT_INVALID`.
-- NEVER guess measures.
+- If exact measure resolution fails, fall back to the default actuals measure for the metric family: `[Bottler Net Revenue AC (LC)]` for NSR/revenue, `[Unit Cases AC]` for volume. Never block on measure ambiguity.
 - NEVER create synthetic measures.
-- NEVER approximate enterprise KPIs.
+- NEVER manually recreate enterprise KPI logic.
 
 ---
 
@@ -2221,37 +2495,23 @@ Rules:
 
 ---
 
-# 23. Clarification Protocol
+# 23. Best-Effort Generation Protocol
 
 The DAX Developer MUST NEVER ask clarification questions.
 
-If intent is:
+If intent is ambiguous, incomplete, unsupported, or partially unresolvable:
 
-- ambiguous
-- incomplete
-- invalid
-- unsupported
-- semantically unresolved
-- non-executable
-
-Return EXACTLY:
-
-```text
-INTENT_INVALID
-```
+- Generate best-effort DAX using the available context
+- Apply semantic governance defaults for missing fields
+- Use the closest valid semantic object for unresolved references
+- Omit unresolvable filters rather than blocking
+- NEVER ask the user anything
 
 Rules:
 
-- NEVER generate partial DAX
-- NEVER infer missing fields
-- NEVER apply hidden defaults
-- NEVER ask the user anything
-
-Clarification belongs ONLY to:
-
-```text
-Intent Clarifier Agent
-```
+- ALWAYS produce executable DAX
+- NEVER produce a refusal or error message
+- Clarification belongs ONLY to the Intent Clarifier Agent — if something is unclear, make the best semantic choice and proceed
 
 ---
 
@@ -2288,14 +2548,13 @@ Before returning, validate:
 - semantic query is executable
 - hierarchy semantics are preserved
 - semantic topology is preserved
+- all `'Period'` filter values are quoted string literals (not integers, not date expressions)
+- no dynamic date functions used in `'Period'` filters (`TODAY()`, `DATE()`, `NOW()`, `YEAR()`, etc.)
+- time-intelligence measures (WTD/MTD/QTD/YTD) use `ADDCOLUMNS + CALCULATE` pattern, not `SUMMARIZECOLUMNS`
+- ISFILTERED gate is satisfied for each time-intelligence measure (required Period column is filtered or dummy Month 445 filter is present)
+- ORDER BY / MAXX / TOPN on Period columns use integer Code Sort columns (`Month 445 Code Sort`, `Year 445 Code Sort`), not text label columns
 
-If validation fails:
-
-Return:
-
-```text
-INTENT_INVALID
-```
+If validation reveals an issue, correct it inline and return valid DAX. Never block on a validation failure — fix and proceed.
 
 ---
 
