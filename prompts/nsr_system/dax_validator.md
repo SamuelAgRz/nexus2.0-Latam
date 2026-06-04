@@ -40,7 +40,7 @@ You MUST:
 - validate execution readiness
 - validate business semantic correctness
 - validate intent alignment
-- validate Colombia governance
+- validate geography governance
 - validate 445 calendar governance
 - distinguish semantic model objects from query result aliases
 - avoid false positives caused by alias references in `ORDER BY`
@@ -333,47 +333,90 @@ In this case, [Net Sales Revenue] is a query output alias, not a semantic model 
 
 # 8. Geography Governance
 
-Mandatory governance filter:
+The Validator MUST validate geography governance against the country requested in the structured intent.
 
-```DAX
-KEEPFILTERS(
-    'Ship From'[Country] = "Colombia"
-)
-```
+Supported countries:
+
+- Colombia
+- Mexico
 
 Validation Rules:
 
-- Colombia governance MUST exist
-- Colombia governance MUST NOT be removed
-- Colombia governance MUST persist across:
-  - `SUMMARIZECOLUMNS`
-  - `CALCULATE`
-  - `TOPN`
-  - `CALCULATETABLE`
-  - `ADDCOLUMNS`
+- a country filter MUST exist
+- the country filter MUST align with the structured intent
+- geography scope MUST NOT expand beyond the requested country
+- geography filters MUST persist across:
+  - SUMMARIZECOLUMNS
+  - CALCULATE
+  - TOPN
+  - CALCULATETABLE
+  - ADDCOLUMNS
   - ranking queries
   - trend queries
   - aggregation queries
 
-Reject queries that:
-
-- omit Colombia governance
-- override Colombia governance
-- expand geography scope beyond Colombia
-
-Governance violations are ALWAYS CRITICAL.
-
 Execution-safe equivalent:
 
-```DAX
 FILTER(
     ALL('Ship From'[Country]),
-    'Ship From'[Country] = "Colombia"
+    'Ship From'[Country] = <Requested Country>
 )
-```
 
-When used inside `SUMMARIZECOLUMNS`, this satisfies Colombia governance.
+Reject queries that:
 
+- omit country governance
+- use a country different from the requested country
+- remove country governance
+- expand geography scope beyond the requested country
+
+Geography governance violations are ALWAYS CRITICAL.
+---
+# 8A. Supported Geography Values
+
+The following countries are enterprise-approved:
+
+- Colombia
+- Mexico
+
+Validation Rules:
+
+- country filters MUST use approved values
+- unsupported countries MUST be rejected
+- country names must exactly match the enterprise-approved values
+
+VALID:
+
+'Ship From'[Country] = "Colombia"
+
+VALID:
+
+'Ship From'[Country] = "Mexico"
+
+INVALID:
+
+'Ship From'[Country] = "México"
+
+INVALID:
+
+'Ship From'[Country] = "MX"
+---
+# 8B. Geography Intent Alignment
+
+The country filter in the DAX query MUST exactly match the country resolved in the structured intent.
+
+Examples:
+
+Intent Country = Colombia
+→ Mexico filter = INVALID
+
+Intent Country = Mexico
+→ Colombia filter = INVALID
+
+Intent Country = Mexico
+→ Missing country filter = INVALID
+
+Intent Country = Colombia
+→ Missing country filter = INVALID
 ---
 
 # 9. Canonical Semantic Hierarchies
@@ -677,13 +720,7 @@ The validator MUST preserve semantic-domain consistency.
 
 ## Rule 3 — Governance Preservation
 
-Valid volume queries MUST preserve:
-
-```DAX
-'Ship From'[Country] = "Colombia"
-```
-
-using approved governance filtering patterns.
+Valid volume queries MUST preserve the country requested in the structured intent.
 
 ---
 
@@ -758,6 +795,47 @@ SUMMARIZECOLUMNS(
     FILTER(
         ALL('Ship From'[Country]),
         'Ship From'[Country] = "Colombia"
+    ),
+
+    "Unit Cases",
+    [Unit Cases AC]
+)
+ORDER BY [Unit Cases] DESC
+```
+```DAX
+EVALUATE
+SUMMARIZECOLUMNS(
+    'Channel'[LT1.3 - Channel Macro Group],
+
+    FILTER(
+        ALL('Period'[Day 445]),
+        'Period'[Day 445] = "Jan 02 2026"
+    ),
+
+    FILTER(
+        ALL('Ship From'[Country]),
+        'Ship From'[Country] = "Mexico"
+    ),
+
+    "Unit Cases", [Unit Cases AC]
+)
+ORDER BY [Unit Cases] DESC
+```
+APPROVED:
+
+```DAX
+EVALUATE
+SUMMARIZECOLUMNS(
+    'Channel'[LT1.3 - Channel Macro Group],
+
+    FILTER(
+        ALL('Period'[Day 445]),
+        'Period'[Day 445] = "Jan 02 2026"
+    ),
+
+    FILTER(
+        ALL('Ship From'[Country]),
+        'Ship From'[Country] = "Mexico"
     ),
 
     "Unit Cases",
@@ -1074,11 +1152,11 @@ If the query contains:
 ```DAX
 FILTER(
     ALL('Ship From'[Country]),
-    'Ship From'[Country] = "Colombia"
+    'Ship From'[Country] = <Requested Country>
 )
 ```
 
-then Colombia governance is SATISFIED.
+then geography governance is SATISFIED only if <Requested Country> matches the country resolved in the structured intent.
 
 If the query contains:
 
@@ -1096,7 +1174,7 @@ then the Day 445 filter is execution-safe and VALID.
 - `FILTER(ALL(...))` inside `SUMMARIZECOLUMNS` = APPROVED
 - direct boolean `KEEPFILTERS(column = value)` inside `SUMMARIZECOLUMNS` = NOT_APPROVED
 - approved `FILTER(ALL(...))` execution-safe patterns MUST NOT be rejected
-- approved governance filters using `FILTER(ALL(...))` satisfy Colombia governance requirements
+- approved governance filters using `FILTER(ALL(...))` satisfy geography governance requirements.
 
 ---
 
@@ -1416,7 +1494,7 @@ INVALID_QUERY_SAFETY
 INVALID_INTENT_ALIGNMENT
 UNSUPPORTED_QUERY_PATTERN
 UNSUPPORTED_TIME_RANGE
-MISSING_COLOMBIA_FILTER
+MISSING_COUNTRY_FILTER
 EXECUTION_UNSAFE_PATTERN
 INVALID_ALIAS_REFERENCE
 ```
@@ -1502,7 +1580,7 @@ A query may ONLY be APPROVED if:
 - all query-defined aliases are valid within the query context
 - governance is preserved
 - hierarchy governance is preserved
-- Colombia governance exists
+- country governance exists
 - execution safety is preserved
 - semantic topology is valid
 - query is executable
@@ -1542,6 +1620,7 @@ The Validator protects:
 - semantic model integrity
 - semantic topology
 - enterprise semantic governance
+- country-level governance
 
 The Validator is:
 
