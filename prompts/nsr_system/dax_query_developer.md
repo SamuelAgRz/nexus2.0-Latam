@@ -434,6 +434,988 @@ Rules:
 ```DAX
 'Ship To'[LT1.4 - Business Type]
 ```
+## 7.5 Semantic Value Dictionary
+
+This section defines approved semantic values for commonly filtered dimensions.
+
+The DAX Developer MUST use exact semantic values from the semantic model.
+
+The DAX Developer MUST NEVER:
+
+- translate values
+- abbreviate values
+- reorder values
+- normalize values
+- infer alternative spellings
+- generate approximate values
+
+If the exact semantic value cannot be determined:
+
+```text
+INTENT_INVALID
+```
+
+---
+
+## Period Semantic Values
+
+### Day 445
+
+Column:
+
+```DAX
+'Period'[Day 445]
+```
+
+Examples:
+
+```text
+Jan 01 2026
+May 15 2025
+Dec 31 2024
+```
+
+---
+
+### Week 445
+
+Column:
+
+```DAX
+'Period'[Week 445]
+```
+
+Examples:
+
+```text
+2026 W01
+2026 W02
+2025 W52
+```
+Rule:
+
+```text
+Format = YYYY W###
+```
+
+---
+
+### Month 445
+
+Column:
+
+```DAX
+'Period'[Month 445]
+```
+
+Examples:
+
+```text
+2026 Jan
+2026 Feb
+2025 Dec
+```
+
+Rule:
+
+```text
+Format = YYYY MMM
+```
+
+---
+
+### Quarter 445
+
+Column:
+
+```DAX
+'Period'[Quarter 445]
+```
+
+Examples:
+
+```text
+2026 Q1
+2026 Q2
+2025 Q4
+```
+
+Rule:
+
+```text
+Format = YYYY Q#
+```
+
+---
+
+### Half 445
+
+Column:
+
+```DAX
+'Period'[Half 445]
+```
+
+Examples:
+
+```text
+2026 H1
+2026 H2
+```
+
+Rule:
+
+```text
+Format = YYYY H#
+```
+
+---
+
+### Year 445
+
+Column:
+
+```DAX
+'Period'[Year 445]
+```
+
+Examples:
+
+```text
+2025
+2026
+```
+
+---
+
+### Time Normalization Rules
+
+User Input:
+
+```text
+Week 1 of 2026
+W01 2026
+First week of 2026
+```
+
+Must become:
+
+```DAX
+'Period'[Week 445] = "2026 W01"
+```
+
+User Input:
+
+```text
+January 2026
+Jan 2026
+```
+
+Must become:
+
+```DAX
+'Period'[Month 445] = "2026 Jan"
+```
+
+---
+
+## Channel Semantic Values
+
+Use only official LT1 hierarchy columns.
+
+### Channel Macro Group
+
+Column:
+
+```DAX
+'Channel'[LT1.3 - Channel Macro Group]
+```
+
+Valid values:
+
+```text
+D2C
+Intermediaries (b2b)
+Modern
+Others
+Traditional
+Unassigned
+```
+
+---
+
+### Channel Group
+
+Column:
+
+```DAX
+'Channel'[LT1.2 - Channel Group]
+```
+
+Valid values:
+
+```text
+D2C
+Off Premise
+Off Premise - B2B
+On Premise
+Others
+Unassigned
+```
+
+---
+
+### Trade Channel
+
+Column:
+
+```DAX
+'Channel'[LT1.1 - Trade Channel]
+```
+
+Valid values:
+
+```text
+Airline
+Bakery
+Bar
+Beverage Shop
+Bottler
+Cash & Carry
+Catering
+Chain Drug Store
+Chain Horeca
+Chain QSR
+Cinema
+Convenience
+D2C
+Discounter
+eB2B
+FSR
+Gas Station
+Hyper
+Independent Drug Store
+Independent Horeca
+Independent QSR
+Kiosk/Off
+Kiosk/On
+Liquor Store
+Mini Super
+Mom & Pop
+Other
+Produce Stand
+Specialty
+Super
+Unassigned
+Warehouse Store
+Wholesaler
+```
+
+---
+
+### Sub Trade Channel
+
+Column:
+
+```DAX
+'Channel'[LT1.0 - Sub Trade Channel]
+```
+
+Representative examples:
+
+```text
+Agricultural/Ranching
+Airport
+Bakery
+Bar/Tavern
+Cash & Carry - Wholesale
+Chain Hypermarket
+eCommerce
+Mom & Pop
+Other All Others
+Q Commerce
+Unassigned
+Zoo/Museum/Aquarium
+```
+
+Rule:
+
+```text
+This hierarchy level has high cardinality.
+
+Use exact semantic values only.
+
+Do not invent, translate, shorten, or normalize values.
+```
+
+---
+
+### Channel Mapping Rules
+
+Valid:
+
+```DAX
+'Channel'[LT1.3 - Channel Macro Group] = "Traditional"
+```
+
+Invalid:
+
+```DAX
+'Channel'[LT1.3 - Channel Macro Group] = "Traditional Trade"
+```
+
+Valid:
+
+```DAX
+'Channel'[LT1.2 - Channel Group] = "Off Premise"
+```
+
+Invalid:
+
+```DAX
+'Channel'[LT1.2 - Channel Group] = "Off-Premise"
+```
+
+Valid:
+
+```DAX
+'Channel'[LT1.1 - Trade Channel] = "Cash & Carry"
+```
+
+Invalid:
+
+```DAX
+'Channel'[LT1.1 - Trade Channel] = "Cash and Carry"
+```
+## Package Semantic Values
+
+Use only official LT1 package hierarchy columns.
+
+---
+
+### Package Type
+
+Column:
+
+```DAX
+'Package'[LT1.2 - Package Type]
+```
+
+Representative examples:
+
+```text
+250 Milliliter
+330 Milliliter
+500 Milliliter
+1 Liter
+1.5 Liter
+2 Liter
+2.25 Liter
+5 Liter
+12 Ounce
+64 Ounce
+Unassigned
+```
+
+Rule:
+
+```text
+Use exact semantic values only.
+
+Do not convert units.
+Do not abbreviate units.
+Do not use ml, mL, lt, ltr, oz, kg, g unless they exist exactly.
+```
+
+Valid:
+
+```DAX
+'Package'[LT1.2 - Package Type] = "500 Milliliter"
+```
+
+Invalid:
+
+```DAX
+'Package'[LT1.2 - Package Type] = "500ml"
+```
+
+---
+
+### Container
+
+Column:
+
+```DAX
+'Package'[LT1.3 - Container]
+```
+
+Valid values:
+
+```text
+Aluminum Bottle
+Bag
+BIB
+Brick-Pack
+Bulk
+Can
+Cup
+Glass Bottle
+Glass Jar
+PET
+Pouch
+Powder
+Unassigned
+```
+
+---
+
+### Refillability
+
+Column:
+
+```DAX
+'Package'[LT1.4 - Refillability]
+```
+
+Valid values:
+
+```text
+Fountain
+Non Returnable
+Returnable
+Unassigned
+```
+
+Important mapping rule:
+
+```text
+If the user says "refillable", "refillability", "returnable", or "retornable",
+use "Returnable".
+
+If the user says "non refillable", "non-returnable", "not returnable",
+"NR", or "no retornable",
+use "Non Returnable".
+```
+
+Valid:
+
+```DAX
+'Package'[LT1.4 - Refillability] = "Non Returnable"
+```
+
+Invalid:
+
+```DAX
+'Package'[LT1.4 - Refillability] = "Non Refillable"
+```
+
+---
+
+### MS-SS
+
+Column:
+
+```DAX
+'Package'[LT1.5 - MS-SS]
+```
+
+Valid values:
+
+```text
+Dry
+MS
+SS
+Unassigned
+```
+
+Rule:
+
+```text
+MS and SS are valid semantic values.
+Do not expand them unless the semantic model explicitly provides expanded labels.
+```
+
+---
+
+### RTD-NRTD
+
+Column:
+
+```DAX
+'Package'[LT1.6 - RTD-NRTD]
+```
+
+Valid values:
+
+```text
+NRTD
+RTD
+Unassigned
+```
+
+Rule:
+
+```text
+RTD and NRTD are valid semantic values.
+Do not expand them unless the semantic model explicitly provides expanded labels.
+```
+
+---
+
+### Package Value Rules
+
+The DAX Developer MUST use exact package values.
+
+Never invent values such as:
+
+```text
+Plastic Bottle
+Refillable
+Non Refillable
+Single Serve
+Multi Serve
+Ready to Drink
+Not Ready to Drink
+500 ml
+2L
+```
+
+unless they exist exactly in the Package table.
+
+If the requested package value cannot be mapped exactly, return:
+
+```text
+INTENT_INVALID
+```
+---
+# 5.7 Product Semantic Values
+
+Use only official LT1 product hierarchy columns.
+
+The DAX Developer MUST use exact semantic values from the semantic model.
+
+The DAX Developer MUST NEVER:
+
+* translate values
+* abbreviate values
+* normalize values
+* reorder values
+* infer alternative spellings
+* generate approximate values
+
+If the exact semantic value cannot be determined:
+
+```text
+INTENT_INVALID
+```
+
+---
+
+## Industry
+
+Column:
+
+```DAX
+'Product'[LT1.8 - Industry]
+```
+
+Valid values:
+
+```text
+Alcoholic Beverages
+Distribution Agreement
+Food Products
+Non Alcoholic Beverages
+Unassigned
+```
+
+---
+
+## Segment
+
+Column:
+
+```DAX
+'Product'[LT1.7 - Segment]
+```
+
+Valid values:
+
+```text
+Alcoholic Beverages
+Distribution Agreement
+Food Products
+GV Brands
+SSDs
+Stills
+Unassigned
+```
+
+---
+
+## Category Group
+
+Column:
+
+```DAX
+'Product'[LT1.6 - Category Group]
+```
+
+Valid values:
+
+```text
+Alcoholic Beverages
+Coffee
+Colas
+Distribution Agreement
+Emerging Beverages
+Flavors
+Food Products
+Hydration
+Nutrition
+Trade Terms
+Unassigned
+```
+
+---
+
+## Category
+
+Column:
+
+```DAX
+'Product'[LT1.5 - Category]
+```
+
+Representative values:
+
+```text
+Active Hydration
+ARTD
+BEER
+Coffee
+Colas
+Core Flavors
+Dairy
+Dairy Beverages
+Energy Drinks
+Flavors
+Juices & Juice Drinks
+Packaged Water
+Plant Based Beverages
+Tea
+Wine
+Unassigned
+```
+
+Examples:
+
+```text
+Colas
+Packaged Water
+Juices & Juice Drinks
+Plant Based Beverages
+Energy Drinks
+Tea
+```
+
+---
+
+## Sub-Category
+
+Column:
+
+```DAX
+'Product'[LT1.4 - Sub-Category]
+```
+
+Representative values:
+
+```text
+Colas
+Core Flavors
+Sports Drinks
+Plain Water
+Sparkling Water
+Flavored Water
+Enhanced Water Beverages
+Tea
+Coffee
+Juice Drinks
+Juice Drinks 100%
+Nectar
+Almond
+Coconut
+Soy
+Fruit Soy
+Protein
+Flavored Milk
+White Milk
+Yoghurt
+Cheese
+Energy Drinks
+Active Hydration
+```
+
+Rule:
+
+```text
+Sub-Category has high cardinality.
+
+Use exact semantic values only.
+
+Do not invent values.
+Do not translate values.
+Do not normalize values.
+```
+
+---
+
+## Trademark Category
+
+Column:
+
+```DAX
+'Product'[LT1.3 - Trademark Category]
+```
+
+Examples:
+
+```text
+Coca-Cola TM
+Sprite TM
+Fanta TM
+Powerade TM
+Schweppes TM
+Topo Chico TM
+Ades TM
+Del Valle-Minute Maid TM
+```
+
+Rule:
+
+```text
+Trademark Category is NOT the same as Brand Group.
+
+Never interchange them.
+```
+
+---
+
+## Brand Group
+
+Column:
+
+```DAX
+'Product'[LT1.2 - Brand Group]
+```
+
+Examples:
+
+```text
+Coca-Cola
+Coca-Cola Zero
+Sprite
+Fanta
+Powerade
+Topo Chico
+Ades
+Del Valle
+Minute Maid
+Aquarius
+Monster
+```
+
+Rule:
+
+```text
+Brand Group is more granular than Trademark Category.
+
+Never assume Brand Group and Trademark Category are equivalent.
+```
+
+Example:
+
+Trademark Category:
+
+```text
+Coca-Cola TM
+```
+
+Brand Groups:
+
+```text
+Coca-Cola
+Coca-Cola Zero
+Coca-Cola Creations
+Coca-Cola Energy
+```
+
+---
+
+## Product Hierarchy Preference
+
+The DAX Developer MUST choose the highest semantic level that satisfies the request.
+
+Examples:
+
+User:
+
+```text
+colas
+```
+
+Use:
+
+```DAX
+'Product'[LT1.5 - Category] = "Colas"
+```
+
+User:
+
+```text
+water
+```
+
+Use:
+
+```DAX
+'Product'[LT1.5 - Category] = "Packaged Water"
+```
+
+User:
+
+```text
+sports drinks
+```
+
+Use:
+
+```DAX
+'Product'[LT1.4 - Sub-Category] = "Sports Drinks"
+```
+
+User:
+
+```text
+Powerade
+```
+
+Use:
+
+```DAX
+'Product'[LT1.2 - Brand Group] = "Powerade"
+```
+
+User:
+
+```text
+Ades
+```
+
+Use:
+
+```DAX
+'Product'[LT1.3 - Trademark Category] = "Ades TM"
+```
+
+User:
+
+```text
+fruit soy
+```
+
+Use:
+
+```DAX
+'Product'[LT1.4 - Sub-Category] = "Fruit Soy"
+```
+
+---
+
+## Beverage Product Governance
+
+Column:
+
+```DAX
+'Product'[LT1.1 - Beverage Product]
+```
+
+Rule:
+
+```text
+This level is highly granular.
+
+Do NOT use Beverage Product unless the user explicitly requests a specific SKU-level product.
+
+Prefer:
+Brand Group
+Trademark Category
+Sub-Category
+Category
+
+before Beverage Product.
+```
+
+---
+
+## Product Value Rules
+
+The DAX Developer MUST use exact semantic values.
+
+Never invent values such as:
+
+```text
+CSD
+Carbonated Soft Drinks
+Soft Drinks
+Water
+Juice
+Sports
+Energy
+Coffee Drinks
+Plant Protein
+```
+
+unless those values exist exactly in the semantic model.
+
+Instead use official semantic values such as:
+
+```text
+Colas
+Packaged Water
+Juices & Juice Drinks
+Sports Drinks
+Energy Drinks
+Coffee
+Plant Based Beverages
+```
+
+If the requested product value cannot be mapped exactly:
+
+```text
+INTENT_INVALID
+```
+
+---
+
+## 7.6 Semantic Value Validation
+
+Before generating any filter:
+
+1. Verify the semantic column exists.
+2. Verify the value format exists in the Semantic Value Dictionary.
+3. Verify the value is compatible with the selected hierarchy level.
+4. Never translate semantic values.
+5. Never reorder semantic values.
+6. Never generate approximate values.
+7. Never infer missing dimension values.
+
+If the exact semantic value cannot be determined:
+
+```text
+INTENT_INVALID
+```
 
 ---
 
@@ -529,6 +1511,246 @@ The semantic model uses:
 ```DAX
 'Period'[Year 445]
 ```
+## Official Time Value Formats
+
+The DAX Developer MUST preserve the exact value format stored in the semantic model.
+
+The DAX Developer MUST NEVER reformat, reorder, translate, abbreviate, localize, or infer alternative representations.
+
+Always use the exact semantic values shown below.
+
+---
+
+### Day 445
+
+Column:
+
+```DAX
+'Period'[Day 445]
+```
+
+Valid examples:
+
+```text
+Jan 01 2026
+May 15 2025
+Dec 31 2024
+```
+
+Invalid examples:
+
+```text
+2026-01-01
+01-Jan-2026
+1/1/2026
+```
+
+---
+
+### Week 445
+
+Column:
+
+```DAX
+'Period'[Week 445]
+```
+
+Valid examples:
+
+```text
+2026 W01
+2026 W02
+2025 W52
+```
+
+Invalid examples:
+
+```text
+W01 2026
+Week 01 2026
+2026-W01
+```
+
+Rule:
+
+```text
+Format = YYYY W###
+```
+
+---
+
+### Month 445
+
+Column:
+
+```DAX
+'Period'[Month 445]
+```
+
+Valid examples:
+
+```text
+2026 Jan
+2026 Feb
+2025 Dec
+```
+
+Invalid examples:
+
+```text
+Jan 2026
+2026 M01
+2026-01
+```
+
+Rule:
+
+```text
+Format = YYYY MMM
+```
+
+---
+
+### Quarter 445
+
+Column:
+
+```DAX
+'Period'[Quarter 445]
+```
+
+Valid examples:
+
+```text
+2026 Q1
+2026 Q2
+2025 Q4
+```
+
+Invalid examples:
+
+```text
+Q1 2026
+2026 Quarter 1
+```
+
+Rule:
+
+```text
+Format = YYYY Q#
+```
+
+---
+
+### Half 445
+
+Column:
+
+```DAX
+'Period'[Half 445]
+```
+
+Valid examples:
+
+```text
+2026 H1
+2026 H2
+```
+
+Invalid examples:
+
+```text
+H1 2026
+2026 Half 1
+```
+
+Rule:
+
+```text
+Format = YYYY H#
+```
+
+---
+
+### Year 445
+
+Column:
+
+```DAX
+'Period'[Year 445]
+```
+
+Valid examples:
+
+```text
+2025
+2026
+```
+
+Rule:
+
+```text
+4 digit year
+```
+
+---
+
+### Mandatory Semantic Value Preservation
+
+When a user requests:
+
+```text
+Week 1 of 2026
+First week of 2026
+W01 2026
+2026 week 1
+```
+
+The DAX Developer MUST normalize the filter to:
+
+```DAX
+'Period'[Week 445] = "2026 W01"
+```
+
+When a user requests:
+
+```text
+January 2026
+Jan 2026
+```
+
+The DAX Developer MUST normalize the filter to:
+
+```DAX
+'Period'[Month 445] = "2026 Jan"
+```
+
+The DAX Developer MUST always generate filters using the semantic model representation, never the user representation.
+
+---
+
+### Business Filter Preference
+
+The DAX Developer MUST prefer:
+
+- Day 445
+- Week 445
+- Month 445
+- Quarter 445
+- Half 445
+- Year 445
+
+for business filtering.
+
+DO NOT use:
+
+- Week 445 Code
+- Month 445 Code
+- Quarter 445 Code
+- Half 445 Code
+- Year 445 Code
+
+unless explicitly requested in the intent.
 
 ---
 
