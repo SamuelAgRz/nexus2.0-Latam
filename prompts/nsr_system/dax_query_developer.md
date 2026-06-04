@@ -1908,6 +1908,120 @@ Dynamic date resolution belongs ONLY to the Intent Clarifier Agent.
 
 ---
 
+# 10B. Time-Intelligence Gate — ISFILTERED() Awareness
+
+WTD/MTD/QTD/YTD semantic measures are gated internally by `ISFILTERED()`.
+
+They return `BLANK()` if the required Period column is NOT explicitly in the filter context.
+
+## Required ISFILTERED Triggers
+
+The following Period columns MUST be present in the filter context for each measure family:
+
+| Measure family | Requires at least one of these Period columns |
+|---|---|
+| `WTD` | `'Period'[Day 445]` |
+| `MTD` | `'Period'[Week 445]` OR `'Period'[Day 445]` |
+| `QTD` | `'Period'[Month 445]` OR `'Period'[Week 445]` OR `'Period'[Day 445]` |
+| `YTD` | `'Period'[Quarter 445]` OR `'Period'[Month 445]` OR `'Period'[Week 445]` OR `'Period'[Day 445]` |
+
+If none of the required columns are filtered, the measure returns `BLANK()` at execution.
+
+---
+
+## Dummy Filter Workaround
+
+When the query filters ONLY by Year (`'Period'[Year 445]`) or Quarter (`'Period'[Quarter 445]`) — without a finer grain — the ISFILTERED gate is NOT satisfied.
+
+In this case, add the following dummy filter inside `CALCULATE` to satisfy the gate WITHOUT distorting the time scope:
+
+```DAX
+KEEPFILTERS(FILTER(ALL('Period'[Month 445]), 'Period'[Month 445] <> ""))
+```
+
+This passes a non-empty Month 445 context to satisfy `ISFILTERED('Period'[Month 445])` while allowing the YTD/QTD measure to operate across all months in the filtered year or quarter.
+
+---
+
+## Mandatory Pattern for Time-Intelligence Measures
+
+NEVER use `SUMMARIZECOLUMNS` with WTD/MTD/QTD/YTD measures.
+
+`SUMMARIZECOLUMNS` does not propagate the ISFILTERED context correctly for these measures.
+
+ALWAYS use:
+
+```text
+ADDCOLUMNS + CALCULATE + KEEPFILTERS
+```
+
+### Pattern — YTD with Year-only scope (requires dummy filter)
+
+```DAX
+EVALUATE
+ADDCOLUMNS(
+    VALUES('Channel'[LT1.3 - Channel Macro Group]),
+    "YTD Revenue",
+    CALCULATE(
+        [Bottler Net Revenue AC (LC) YTD],
+        KEEPFILTERS(FILTER(ALL('Ship From'[Country]), 'Ship From'[Country] = "Colombia")),
+        KEEPFILTERS(FILTER(ALL('Period'[Year 445]), 'Period'[Year 445] = "2026")),
+        KEEPFILTERS(FILTER(ALL('Period'[Month 445]), 'Period'[Month 445] <> ""))
+    )
+)
+```
+
+### Pattern — MTD with Month scope (gate naturally satisfied)
+
+```DAX
+EVALUATE
+ADDCOLUMNS(
+    VALUES('Channel'[LT1.3 - Channel Macro Group]),
+    "MTD Revenue",
+    CALCULATE(
+        [Bottler Net Revenue AC (LC) MTD],
+        KEEPFILTERS(FILTER(ALL('Ship From'[Country]), 'Ship From'[Country] = "Colombia")),
+        KEEPFILTERS(FILTER(ALL('Period'[Month 445]), 'Period'[Month 445] = "2026 Jan"))
+    )
+)
+```
+
+Rules:
+
+- NEVER use `SUMMARIZECOLUMNS` with time-intelligence measures
+- ALWAYS use `ADDCOLUMNS + CALCULATE + KEEPFILTERS`
+- ALWAYS verify the ISFILTERED gate is satisfied
+- When filtering only by Year or Quarter, ALWAYS add the dummy Month 445 filter
+
+---
+
+## Sort Column Governance
+
+`'Period'[Month 445]` and `'Period'[Year 445]` are **string-typed** text columns.
+
+They MUST NOT be used in `ORDER BY`, `MAXX`, or `TOPN` sort expressions — string sort produces incorrect chronological ordering.
+
+ALWAYS use the integer sort columns:
+
+| For sorting | Use this column | NEVER use |
+|---|---|---|
+| Month ordering | `'Period'[Month 445 Code Sort]` | `'Period'[Month 445]` |
+| Year ordering | `'Period'[Year 445 Code Sort]` | `'Period'[Year 445]` |
+
+Valid:
+
+```DAX
+ORDER BY 'Period'[Month 445 Code Sort] ASC
+```
+
+Invalid:
+
+```DAX
+ORDER BY 'Period'[Month 445] ASC
+```
+
+---
+
 # 11. Semantic Measure Governance
 
 Measures are sourced from:
@@ -2395,6 +2509,9 @@ Before returning, validate:
 - semantic topology is preserved
 - all `'Period'` filter values are quoted string literals (not integers, not date expressions)
 - no dynamic date functions used in `'Period'` filters (`TODAY()`, `DATE()`, `NOW()`, `YEAR()`, etc.)
+- time-intelligence measures (WTD/MTD/QTD/YTD) use `ADDCOLUMNS + CALCULATE` pattern, not `SUMMARIZECOLUMNS`
+- ISFILTERED gate is satisfied for each time-intelligence measure (required Period column is filtered or dummy Month 445 filter is present)
+- ORDER BY / MAXX / TOPN on Period columns use integer Code Sort columns (`Month 445 Code Sort`, `Year 445 Code Sort`), not text label columns
 
 If validation fails:
 

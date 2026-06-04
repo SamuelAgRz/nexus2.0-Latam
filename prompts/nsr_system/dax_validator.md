@@ -589,6 +589,95 @@ If any `'Period'` filter expression contains a call to any of the banned functio
 
 ---
 
+# 10B. Time-Intelligence Gate Validation — ISFILTERED() Awareness
+
+WTD/MTD/QTD/YTD semantic measures are gated by `ISFILTERED()` inside the semantic model.
+
+They return `BLANK()` if the required Period column is NOT in the filter context.
+
+## ISFILTERED Gate Requirements
+
+| Measure family | Requires at least one of these Period columns |
+|---|---|
+| `WTD` | `'Period'[Day 445]` |
+| `MTD` | `'Period'[Week 445]` OR `'Period'[Day 445]` |
+| `QTD` | `'Period'[Month 445]` OR `'Period'[Week 445]` OR `'Period'[Day 445]` |
+| `YTD` | `'Period'[Quarter 445]` OR `'Period'[Month 445]` OR `'Period'[Week 445]` OR `'Period'[Day 445]` |
+
+---
+
+## Validation Rule 1 — SUMMARIZECOLUMNS with Time-Intelligence Measures
+
+Reject any query that uses a WTD/MTD/QTD/YTD measure inside `SUMMARIZECOLUMNS`.
+
+`SUMMARIZECOLUMNS` does not propagate the ISFILTERED context correctly for these measures.
+
+Error type: `EXECUTION_UNSAFE_PATTERN`
+Severity: `CRITICAL`
+
+Reject:
+
+```DAX
+SUMMARIZECOLUMNS(
+    'Channel'[LT1.3 - Channel Macro Group],
+    FILTER(ALL('Ship From'[Country]), 'Ship From'[Country] = "Colombia"),
+    "YTD Revenue", [Bottler Net Revenue AC (LC) YTD]
+)
+```
+
+Approve:
+
+```DAX
+ADDCOLUMNS(
+    VALUES('Channel'[LT1.3 - Channel Macro Group]),
+    "YTD Revenue",
+    CALCULATE(
+        [Bottler Net Revenue AC (LC) YTD],
+        KEEPFILTERS(FILTER(ALL('Ship From'[Country]), 'Ship From'[Country] = "Colombia")),
+        KEEPFILTERS(FILTER(ALL('Period'[Year 445]), 'Period'[Year 445] = "2026")),
+        KEEPFILTERS(FILTER(ALL('Period'[Month 445]), 'Period'[Month 445] <> ""))
+    )
+)
+```
+
+---
+
+## Validation Rule 2 — Missing ISFILTERED Gate
+
+If a time-intelligence measure is used and:
+
+- the required Period column (per the gate table) is NOT present in the filter context, AND
+- no dummy Month 445 filter is present
+
+then reject.
+
+Error type: `INVALID_FILTER`
+Severity: `CRITICAL`
+
+Dummy filter that satisfies the gate:
+
+```DAX
+KEEPFILTERS(FILTER(ALL('Period'[Month 445]), 'Period'[Month 445] <> ""))
+```
+
+This MUST be present inside `CALCULATE` when filtering only by Year or Quarter.
+
+---
+
+## Validation Rule 3 — Sort Column Type
+
+Reject any query where `ORDER BY`, `MAXX`, or `TOPN` sorts by a text-typed Period column.
+
+| Reject (text column) | Require (integer sort column) |
+|---|---|
+| `'Period'[Month 445]` | `'Period'[Month 445 Code Sort]` |
+| `'Period'[Year 445]` | `'Period'[Year 445 Code Sort]` |
+
+Error type: `INVALID_FILTER`
+Severity: `HIGH`
+
+---
+
 # 11. Semantic Measure Governance
 
 Semantic measures may be validated from MULTIPLE enterprise-approved grounding sources.
@@ -1635,6 +1724,9 @@ A query may ONLY be APPROVED if:
 - 445 governance is preserved
 - all `'Period'` filter values are quoted string literals (not integers, not date expressions)
 - no dynamic date functions (`TODAY()`, `DATE()`, `NOW()`, `YEAR()`, etc.) used in `'Period'` filters
+- time-intelligence measures (WTD/MTD/QTD/YTD) use `ADDCOLUMNS + CALCULATE` pattern, not `SUMMARIZECOLUMNS`
+- ISFILTERED gate is satisfied for each time-intelligence measure (required Period column filtered, or dummy Month 445 filter present)
+- ORDER BY / MAXX / TOPN on Period columns use integer Code Sort columns (`Month 445 Code Sort`, `Year 445 Code Sort`), not text label columns
 
 If ANY critical validation fails:
 
