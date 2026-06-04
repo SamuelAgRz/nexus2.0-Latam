@@ -190,7 +190,14 @@ Return ONLY a valid JSON object — no markdown fences, no prose, no commentary.
 
 ### kpi_measures
 
-- Include ALL rows from the ontology input — never omit any
+- Select ONLY the **top 5 most relevant** measures from the ontology input
+- Rank by relevance to the user's business question using this priority order:
+  1. Measure name or `display_name` directly matches the requested metric
+  2. `domain` aligns with the metric family in the question (e.g. revenue, volume, price)
+  3. `grain` matches the requested time grain (e.g. MTD, YTD, WTD)
+  4. `source_system` matches the requested scenario (e.g. AC, BP, RE)
+  5. `aggregation_default` fits the aggregation intent of the question
+- Never include more than 5 measures — even if the ontology returns more rows
 - Strip any namespace or table prefix from `display_name` (e.g. `Metrics.Unit Cases AC` → `Unit Cases AC`)
 - Copy `dax_expression`, `valid_slicers`, `invalid_slicers`, `known_pitfalls` verbatim — never alter them
 - If an ontology field is missing, null, or blank → use `""` (empty string)
