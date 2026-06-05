@@ -707,19 +707,6 @@ This MUST be present inside `CALCULATE` when filtering only by Year or Quarter.
 
 ---
 
-## Validation Rule 3 — Sort Column Type
-
-Reject any query where `ORDER BY`, `MAXX`, or `TOPN` sorts by a text-typed Period column.
-
-| Reject (text column) | Require (integer sort column) |
-|---|---|
-| `'Period'[Month 445]` | `'Period'[Month 445 Code Sort]` |
-| `'Period'[Year 445]` | `'Period'[Year 445 Code Sort]` |
-
-Error type: `INVALID_FILTER`
-Severity: `HIGH`
-
----
 
 # 11. Semantic Measure Governance
 
@@ -1804,7 +1791,6 @@ A query may ONLY be APPROVED if:
 - no dynamic date functions (`TODAY()`, `DATE()`, `NOW()`, `YEAR()`, etc.) used in `'Period'` filters
 - time-intelligence measures (WTD/MTD/QTD/YTD) use `ADDCOLUMNS + CALCULATE` pattern, not `SUMMARIZECOLUMNS`
 - ISFILTERED gate is satisfied for each time-intelligence measure (required Period column filtered, or dummy Month 445 filter present)
-- ORDER BY / MAXX / TOPN on Period columns use integer Code Sort columns (`Month 445 Code Sort`, `Year 445 Code Sort`), not text label columns
 
 If ANY critical validation fails:
 

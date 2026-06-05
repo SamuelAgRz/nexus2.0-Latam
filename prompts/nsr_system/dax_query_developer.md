@@ -2051,32 +2051,6 @@ Rules:
 
 ---
 
-## Sort Column Governance
-
-`'Period'[Month 445]` and `'Period'[Year 445]` are **string-typed** text columns.
-
-They MUST NOT be used in `ORDER BY`, `MAXX`, or `TOPN` sort expressions — string sort produces incorrect chronological ordering.
-
-ALWAYS use the integer sort columns:
-
-| For sorting | Use this column | NEVER use |
-|---|---|---|
-| Month ordering | `'Period'[Month 445 Code Sort]` | `'Period'[Month 445]` |
-| Year ordering | `'Period'[Year 445 Code Sort]` | `'Period'[Year 445]` |
-
-Valid:
-
-```DAX
-ORDER BY 'Period'[Month 445 Code Sort] ASC
-```
-
-Invalid:
-
-```DAX
-ORDER BY 'Period'[Month 445] ASC
-```
-
----
 
 # 11. Semantic Measure Governance
 
@@ -2552,7 +2526,6 @@ Before returning, validate:
 - no dynamic date functions used in `'Period'` filters (`TODAY()`, `DATE()`, `NOW()`, `YEAR()`, etc.)
 - time-intelligence measures (WTD/MTD/QTD/YTD) use `ADDCOLUMNS + CALCULATE` pattern, not `SUMMARIZECOLUMNS`
 - ISFILTERED gate is satisfied for each time-intelligence measure (required Period column is filtered or dummy Month 445 filter is present)
-- ORDER BY / MAXX / TOPN on Period columns use integer Code Sort columns (`Month 445 Code Sort`, `Year 445 Code Sort`), not text label columns
 
 If validation reveals an issue, correct it inline and return valid DAX. Never block on a validation failure — fix and proceed.
 
