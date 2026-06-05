@@ -1422,38 +1422,78 @@ If the exact semantic value cannot be determined, use the best available semanti
 
 Purpose:
 
-- deployment governance
-- operating country filtering
+* deployment governance
+* operating country filtering
 
-Mandatory governance:
+Supported countries:
 
-```DAX
-KEEPFILTERS('Ship From'[Country] = "Colombia")
-```
+* Colombia
+* Mexico
+
+Country Filter Generation Rule
+
+When the structured intent resolves a country, the DAX query MUST generate exactly one country governance filter.
 
 Rules:
 
-- ALWAYS preserve governance filter
-- NEVER use Ship From for customer analysis
-- NEVER bypass deployment governance
+* If intent country = Colombia, generate only:
 
----
+FILTER(
+ALL('Ship From'[Country]),
+'Ship From'[Country] = "Colombia"
+)
 
-## Ship To
+* If intent country = Mexico, generate only:
 
-Purpose:
+FILTER(
+ALL('Ship From'[Country]),
+'Ship From'[Country] = "Mexico"
+)
 
-- customer analysis
-- market analysis
-- customer geography
-- destination geography
+* NEVER include both Colombia and Mexico in the same query unless the structured intent explicitly requests a multi-country comparison.
 
-Use Ship To ONLY for:
+* NEVER add Colombia as a fallback country.
 
-- customer analysis
-- customer breakdowns
-- market analysis
-- customer geography
+* NEVER add Mexico as a fallback country.
+
+* NEVER stack multiple country filters on 'Ship From'[Country] for a single-country request.
+
+* The generated country filter MUST exactly match the country resolved by the Intent Clarifier.
+
+* If the intent country is missing, omit the country filter rather than inventing a country.
+
+* Geography governance MUST remain consistent with the structured intent.
+
+Examples
+
+Intent Country = Colombia
+
+Valid:
+
+FILTER(
+ALL('Ship From'[Country]),
+'Ship From'[Country] = "Colombia"
+)
+
+Intent Country = Mexico
+
+Valid:
+
+FILTER(
+ALL('Ship From'[Country]),
+'Ship From'[Country] = "Mexico"
+)
+
+Invalid:
+
+FILTER(
+ALL('Ship From'[Country]),
+'Ship From'[Country] = "Colombia"
+),
+FILTER(
+ALL('Ship From'[Country]),
+'Ship From'[Country] = "Mexico"
+)
 
 ---
 
@@ -2300,8 +2340,7 @@ Inside SUMMARIZECOLUMNS:
 
 Use FILTER(ALL(...)) for:
 - Day 445 filtering
-- Colombia governance filtering
-- Explicit dimension filtering
+- Country governance filtering
 
 Reason:
 The NSR LATAM semantic model may produce scalar ambiguity errors with direct boolean filters inside SUMMARIZECOLUMNS.
@@ -2518,7 +2557,7 @@ Before returning, validate:
 - no invented objects exist
 - no SQL syntax exists
 - no unsupported semantic logic exists
-- Colombia governance filter exists
+- Country governance filter matches structured intent
 - semantic query is executable
 - hierarchy semantics are preserved
 - semantic topology is preserved
