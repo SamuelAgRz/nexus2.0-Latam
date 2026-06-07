@@ -495,9 +495,9 @@ These columns are approved for use in GROUP BY (`SUMMARIZECOLUMNS` grouping argu
 'Period'[Year 445]
 ```
 
-### Group B — Code columns (FILTER expressions only)
+### Group B — Code columns (GROUP BY + FILTER + ORDER BY)
 
-These columns are approved for use inside `FILTER()` expressions. They support both exact equality (`=`) and range operators (`>=`, `<=`). Their fixed-width numeric string format guarantees lexicographic = chronological order.
+These columns are approved for use inside `FILTER()` expressions AND as GROUP BY arguments in SUMMARIZECOLUMNS (alongside their matching label column). They support both exact equality (`=`) and range operators (`>=`, `<=`). Their fixed-width numeric string format guarantees lexicographic = chronological order.
 
 ```DAX
 'Period'[Day 445 Code]      -- format: YYYYMMDD   e.g. "20260607"
@@ -1811,7 +1811,7 @@ A query may ONLY be APPROVED if:
 - 445 governance is preserved
 - all `'Period'` filter values are quoted string literals (not integers, not date expressions)
 - no dynamic date functions (`TODAY()`, `DATE()`, `NOW()`, `YEAR()`, etc.) used in `'Period'` filters
-- `'Period'` FILTER expressions use Code columns (`Day 445 Code`, `Month 445 Code`, etc.), not label columns
+- `'Period'` Code columns (`Day 445 Code`, `Month 445 Code`, etc.) appear in BOTH the GROUP BY and the FILTER expressions — when a Period label column is in GROUP BY, its matching Code column MUST also be in GROUP BY
 - Code column filter values use the correct format (YYYYMMDD, YYYYMM, YYYYWWW, YYYYQQ, YYYYHH, YYYY)
 - label columns (`Month 445`, `Year 445`, etc.) appear only in GROUP BY, never inside FILTER expressions
 - time-intelligence measures (WTD/MTD/QTD/YTD) use `ADDCOLUMNS + CALCULATE` pattern, not `SUMMARIZECOLUMNS`

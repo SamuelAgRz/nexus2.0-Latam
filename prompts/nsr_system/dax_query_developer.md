@@ -1998,9 +1998,9 @@ If intent requires the current date, use `today_context` values provided by the 
 
 ## Code Column Reference
 
-Each period grain has a parallel **Code column** that stores a fixed-width numeric string. These are the ONLY approved columns for use inside `FILTER()` expressions because their format guarantees lexicographic = chronological order.
+Each period grain has a parallel **Code column** that stores a fixed-width numeric string. These are the ONLY approved columns for use inside `FILTER()` expressions because their format guarantees lexicographic = chronological order. They must ALSO appear in the GROUP BY alongside the label column so that `ORDER BY` can reference them without a DAX engine error.
 
-| Grain | Label column (GROUP BY only) | Code column (FILTER only) | Code format | Example |
+| Grain | Label column (GROUP BY) | Code column (GROUP BY + FILTER + ORDER BY) | Code format | Example |
 |---|---|---|---|---|
 | Day | `'Period'[Day 445]` | `'Period'[Day 445 Code]` | YYYYMMDD | `"20260607"` |
 | Week | `'Period'[Week 445]` | `'Period'[Week 445 Code]` | YYYYWWW | `"2026023"` |
@@ -2013,10 +2013,11 @@ Each period grain has a parallel **Code column** that stores a fixed-width numer
 
 - ALWAYS use Code columns inside `FILTER()` expressions
 - NEVER use label columns inside `FILTER()` — their string format is lexicographically unreliable for range operations
-- ALWAYS use label columns in `GROUP BY` (the first arguments of `SUMMARIZECOLUMNS` or `VALUES(...)`) for display
+- Include BOTH the label AND Code column in the GROUP BY arguments of SUMMARIZECOLUMNS — the label column drives display, the Code column enables ORDER BY without errors
 - Code column values MUST be quoted string literals — they are string type even though they look numeric
 - Comparison operators (`>=`, `<=`, `>`, `<`) are VALID on Code columns
 - Exact equality (`=`) is also valid on Code columns
+- The DAX Result Summarizer automatically suppresses Code columns from user-facing output
 
 ## Single-period filter (exact)
 
@@ -2036,16 +2037,18 @@ FILTER(
 )
 ```
 
-## Complete query pattern — Code for filter, label for GROUP BY
+## Complete query pattern — Code in GROUP BY + FILTER + ORDER BY, label in GROUP BY for display
 
 ```DAX
 EVALUATE
 SUMMARIZECOLUMNS(
     'Period'[Month 445],
+    'Period'[Month 445 Code],
     FILTER(ALL('Period'[Month 445 Code]), 'Period'[Month 445 Code] >= "202604" && 'Period'[Month 445 Code] <= "202606"),
     FILTER(ALL('Ship From'[Country]), 'Ship From'[Country] = "Colombia"),
     "Net Sales Revenue", [Bottler Net Revenue AC (LC)]
 )
+ORDER BY 'Period'[Month 445 Code] ASC
 ```
 
 ## Invalid patterns (HARD BAN)
@@ -2086,6 +2089,7 @@ Rules:
 - ALWAYS sort by the Code column, never by the label column
 - Default sort direction = ASC (chronological)
 - If no Period column is in GROUP BY (e.g., a channel or product breakdown), do NOT add a date ORDER BY
+- The Code column MUST appear in the GROUP BY (not only in ORDER BY) — ORDER BY a column that is not in the result set causes a DAX engine error
 
 ---
 
@@ -2504,6 +2508,7 @@ ORDER BY [Metric] DESC
 EVALUATE
 SUMMARIZECOLUMNS(
     'Period'[Month 445],
+    'Period'[Month 445 Code],
     <filters>,
     "Metric", [Measure]
 )
@@ -2651,6 +2656,7 @@ Before returning, validate:
 - `'Period'` FILTER expressions use Code columns (`Day 445 Code`, `Month 445 Code`, etc.), not label columns
 - Code column filter values are quoted strings in the correct format (YYYYMMDD, YYYYMM, YYYYWWW, etc.)
 - label columns (`Month 445`, `Year 445`, etc.) appear only in GROUP BY, never inside FILTER expressions
+- if a Period label column is in GROUP BY, the matching Code column MUST also be in GROUP BY
 - time-intelligence measures (WTD/MTD/QTD/YTD) use `ADDCOLUMNS + CALCULATE` pattern, not `SUMMARIZECOLUMNS`
 - ISFILTERED gate is satisfied for each time-intelligence measure (required Period column is filtered or dummy Month 445 filter is present)
 
