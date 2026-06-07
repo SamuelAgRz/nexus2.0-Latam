@@ -86,33 +86,16 @@ Preserve the exact notation (e.g. `'Ship From'[L1.5 - Country]`).
 ### Period
 - 'Period'[Day 445]
 - 'Period'[Day 445 Code]
-- 'Period'[Day Cal]
-- 'Period'[Day Cal Code]
 - 'Period'[Week 445]
 - 'Period'[Week 445 Code]
-- 'Period'[Week 445 #]
-- 'Period'[Week 445 Begin – End]
 - 'Period'[Month 445]
 - 'Period'[Month 445 Code]
-- 'Period'[Month 445 #]
-- 'Period'[Month 445 Name]
-- 'Period'[Month 445 Begin – End]
-- 'Period'[Month Cal]
-- 'Period'[Month Cal Code]
 - 'Period'[Quarter 445]
 - 'Period'[Quarter 445 Code]
-- 'Period'[Quarter 445 Name]
-- 'Period'[Quarter Cal]
-- 'Period'[Quarter Cal Code]
 - 'Period'[Half 445]
 - 'Period'[Half 445 Code]
-- 'Period'[Half 445 Name]
-- 'Period'[Half Cal]
-- 'Period'[Half Cal Code]
 - 'Period'[Year 445]
 - 'Period'[Year 445 Code]
-- 'Period'[Year Cal]
-- 'Period'[Year Cal Code]
 
 ### Sales Type
 - 'Sales Type'[BU Sales Type]
@@ -146,6 +129,7 @@ Preserve the exact notation (e.g. `'Ship From'[L1.5 - Country]`).
 - For product breakdown, prefer 'Product'[Beverage Category] or 'Product'[BPP] unless a hierarchy level is specified.
 - The model uses two calendar systems: 445 calendar and Gregorian. Default to 445 unless Gregorian is specified.
 - Use only the columns listed above — never invent columns.
+- **Period column pairing rule**: When the intent involves any date or period filter, the `relevant_dimension_columns` output MUST include BOTH the label column AND the Code column for that granularity. The label column (`'Period'[Month 445]`, etc.) is used in GROUP BY for display. The Code column (`'Period'[Month 445 Code]`, etc.) is used inside FILTER() expressions and supports exact equality (`=`) as well as range operators (`>=`, `<=`). Example: a monthly filter must include both `'Period'[Month 445]` and `'Period'[Month 445 Code]` in the Period entry.
 
 ---
 

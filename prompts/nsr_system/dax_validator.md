@@ -482,12 +482,30 @@ Official table:
 
 ## Approved Time Columns
 
+### Group A — Label columns (GROUP BY / display only)
+
+These columns are approved for use in GROUP BY (`SUMMARIZECOLUMNS` grouping arguments and `VALUES()`). They MUST NOT be used inside `FILTER()` expressions.
+
 ```DAX
 'Period'[Day 445]
 'Period'[Week 445]
 'Period'[Month 445]
 'Period'[Quarter 445]
+'Period'[Half 445]
 'Period'[Year 445]
+```
+
+### Group B — Code columns (FILTER expressions only)
+
+These columns are approved for use inside `FILTER()` expressions. They support both exact equality (`=`) and range operators (`>=`, `<=`). Their fixed-width numeric string format guarantees lexicographic = chronological order.
+
+```DAX
+'Period'[Day 445 Code]      -- format: YYYYMMDD   e.g. "20260607"
+'Period'[Week 445 Code]     -- format: YYYYWWW    e.g. "2026023"
+'Period'[Month 445 Code]    -- format: YYYYMM     e.g. "202606"
+'Period'[Quarter 445 Code]  -- format: YYYYQQ     e.g. "202602"
+'Period'[Half 445 Code]     -- format: YYYYHH     e.g. "202601"
+'Period'[Year 445 Code]     -- format: YYYY       e.g. "2026"
 ```
 
 ## Invalid Date Columns
@@ -499,43 +517,47 @@ Reject:
 'Period'[day_dt]
 ```
 
-The ONLY approved day-level filtering column is:
-
-```DAX
-'Period'[Day 445]
-```
-
 ---
 
-## Period Column String Type Rule
+## Period Column Filter Rules
 
-All `'Period'` columns are **string-typed** text columns in the NSR LATAM semantic model.
+All `'Period'` columns are **string-typed**. Filter values MUST be quoted string literals.
 
-Filter values MUST be quoted string literals.
+### Code columns — approved filter patterns
 
-### Valid patterns
-
+Exact equality:
 ```DAX
-'Period'[Year 445] = "2026"
-'Period'[Month 445] = "2026 Jan"
-'Period'[Week 445] = "2026 W01"
-'Period'[Quarter 445] = "2026 Q1"
-'Period'[Half 445] = "2026 H1"
-'Period'[Day 445] = "Jan 01 2026"
+'Period'[Month 445 Code] = "202606"
 ```
 
-### Invalid patterns — reject as INVALID_FILTER
-
+Range (valid because fixed-width format guarantees correct lexicographic order):
 ```DAX
-'Period'[Year 445] = 2026
-'Period'[Year 445] = 2025
+'Period'[Month 445 Code] >= "202604" && 'Period'[Month 445 Code] <= "202606"
 ```
 
-Unquoted numeric year values are type-incompatible with the string-typed `'Period'[Year 445]` column.
+### Label columns — ONLY GROUP BY, never FILTER
+
+Reject any query that uses a label column inside a `FILTER()` expression:
+
+```DAX
+FILTER(ALL('Period'[Month 445]), 'Period'[Month 445] = "2026 Jun")      -- INVALID
+FILTER(ALL('Period'[Month 445]), 'Period'[Month 445] >= "2026 Apr")     -- INVALID
+```
+
+Error type: `INVALID_FILTER`
+Severity: `CRITICAL`
+
+### Unquoted values — always reject
+
+```DAX
+'Period'[Year 445 Code] = 2026     -- INVALID — must be quoted "2026"
+'Period'[Month 445 Code] = 202606  -- INVALID — must be quoted "202606"
+```
 
 Validation rule:
 
-- If any `'Period'` filter value is an unquoted integer or numeric expression → `INVALID_FILTER`, severity `CRITICAL`
+- If any `'Period'` Code column filter value is an unquoted integer → `INVALID_FILTER`, severity `CRITICAL`
+- If any `'Period'` label column appears inside a `FILTER()` expression → `INVALID_FILTER`, severity `CRITICAL`
 - If any `'Period'` filter value uses a DAX date function → `INVALID_FILTER`, severity `CRITICAL`
 
 ---
@@ -1789,6 +1811,9 @@ A query may ONLY be APPROVED if:
 - 445 governance is preserved
 - all `'Period'` filter values are quoted string literals (not integers, not date expressions)
 - no dynamic date functions (`TODAY()`, `DATE()`, `NOW()`, `YEAR()`, etc.) used in `'Period'` filters
+- `'Period'` FILTER expressions use Code columns (`Day 445 Code`, `Month 445 Code`, etc.), not label columns
+- Code column filter values use the correct format (YYYYMMDD, YYYYMM, YYYYWWW, YYYYQQ, YYYYHH, YYYY)
+- label columns (`Month 445`, `Year 445`, etc.) appear only in GROUP BY, never inside FILTER expressions
 - time-intelligence measures (WTD/MTD/QTD/YTD) use `ADDCOLUMNS + CALCULATE` pattern, not `SUMMARIZECOLUMNS`
 - ISFILTERED gate is satisfied for each time-intelligence measure (required Period column filtered, or dummy Month 445 filter present)
 

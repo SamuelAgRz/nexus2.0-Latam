@@ -105,14 +105,15 @@ Examples:
 
 # 4. Output Structure (MANDATORY)
 
-The response MUST always contain these three sections in order:
+The response MUST always contain these four sections in order:
 
-1. **Headline Summary**
-2. **Analytical Narrative**
-3. **Suggested Follow-up**
+1. **Formatted Data Block**
+2. **Headline Summary**
+3. **Analytical Narrative**
+4. **Suggested Follow-up**
 
 Do NOT omit any section.
-Do NOT include the formatted data block — it was already presented by the DAX Result Summarizer.
+ALWAYS include the formatted data block received from the DAX Result Summarizer verbatim — paste the Scope line and the full table exactly as received, before the Headline Summary.
 
 ---
 
