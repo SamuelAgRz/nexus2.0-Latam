@@ -348,7 +348,6 @@ Validation Rules:
 - geography filters MUST persist across:
   - SUMMARIZECOLUMNS
   - CALCULATE
-  - TOPN
   - CALCULATETABLE
   - ADDCOLUMNS
   - ranking queries
@@ -559,6 +558,7 @@ Validation rule:
 - If any `'Period'` Code column filter value is an unquoted integer → `INVALID_FILTER`, severity `CRITICAL`
 - If any `'Period'` label column appears inside a `FILTER()` expression → `INVALID_FILTER`, severity `CRITICAL`
 - If any `'Period'` filter value uses a DAX date function → `INVALID_FILTER`, severity `CRITICAL`
+- If the query contains `TOPN(` anywhere → `INVALID_TOPN`, severity `CRITICAL` — use `SUMMARIZECOLUMNS` + `ORDER BY` instead
 
 ---
 
@@ -1575,24 +1575,34 @@ SUMMARIZECOLUMNS(
 ORDER BY [Net Sales Revenue] DESC
 ```
 
-APPROVE:
+APPROVE (ranking — full result set, ordered):
+
+```DAX
+EVALUATE
+SUMMARIZECOLUMNS(
+    'Channel'[LT1.1 - Trade Channel],
+    FILTER(
+        ALL('Ship From'[Country]),
+        'Ship From'[Country] = "Colombia"
+    ),
+    "Net Sales Revenue",
+    [Bottler Net Revenue AC (LC)]
+)
+ORDER BY [Net Sales Revenue] DESC
+```
+
+REJECT (TOPN — never valid):
 
 ```DAX
 EVALUATE
 TOPN(
     10,
-    SUMMARIZECOLUMNS(
-        'Channel'[LT1.1 - Trade Channel],
-        FILTER(
-            ALL('Ship From'[Country]),
-            'Ship From'[Country] = "Colombia"
-        ),
-        "Net Sales Revenue",
-        [Bottler Net Revenue AC (LC)]
-    ),
+    SUMMARIZECOLUMNS(...),
     [Net Sales Revenue],
     DESC
 )
+-- Error type: INVALID_TOPN, severity: CRITICAL
+-- Use SUMMARIZECOLUMNS + ORDER BY instead
 ```
 ---
 
@@ -1605,7 +1615,7 @@ Validation Rules:
 - requested metric MUST match selected measure
 - requested geography MUST match filters
 - requested comparison MUST match query logic
-- requested ranking MUST match `TOPN` direction
+- requested ranking MUST match ORDER BY direction (DESC for top/max, ASC for bottom/min)
 - requested hierarchy grain MUST match grouping level
 - requested time grain MUST match Period grouping
 - semantic domain MUST align with selected measure

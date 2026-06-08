@@ -2407,9 +2407,8 @@ Priority order:
 
 1. ROW
 2. SUMMARIZECOLUMNS
-3. TOPN
-4. ADDCOLUMNS
-5. CALCULATETABLE
+3. ADDCOLUMNS
+4. CALCULATETABLE
 
 Avoid unnecessary complexity.
 
@@ -2517,21 +2516,19 @@ ORDER BY 'Period'[Month 445 Code] ASC
 
 ---
 
-## D. Ranking
+## D. Ranking / Top / Max / Min
 
 ```DAX
 EVALUATE
-TOPN(
-    N,
-    SUMMARIZECOLUMNS(
-        <group_by>,
-        <filters>,
-        "Metric", [Measure]
-    ),
-    [Metric],
-    DESC
+SUMMARIZECOLUMNS(
+    <group_by>,
+    <filters>,
+    "Metric", [Measure]
 )
+ORDER BY [Metric] DESC
 ```
+
+Return the full result set ordered by the metric. The Final Summarizer identifies and highlights the top/max/min item. Use `ASC` for bottom/minimum ranking.
 
 ---
 
@@ -2554,19 +2551,12 @@ SUMMARIZECOLUMNS(
 
 Rules:
 
-- ALWAYS use TOPN
-- ALWAYS ORDER BY ranking metric
-- Default ranking direction = DESC
-- Bottom ranking = ASC
-- Preserve exact ranking semantics
-
-Default:
-
-```text
-TOP 10
-```
-
-unless specified upstream.
+- NEVER use TOPN — not for top N, not for max, not for min, not for any ranking intent
+- For ranking/top/max/min intents: use SUMMARIZECOLUMNS with ORDER BY [Metric] DESC (or ASC for bottom/min)
+- Return the FULL result set — do not truncate
+- The Final Summarizer identifies which item is top/max/min from the full ordered result
+- Default ranking direction = DESC (highest first)
+- Bottom / minimum ranking = ASC
 
 ---
 
@@ -2657,6 +2647,7 @@ Before returning, validate:
 - Code column filter values are quoted strings in the correct format (YYYYMMDD, YYYYMM, YYYYWWW, etc.)
 - label columns (`Month 445`, `Year 445`, etc.) appear only in GROUP BY, never inside FILTER expressions
 - if a Period label column is in GROUP BY, the matching Code column MUST also be in GROUP BY
+- TOPN is never used — ranking/top/max/min queries use SUMMARIZECOLUMNS + ORDER BY [Metric] DESC
 - time-intelligence measures (WTD/MTD/QTD/YTD) use `ADDCOLUMNS + CALCULATE` pattern, not `SUMMARIZECOLUMNS`
 - ISFILTERED gate is satisfied for each time-intelligence measure (required Period column is filtered or dummy Month 445 filter is present)
 
@@ -2686,7 +2677,6 @@ DO NOT output:
 
 Rules:
 
-- use TOPN for ranking outputs
 - default preview limit = 50 rows
 - avoid unnecessary cardinality explosions
 - avoid unnecessary CROSSJOIN behavior
