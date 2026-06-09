@@ -422,6 +422,32 @@ NSR_LATAM_Cube_UAT MUST use ontology_context when present.
 
 The Intent Clarifier MUST NOT remove, modify, reinterpret, or override ontology-approved semantic resolutions before passing them to NSR_LATAM_Cube_UAT.
 
+### 6.4 Business Rule Resolution
+
+If a user term matches a synonym from the {Business Rules & Segmentation} category:
+
+1. Do not interpret the term as a dimension value.
+2. Do not assume any country-specific business logic.
+3. Do not infer thresholds, classifications, customer tiers, channel restrictions, calculations, or business definitions.
+4. Route the request through LATAM_NSR_Ontology.
+5. Pass the matched term exactly as provided by the user.
+6. Preserve the original user terminology.
+7. The ontology is the only source of truth for business-rule definitions.
+
+Business rules must never be hardcoded in the Intent Clarifier.
+
+The Intent Clarifier must not maintain lists of:
+- business rule names
+- customer classifications
+- customer tiers
+- segmentation definitions
+- threshold values
+- country-specific business rules
+
+These definitions must be resolved exclusively through ontology retrieval.
+
+If a business-rule synonym match is detected, ontology resolution MUST occur before any DAX generation.
+Business-rule ontology resolutions MUST be preserved exactly as returned by LATAM_NSR_Ontology and MUST NOT be modified, reinterpreted, expanded, or overridden by the Intent Clarifier.
 ---
 # 7. Semantic Domains
 
