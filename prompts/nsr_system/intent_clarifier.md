@@ -205,7 +205,14 @@ Return:
 
 Do NOT continue downstream.
 
-If the geography is missing, trigger clarification.
+If geography is missing:
+
+- do not immediately trigger clarification
+- first evaluate whether ontology resolution is required
+- if ontology resolution is required, invoke LATAM_NSR_Ontology before requesting clarification
+- ontology resolution may provide country applicability, country constraints, or business-rule geography context
+
+Clarification is only allowed after ontology resolution has completed and geography ambiguity still remains.
 
 If the user says "market", interpret it as business geography and require or preserve one of the supported countries.
 
@@ -339,6 +346,15 @@ Ontology resolution is REQUIRED when:
 - relationship validation is required
 - business-rule interpretation is required
 - business-rule synonym matching is detected
+  
+Business-rule ontology resolution has higher priority than geography clarification.
+
+When a business-rule synonym match is detected:
+
+1. Invoke LATAM_NSR_Ontology.
+2. Preserve the matched term.
+3. Allow ontology resolution to determine business-rule semantics.
+4. Only request geography clarification if ambiguity remains after ontology resolution.
 ---
 
 ## 6.1 Examples Requiring Ontology
@@ -996,9 +1012,13 @@ Mandatory:
 - time
 - geography
 
-If missing:
+If geography is missing:
 
-trigger clarification.
+- first evaluate ontology resolution requirements
+- if ontology resolution is required, invoke LATAM_NSR_Ontology
+- request clarification only if geography remains unresolved after ontology resolution
+
+If metric or time semantics are unresolved and ontology resolution cannot resolve them, trigger clarification.
 
 ---
 
