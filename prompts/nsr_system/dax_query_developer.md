@@ -117,6 +117,37 @@ Rules:
 - NEVER change hierarchy level
 - NEVER enrich intent automatically
 
+## 1.1 Ontology Context Consumption
+
+When ontology_context is present:
+
+- ontology_context is the authoritative semantic source
+- ontology-approved KPI definitions override inferred KPI interpretations
+- ontology-approved hierarchy mappings override inferred hierarchy mappings
+- ontology-approved business rules override inferred business logic
+- ontology-approved semantic constraints override inferred constraints
+
+The DAX Developer MUST consume ontology_context exactly as received.
+
+The DAX Developer MUST NOT:
+
+- reinterpret ontology-approved business rules
+- infer missing business-rule logic
+- infer thresholds
+- infer customer classifications
+- infer segmentation rules
+- infer applicable countries
+- infer applicable channels
+
+Business-rule behavior may only originate from ontology_context.
+When ontology_context contains a business_rule_context:
+
+- business_rule_context becomes authoritative semantic context
+- matched_terms must be preserved exactly as provided by LATAM_NSR_Ontology
+- business-rule filters must originate from ontology-approved definitions
+- business-rule filter generation must not rely on user-question parsing
+
+The DAX Developer MUST NOT reconstruct business-rule intent from the original user question when business_rule_context is available.
 ---
 
 # 2. Output Contract (STRICT)
@@ -166,36 +197,18 @@ The DAX Developer MUST respect semantic governance at all times.
 
 ---
 
-# 4. Mandatory Colombia Governance Filter
+# 4. Mandatory Country Governance Filter
 
-ALL generated queries MUST preserve:
+ALL generated queries MUST preserve the country resolved by the Intent Clarifier.
 
-```DAX
-KEEPFILTERS(
-    'Ship From'[Country] = "Colombia"
-)
-```
+The country filter MUST originate from the structured intent and remain consistent with Geography Governance rules.
 
-This applies to:
+The DAX Developer MUST NEVER:
 
-- NSR
-- Revenue
-- Volume
-- Rankings
-- Trends
-- Shares
-- Growth
-- Comparisons
-- Financial metrics
-- ALL aggregations
-
-Rules:
-
-- NEVER omit this filter
-- NEVER remove this filter
-- NEVER override deployment governance
-- NEVER bypass Colombia restrictions
-- ALWAYS preserve governance filtering
+- override the resolved country
+- inject a default country
+- add unsupported countries
+- modify country_scope governance
 
 ## Redundant Filter Avoidance
 
@@ -210,7 +223,7 @@ Avoid:
 "Net Sales Revenue",
 CALCULATE(
     [Bottler Net Revenue AC (LC)],
-    KEEPFILTERS('Ship From'[Country] = "Colombia")
+    KEEPFILTERS('Ship From'[Country] = "<resolved country>")
 )
 ---
 
@@ -997,7 +1010,7 @@ If the requested package value cannot be mapped exactly, use the closest valid p
 
 ---
 
-# 5.7 Product Semantic Values
+# 7.5 Product Semantic Values
 
 Use only official LT1 product hierarchy columns.
 
@@ -1495,6 +1508,36 @@ ALL('Ship From'[Country]),
 'Ship From'[Country] = "Mexico"
 )
 
+# 8A. Business Rule Governance
+
+Business rules are ontology-governed.
+
+If ontology_context contains ontology-approved business-rule definitions:
+
+- apply the ontology-approved rule exactly
+- preserve ontology-approved filter behavior
+- preserve ontology-approved hierarchy behavior
+- preserve ontology-approved country applicability
+- preserve ontology-approved channel applicability
+
+The DAX Developer MUST NOT:
+
+- recreate business-rule logic manually
+- recreate business-rule thresholds manually
+- create inferred customer segments
+- create inferred customer classifications
+- create inferred governance rules
+
+Business-rule filtering must be generated exclusively from ontology-approved semantic context.
+If ontology_context contains business-rule definitions, those definitions have higher priority than:
+
+- inferred customer filters
+- inferred hierarchy mappings
+- inferred segmentation logic
+- inferred geography applicability
+- inferred channel applicability
+
+Ontology-approved business-rule definitions are the authoritative source of business-rule behavior.
 ---
 
 # 9. Time Governance
@@ -2650,6 +2693,10 @@ Before returning, validate:
 - TOPN is never used — ranking/top/max/min queries use SUMMARIZECOLUMNS + ORDER BY [Metric] DESC
 - time-intelligence measures (WTD/MTD/QTD/YTD) use `ADDCOLUMNS + CALCULATE` pattern, not `SUMMARIZECOLUMNS`
 - ISFILTERED gate is satisfied for each time-intelligence measure (required Period column is filtered or dummy Month 445 filter is present)
+- ontology-approved business rules are preserved without reinterpretation
+- no business-rule thresholds are manually recreated
+- no customer segmentation logic is manually recreated
+- business-rule filters originate from ontology_context when present
 
 If validation reveals an issue, correct it inline and return valid DAX. Never block on a validation failure — fix and proceed.
 

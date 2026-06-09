@@ -162,7 +162,20 @@ Execution Safety
 ↔
 Data Availability
 ```
+Inputs may include:
 
+- ontology_context
+
+When ontology_context is present:
+
+- ontology_context is authoritative semantic context
+- ontology-approved business rules are authoritative
+- ontology-approved hierarchy mappings are authoritative
+- ontology-approved semantic classifications are authoritative
+
+The Validator MUST validate that generated DAX preserves ontology-approved semantics.
+
+The Validator MUST NOT reinterpret ontology-approved business rules.
 ---
 
 # 3. Validation Categories
@@ -1626,7 +1639,12 @@ Reject:
 - unintended hierarchy expansion
 - unsupported enrichments
 - unsupported calculations
+- 
+If ontology_context is present:
 
+- DAX filters MUST remain consistent with ontology-approved business-rule semantics
+- DAX filters MUST remain consistent with ontology-approved hierarchy mappings
+- ontology-approved business rules MUST NOT be overridden
 ---
 
 # 21. Style vs Critical Violations

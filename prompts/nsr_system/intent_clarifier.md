@@ -338,7 +338,7 @@ Ontology resolution is REQUIRED when:
 - driver/dragger logic is requested
 - relationship validation is required
 - business-rule interpretation is required
-
+- business-rule synonym matching is detected
 ---
 
 ## 6.1 Examples Requiring Ontology
@@ -448,6 +448,16 @@ These definitions must be resolved exclusively through ontology retrieval.
 
 If a business-rule synonym match is detected, ontology resolution MUST occur before any DAX generation.
 Business-rule ontology resolutions MUST be preserved exactly as returned by LATAM_NSR_Ontology and MUST NOT be modified, reinterpreted, expanded, or overridden by the Intent Clarifier.
+
+When a business-rule synonym match is detected, the Intent Clarifier MUST populate:
+
+"business_rule_context": {
+  "business_rule_resolution_required": true,
+  "matched_terms": ["<detected term>"],
+  "preserve_original_terms": true
+}
+
+The matched terms MUST be passed unchanged to LATAM_NSR_Ontology.
 ---
 # 7. Semantic Domains
 
@@ -1182,7 +1192,14 @@ LATAM_NSR_Ontology
   "ontology_hierarchy_context": [],
   "requested_comparisons": [],
   "requested_business_logic": [],
-  "downstream_constraints": {
+
+"business_rule_context": {
+  "business_rule_resolution_required": false,
+  "matched_terms": [],
+  "preserve_original_terms": true
+},
+
+"downstream_constraints": {
     "allowed_country_column": "'Ship From'[Country]",
     "allowed_country_values": ["Colombia", "Mexico"],
     "calendar": "445 Calendar"
@@ -1205,9 +1222,28 @@ Allowed values include:
 - "contribution_analysis"
 - "metric_classification_resolution"
 - "country_relationship_validation"
+- "business_rule_resolution"
 
 Use one or more values depending on the user request.
+### Business Rule Context Rules
 
+The Intent Clarifier MUST populate business_rule_context whenever a business-rule synonym match is detected.
+
+Example:
+
+"business_rule_context": {
+  "business_rule_resolution_required": true,
+  "matched_terms": ["silver"],
+  "preserve_original_terms": true
+}
+
+If no business-rule synonym match is detected:
+
+"business_rule_context": {
+  "business_rule_resolution_required": false,
+  "matched_terms": [],
+  "preserve_original_terms": true
+}
 ### Ontology Context Propagation Rules
 
 When ontology resolution has been performed, the Intent Clarifier MUST populate the ontology_context field.

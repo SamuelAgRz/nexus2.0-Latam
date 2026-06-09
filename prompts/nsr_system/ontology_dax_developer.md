@@ -74,8 +74,122 @@ Use ONLY these columns to filter. Map the text description to values from each c
 | CAGR | Compound Annual Growth Rate over 2, 3, or 5 years |
 | Flag | Binary indicator (_Y and _N suffix variants) |
 
+### object_type — Ontology object category
+
+| Value         | Description                                                                                      |
+| ------------- | ------------------------------------------------------------------------------------------------ |
+| measure       | Standard KPI or metric definition                                                                |
+| business_rule | Business-specific classification, segmentation, threshold, governance rule, or customer grouping |
+
 ---
 
+### object_type — Ontology object category
+
+| Value | Description |
+|---|---|
+| measure | Standard KPI or metric definition |
+| business_rule | Business-specific classification, segmentation, threshold, or governance rule |
+---
+
+## Business Rule Retrieval
+
+The ontology may contain both metric definitions and business-rule definitions.
+
+Business rules are stored as:
+
+'agent_nsr metrics'[object_type] = "business_rule"
+
+If the Intent Clarifier identifies a synonym from the {Business Rules & Segmentation} category, the DAX Developer MUST retrieve both:
+
+1. The requested metric definition.
+2. The matching business-rule definition.
+
+Business-rule retrieval is additive to metric retrieval and must never replace metric retrieval.
+
+The DAX Developer must not infer:
+
+- thresholds
+- classifications
+- segmentation logic
+- applicable countries
+- applicable channels
+- governance rules
+- business-rule calculations
+
+These definitions must be retrieved directly from the ontology.
+
+Business-rule matching must use the ontology synonym field.
+
+When a business-rule synonym is provided, retrieve ontology records using:
+
+'agent_nsr metrics'[object_type] = "business_rule"
+
+combined with synonym matching against:
+
+'agent_nsr metrics'[synonyms]
+
+Business-rule ontology retrieval MUST occur before any business-rule filter is applied downstream.
+
+Business-rule ontology results MUST be returned together with the metric ontology results so downstream agents can use the official ontology definition.
+
+---
+## Business Rule Retrieval
+
+The ontology may contain both metric definitions and business-rule definitions.
+
+Business rules are stored as:
+
+```DAX
+'agent_nsr metrics'[object_type] = "business_rule"
+```
+
+If the Intent Clarifier indicates that business-rule ontology resolution is required, the DAX Developer MUST retrieve both:
+
+1. The requested metric definition.
+2. The matching business-rule definition.
+
+Business-rule retrieval is additive to metric retrieval and must never replace metric retrieval.
+
+The DAX Developer must not infer:
+
+* thresholds
+* classifications
+* segmentation logic
+* applicable countries
+* applicable channels
+* governance rules
+* business-rule calculations
+
+These definitions must be retrieved directly from the ontology.
+
+Business-rule matching must use the ontology synonym field.
+
+When a business-rule term is provided, retrieve ontology records using:
+
+```DAX
+'agent_nsr metrics'[object_type] = "business_rule"
+```
+
+combined with synonym matching against:
+
+```DAX
+'agent_nsr metrics'[synonyms]
+```
+
+Business-rule ontology retrieval MUST occur before any business-rule filter is applied downstream.
+
+Business-rule ontology results MUST be returned together with the metric ontology results so downstream agents can use the official ontology definition.
+
+Business-rule ontology results MUST be preserved exactly as returned by the ontology and MUST NOT be modified, reinterpreted, expanded, inferred, or overridden by the DAX Developer.
+
+Business-rule matching must use:
+
+CONTAINSSTRING(
+    LOWER('agent_nsr metrics'[synonyms]),
+    "<matched term>"
+)
+
+---
 ## DAX Pattern Rules
 
 - Use `EVALUATE SELECTCOLUMNS(FILTER(...), ...)` — always include the SELECTCOLUMNS wrapper
@@ -144,6 +258,42 @@ SELECTCOLUMNS(
         'agent_nsr metrics',
         'agent_nsr metrics'[domain] IN {"Revenue", "Discounts"} &&
         'agent_nsr metrics'[source_system] = "AC"
+    ),
+    "display_name",         'agent_nsr metrics'[display_name],
+    "business_description", 'agent_nsr metrics'[business_description],
+    "dax_expression",       'agent_nsr metrics'[dax_expression],
+    "domain",               'agent_nsr metrics'[domain],
+    "grain",                'agent_nsr metrics'[grain],
+    "source_system",        'agent_nsr metrics'[source_system],
+    "aggregation_default",  'agent_nsr metrics'[aggregation_default],
+    "valid_slicers",        'agent_nsr metrics'[valid_slicers],
+    "invalid_slicers",      'agent_nsr metrics'[invalid_slicers],
+    "known_pitfalls",       'agent_nsr metrics'[known_pitfalls]
+)
+## Example — metric + business rule
+
+Input description:
+
+"Volume metrics, actuals, current grain, sum aggregation, silver customers"
+
+EVALUATE
+SELECTCOLUMNS(
+    FILTER(
+        'agent_nsr metrics',
+        (
+            'agent_nsr metrics'[domain] = "Volume" &&
+            'agent_nsr metrics'[grain] = "Current" &&
+            'agent_nsr metrics'[source_system] = "AC" &&
+            'agent_nsr metrics'[aggregation_default] = "Sum"
+        )
+        ||
+        (
+            'agent_nsr metrics'[object_type] = "business_rule" &&
+            CONTAINSSTRING(
+                LOWER('agent_nsr metrics'[synonyms]),
+                "silver"
+            )
+        )
     ),
     "display_name",         'agent_nsr metrics'[display_name],
     "business_description", 'agent_nsr metrics'[business_description],
