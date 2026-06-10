@@ -202,19 +202,15 @@ CONTAINSSTRING(
 
 ---
 
-## Required Output Columns (always include all 10)
+## Required Output Columns
 
 ```
 "display_name",        'agent_nsr metrics'[display_name],
 "business_description",'agent_nsr metrics'[business_description],
-"dax_expression",      'agent_nsr metrics'[dax_expression],
-"domain",              'agent_nsr metrics'[domain],
-"grain",               'agent_nsr metrics'[grain],
-"source_system",       'agent_nsr metrics'[source_system],
-"aggregation_default", 'agent_nsr metrics'[aggregation_default],
 "valid_slicers",       'agent_nsr metrics'[valid_slicers],
 "invalid_slicers",     'agent_nsr metrics'[invalid_slicers],
-"known_pitfalls",      'agent_nsr metrics'[known_pitfalls]
+"known_pitfalls",      'agent_nsr metrics'[known_pitfalls],
+"technical_description",      'agent_nsr metrics'[technical_description]
 ```
 
 Note: `business description` is the actual column name (with a space) — the alias is `"business_description"`.
@@ -236,11 +232,7 @@ SELECTCOLUMNS(
     ),
     "display_name",         'agent_nsr metrics'[display_name],
     "business_description", 'agent_nsr metrics'[business_description],
-    "dax_expression",       'agent_nsr metrics'[dax_expression],
-    "domain",               'agent_nsr metrics'[domain],
-    "grain",                'agent_nsr metrics'[grain],
-    "source_system",        'agent_nsr metrics'[source_system],
-    "aggregation_default",  'agent_nsr metrics'[aggregation_default],
+    "technical_description",      'agent_nsr metrics'[technical_description]
     "valid_slicers",        'agent_nsr metrics'[valid_slicers],
     "invalid_slicers",      'agent_nsr metrics'[invalid_slicers],
     "known_pitfalls",       'agent_nsr metrics'[known_pitfalls]
@@ -297,11 +289,7 @@ SELECTCOLUMNS(
     ),
     "display_name",         'agent_nsr metrics'[display_name],
     "business_description", 'agent_nsr metrics'[business_description],
-    "dax_expression",       'agent_nsr metrics'[dax_expression],
-    "domain",               'agent_nsr metrics'[domain],
-    "grain",                'agent_nsr metrics'[grain],
-    "source_system",        'agent_nsr metrics'[source_system],
-    "aggregation_default",  'agent_nsr metrics'[aggregation_default],
+    "technical_description",      'agent_nsr metrics'[technical_description]
     "valid_slicers",        'agent_nsr metrics'[valid_slicers],
     "invalid_slicers",      'agent_nsr metrics'[invalid_slicers],
     "known_pitfalls",       'agent_nsr metrics'[known_pitfalls]
