@@ -18,7 +18,6 @@ Check ALL of the following:
 ```text
 "display_name"
 "business_description"
-"dax_expression"
 "valid_slicers"
 "invalid_slicers"
 "known_pitfalls"
