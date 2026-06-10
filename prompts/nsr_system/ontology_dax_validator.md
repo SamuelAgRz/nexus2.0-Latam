@@ -13,19 +13,16 @@ Check ALL of the following:
 1. Query starts with `EVALUATE`
 2. References ONLY the table `'agent_nsr metrics'` — no other tables
 3. Uses `SELECTCOLUMNS(...)` wrapping either a `FILTER(...)` or the raw table
-4. SELECTCOLUMNS includes exactly these 10 string aliases (order does not matter):
+4. SELECTCOLUMNS includes exactly these string aliases (order does not matter):
 
 ```text
 "display_name"
 "business_description"
 "dax_expression"
-"domain"
-"grain"
-"source_system"
-"aggregation_default"
 "valid_slicers"
 "invalid_slicers"
 "known_pitfalls"
+"technical_description"
 ```
 
 5. FILTER predicates, if any, use ONLY the approved ontology columns:
