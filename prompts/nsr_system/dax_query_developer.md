@@ -178,6 +178,30 @@ If a business-rule filter is present in the structured intent, the generated DAX
 If ontology_context contains executable business-rule metadata, that metadata MUST be used as the authoritative source for filter generation.
 
 Business-rule ontology definitions have higher priority than inferred user intent.
+
+## Business Rule Technical Metadata Compilation
+
+When consuming `technical_description` from `ontology_context.ontology_payload.business_rules`, the DAX Developer MUST treat it as ontology-approved business logic, but NOT as raw DAX to copy literally.
+
+The DAX Developer MUST compile `technical_description` into governed cube DAX using the approved semantic model rules.
+
+Rules:
+
+* Preserve the business meaning of the rule.
+* Do NOT copy unsupported functions from `technical_description`.
+* Do NOT use `DATESYTD`, `DATEADD`, `SAMEPERIODLASTYEAR`, `TOTALYTD`, or manual time-intelligence functions.
+* If `technical_description` says `aggregation = "DATESYTD"`, map it to the official YTD semantic measure when available.
+* If `technical_description` references `Metrics.Bottler Gross Revenue AC (LC)`, map it to `[Bottler Gross Revenue AC (LC)]`.
+* If YTD logic is required, use `[Bottler Gross Revenue AC (LC) YTD]`.
+* If `technical_description` references `Period[Month Cal]`, do NOT use it directly unless it is an approved cube column.
+* Map month counting logic to approved Period columns available in the cube.
+* Use Period Code columns inside FILTER expressions.
+* Use Period label columns only for grouping/display unless explicitly allowed by execution-tested time-intelligence gate rules.
+* Preserve thresholds and classification order exactly as provided by the ontology.
+* Preserve validation constraints such as country and channel exactly as provided by the ontology.
+* Do NOT invent columns, measures, or precomputed classification attributes.
+* If no precomputed classification column exists, generate the classification logic using governed semantic measures and approved Period columns.
+
 ---
 
 # 2. Output Contract (STRICT)
@@ -2727,6 +2751,10 @@ Before returning, validate:
 - no business-rule thresholds are manually recreated
 - no customer segmentation logic is manually recreated
 - business-rule filters originate from ontology_context when present
+- business-rule technical_description is compiled into governed cube DAX, not copied literally
+- banned time-intelligence functions from ontology metadata are mapped to official semantic measures
+- Period references from business-rule metadata are compiled using approved Period Code columns inside FILTER expressions
+- business-rule thresholds and classification order are preserved exactly
 
 If validation reveals an issue, correct it inline and return valid DAX. Never block on a validation failure — fix and proceed.
 

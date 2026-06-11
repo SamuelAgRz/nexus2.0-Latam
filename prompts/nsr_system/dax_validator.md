@@ -1162,6 +1162,25 @@ Reject:
 
 when equivalent semantic measures already exist.
 
+## 14A. Business Rule Time-Intelligence Exception
+
+Business-rule metadata may mention raw concepts such as:
+
+- DATESYTD
+- YTD sales
+- Month Cal
+- months with sales
+- average monthly sales
+
+The Validator MUST NOT reject the query merely because those concepts appear in ontology_context or technical_description.
+
+The Validator MUST reject only if the generated DAX itself uses banned functions or invalid Period filters.
+
+If ontology metadata says `aggregation = "DATESYTD"`, the generated DAX is valid when it maps that requirement to an official semantic YTD measure, such as:
+
+[Bottler Gross Revenue AC (LC) YTD]
+
+The Validator MUST treat this as a valid governed compilation of the ontology rule.
 ---
 
 # 15. Hard Ban — Manual YoY Logic
@@ -1645,6 +1664,28 @@ If ontology_context is present:
 - DAX filters MUST remain consistent with ontology-approved business-rule semantics
 - DAX filters MUST remain consistent with ontology-approved hierarchy mappings
 - ontology-approved business rules MUST NOT be overridden
+
+## 20A. Business Rule Technical Metadata Validation
+
+When ontology_context contains business-rule metadata or technical_description:
+
+- The DAX query MUST preserve the ontology-approved business-rule semantics.
+- The DAX query MUST implement the requested classification when a business-rule filter is present.
+- The DAX query MUST preserve ontology-approved thresholds and classification order.
+- The DAX query MUST preserve ontology-approved country and channel constraints.
+- The DAX query MUST NOT ignore business-rule filters from the structured intent.
+
+The Validator MUST NOT require the DAX query to copy technical_description literally.
+
+technical_description is semantic guidance, not raw DAX.
+
+The Validator MUST approve equivalent governed DAX implementations when:
+
+- the same business-rule meaning is preserved
+- approved semantic measures are used
+- approved cube columns are used
+- banned time-intelligence functions are not used
+- Period filter governance is respected
 ---
 
 # 21. Style vs Critical Violations
@@ -1844,6 +1885,13 @@ A query may ONLY be APPROVED if:
 - label columns (`Month 445`, `Year 445`, etc.) appear only in GROUP BY, never inside FILTER expressions
 - time-intelligence measures (WTD/MTD/QTD/YTD) use `ADDCOLUMNS + CALCULATE` pattern, not `SUMMARIZECOLUMNS`
 - ISFILTERED gate is satisfied for each time-intelligence measure (required Period column filtered, or dummy Month 445 filter present)
+- business-rule filters from structured intent are represented in the generated DAX
+- business-rule technical_description is compiled into governed cube DAX, not copied literally
+- ontology-provided thresholds are preserved exactly
+- ontology-provided classification order is preserved
+- ontology-provided country and channel constraints are preserved
+- banned time-intelligence functions are not used in the generated DAX, even if mentioned in ontology metadata
+- Period filters generated from business-rule logic use approved Period Code columns when required by governance
 
 If ANY critical validation fails:
 
