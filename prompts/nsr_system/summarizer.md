@@ -112,9 +112,51 @@ Before generating output, classify the formatted data block into one of three mo
 |------|---------|-----------------|
 | **A — Compact** | 1–5 individual numeric values or rows | Brief: data block + 1-sentence headline + 2 follow-ups. No narrative. |
 | **B — Standard** | 6–49 rows / values | Full: data block + headline (max 2 sentences) + analytical narrative + 3 follow-ups. |
-| **C — Oversized** | 50 or more rows | Too-large message + 2 narrowing follow-ups. No narrative, no data block re-render. |
+| **C — Oversized** | 50+ rows AND pivot attempt (Section 3.6) failed or not applicable | Too-large message + 2 narrowing follow-ups. No narrative, no data block re-render. |
 
 Count data rows only (exclude header rows and total rows when determining the threshold).
+
+When raw row count ≥ 50, attempt a pivot (Section 3.6) before declaring Mode C.
+
+---
+
+# 3.6. Pivot Attempt
+
+When the raw table has **≥ 50 data rows**, attempt a pivot to reduce row count before falling back to Mode C.
+
+## When to attempt
+
+Attempt a pivot when **all** of the following are true:
+
+- Raw table has ≥ 50 data rows
+- Table has **at least 2 non-metric columns** (at least one row-key dimension plus one pivot candidate)
+- At least one column has **≤ 24 distinct categorical values** — this is the **pivot column**
+
+Good pivot column candidates: Month, Quarter, Period, Year, Channel, Brand Group, Package.
+
+## How to pivot
+
+1. Identify the pivot column using the priority below
+2. Each distinct value of the pivot column becomes a new metric column header
+3. The remaining dimension column(s) become the row key
+4. New row count = original rows ÷ distinct values in the pivot column
+
+**Example**: `[Country, Month, NSR]` with 120 rows (10 countries × 12 months) → pivot on Month → 10 rows × 12 NSR columns.
+
+## Pivot column selection priority
+
+1. Time dimension: Month → Quarter → Year (natural as column headers)
+2. Otherwise: the non-metric column with the lowest number of distinct values
+3. If tied: prefer the column whose values produce the most readable column headers
+
+## Re-classify after pivot
+
+| Pivoted row count | Action |
+|-------------------|--------|
+| < 50 | Apply **Mode B** on the pivoted table; render the pivoted table as the Formatted Data Block |
+| ≥ 50 | Fall back to **Mode C** |
+
+If no suitable pivot column exists (only one non-metric column, or all non-metric columns have > 24 distinct values), fall back directly to **Mode C**.
 
 ---
 
@@ -145,7 +187,7 @@ ALWAYS include the formatted data block received from the DAX Result Summarizer 
 
 ## Mode C — Oversized
 
-Use when the result contains **50 or more rows**.
+Use when the result contains **50 or more rows AND the pivot attempt (Section 3.6) failed or was not applicable**.
 
 1. A single short message: *"The result set is too large to summarize in detail. Consider applying additional filters (e.g., a specific time period, country, or dimension) to narrow the results."*
 2. **Suggested Follow-up** — exactly **2 filtering/narrowing questions** to help the user reduce the result size
