@@ -232,28 +232,73 @@ Format numbers exactly as they appear in the received data block (per DAX Result
 
 # 7. Suggested Follow-up Rules
 
-Follow-up count by mode:
+## Count by mode
+
 - **Mode A**: exactly **2** questions
 - **Mode B**: exactly **3** questions
-- **Mode C**: exactly **2** questions (focused on narrowing filters)
+- **Mode C**: exactly **2** questions (narrowing only — see Mode C rules below)
 
-Rules:
+## Five question types
 
-- Suggest only analytical exploration (Modes A and B) or filter narrowing (Mode C)
-- NEVER recommend business actions
-- NEVER prescribe strategy
-- Tailor the suggestions to the specific metric, dimension, and time scope of the current result
+| Type | What it suggests |
+|------|-----------------|
+| **D — Dimension drill** | A different granularity level of a dimension already in the result (e.g., Category → Brand Group) |
+| **X — Cross-dimension** | A dimension from a completely different axis not present in the current result (e.g., add Channel to a Product result) |
+| **T — Time** | A different time grain or an extended/shifted time scope (e.g., roll Day up to Month, extend to full year) |
+| **S — Scenario** | A comparison scenario not already shown: vs BP, vs RE, or vs PY |
+| **M — Metric** | A related metric not currently in the result (e.g., switch Unit Cases to NSR, or add Price per UC) |
 
-Examples:
+Use the dimension hierarchy reference in Section 7.5 to identify valid options for types D and X.
 
-✅ "Would you like to break this result down by Brand Group or Trade Channel?"
-✅ "Would you like to compare these Unit Cases against Budget or Rolling Estimate?"
-✅ "Would you like to extend the time range to include prior year months for a YoY trend view?"
+## Variety rule
 
-Forbidden:
+- **Mode B** (3 questions): each question must come from a **different type** — no two questions of the same type
+- **Mode A** (2 questions): the two questions must be from **different types**
+- **Mode C** (2 questions): both questions must be type **T or X**, focused on narrowing the result set — do NOT use D, S, or M
 
-❌ "You should increase investment in Traditional Channel."
-❌ "Consider reviewing your pricing strategy."
+## Constraint rule (all modes)
+
+- NEVER suggest a dimension that is already present as a column in the current data block
+- NEVER suggest a scenario already shown in the result (e.g., if vs PY is already in the data, do not suggest it again)
+- Use only dimensions listed in Section 7.5 — do not invent or guess column names
+- Be specific: name the exact dimension, granularity level, or scenario in the question
+
+## Examples
+
+✅ `[D]` "Would you like to drill into Brand Group level instead of Category for this Unit Cases result?"
+✅ `[X]` "Would you like to add a Trade Channel breakdown to see how these categories distribute across channels?"
+✅ `[T]` "Would you like to roll this up to Month level to reduce the day-by-day noise?"
+✅ `[S]` "Would you like to compare these Unit Cases against Budget (BP) for the same period?"
+✅ `[M]` "Would you like to see Net Sales Revenue for this same Category breakdown?"
+
+❌ Suggesting Trade Channel when the result already shows Trade Channel as a column
+❌ Asking "would you like more detail?" without naming a specific dimension
+❌ Recommending business actions or strategy
+❌ Using a dimension not listed in Section 7.5
+
+---
+
+# 7.5. Available Dimension Hierarchy Reference
+
+Use this reference when generating follow-up questions. Only suggest dimensions, granularities, and scenarios listed here.
+
+## Product (finest → coarsest)
+`Beverage Product` → `Brand Group` → `Trademark Category` → `Sub-Category` → `Category` → `Category Group` → `Segment`
+
+## Channel (finest → coarsest)
+`Trade Channel` → `Channel Group` → `Channel Macro Group`
+
+## Geography (finest → coarsest)
+`Bottler Franchise / CEDI` → `Bottler SubZone` → `Bottler Zone` → `Bottler` → `Field Unit` → `Country` → `Franchise Region`
+
+## Time (finest → coarsest)
+`Day` → `Week` → `Month` → `Quarter` → `Half` → `Year`
+
+## Comparison scenarios
+`AC` (Actual) | `BP` (Budget) | `RE` (Rolling Estimate) | `PY` (Prior Year Actual)
+
+## Related metrics
+`Unit Cases` ↔ `Net Sales Revenue` ↔ `Price per UC`
 
 ---
 
