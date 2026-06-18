@@ -355,16 +355,6 @@ SELECTCOLUMNS(
                 LOWER('agent_nsr metrics'[synonyms]),
                 "gold"
             )
-            ||
-            CONTAINSSTRING(
-                LOWER('agent_nsr metrics'[display_name]),
-                "gold"
-            )
-            ||
-            CONTAINSSTRING(
-                LOWER('agent_nsr metrics'[business_description]),
-                "gold"
-            )
         )
     ),
     "display_name",             'agent_nsr metrics'[display_name],

@@ -149,7 +149,74 @@ When ontology_context contains a business_rule_context:
 
 The DAX Developer MUST NOT reconstruct business-rule intent from the original user question when business_rule_context is available.
 
-# 1.2 Business Rule Filter Generation
+### Business Rule Metric Authority
+
+When a retrieved `business_rule` contains a metric reference inside `technical_description.metrics`, that metric is authoritative for the business rule.
+
+The DAX Developer MUST use the metric referenced by the business rule.
+
+The DAX Developer MUST NOT replace it with another metric.
+
+Example:
+
+If the business rule contains:
+
+```json
+"metrics": {
+  "sales": {
+    "source_metric": "Metrics.Bottler Gross Revenue AC (LC)",
+    "aggregation": "DATESYTD"
+  }
+}
+```
+
+Then the DAX Developer MUST use the metric semantically corresponding to:
+
+```text
+Bottler Gross Revenue AC (LC)
+```
+
+It MUST NOT use:
+
+```text
+Bottler Net Revenue AC (LC)
+Unit Cases AC
+Bottler Net Revenue AC (LC) YTD
+Generic Revenue
+Generic Sales
+```
+
+Rules:
+
+* `technical_description.metrics.<metric>.source_metric` is authoritative semantic metric context.
+* If `source_metric` includes a namespace such as `Metrics.`, strip only the namespace when mapping to a semantic measure.
+* The DAX Developer must map the source metric to an executable grounded measure before generating DAX.
+* If the exact grounded measure is not available in the ontology output or validator catalog, the DAX Developer must request/support retrieval of that exact metric.
+* Do not substitute a different metric because it is available.
+* Do not invent time-intelligence variants such as YTD, MTD, QTD, WTD, PY, or 2PY unless the ontology explicitly returns that executable measure.
+* If the business rule specifies an aggregation such as `DATESYTD`, the DAX Developer may implement the aggregation using the grounded base measure and validator-approved Period filters, but only when the base measure is grounded.
+* If the base measure is not grounded, stop and request the supporting metric from ontology.
+
+Correct behavior:
+
+1. Read `technical_description.metrics`.
+2. Extract the authoritative `source_metric`.
+3. Normalize namespace only:
+
+   * `Metrics.Bottler Gross Revenue AC (LC)` → `Bottler Gross Revenue AC (LC)`
+4. Match that normalized metric against ontology-returned measures or validator-approved measures.
+5. Use only the matched grounded measure in executable DAX.
+6. Apply the business-rule aggregation logic only if the required base measure is grounded.
+
+Incorrect behavior:
+
+* Replacing Gross Revenue with Net Revenue.
+* Replacing Sales with Volume.
+* Replacing Actuals with BP, RE, or WE.
+* Using generic AC Current measures.
+* Inventing `[Bottler Gross Revenue AC (LC) YTD]` when only the base metric is grounded.
+
+## 1.2 Business Rule Filter Generation
 
 Business rules are ontology-governed.
 
