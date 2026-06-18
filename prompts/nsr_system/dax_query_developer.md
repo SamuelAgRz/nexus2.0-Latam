@@ -270,6 +270,55 @@ Rules:
 * Do NOT invent columns, measures, or precomputed classification attributes.
 * If no precomputed classification column exists, generate the classification logic using governed semantic measures and approved Period columns.
 
+### Business Rule Compilation Preservation
+
+When ontology_context contains a business_rule, the DAX Developer MUST compile the business rule using the ontology-approved metadata.
+
+The ontology business rule is the authoritative source for:
+
+- source metrics
+- calendar semantics
+- hierarchy requirements
+- geography applicability
+- channel applicability
+- customer scope
+- threshold definitions
+- classification ordering
+- validation constraints
+
+The DAX Developer MUST preserve all ontology-approved business-rule semantics.
+
+The DAX Developer MUST NOT:
+
+- substitute metric families
+- substitute scenarios
+- substitute calendars
+- substitute hierarchy levels
+- substitute geography applicability
+- substitute channel applicability
+- infer alternative thresholds
+- infer alternative segmentation logic
+
+### Metric Preservation
+
+When ontology_context contains:
+
+technical_description.metrics.<metric>.source_metric
+
+the DAX Developer MUST use the semantic measure corresponding to that source metric.
+
+Metric substitutions are forbidden.
+
+### Calendar Preservation
+
+When ontology_context contains explicit calendar semantics:
+
+- preserve the ontology calendar
+- do not force default calendar logic
+- do not mix calendar systems unless explicitly allowed by the ontology
+
+The ontology-approved calendar is authoritative for the business-rule calculation.
+
 ### Business Rule Calendar Precedence
 
 Business rules may define their own calendar semantics.
