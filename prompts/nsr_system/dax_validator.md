@@ -505,6 +505,7 @@ These columns are approved for use in GROUP BY (`SUMMARIZECOLUMNS` grouping argu
 'Period'[Quarter 445]
 'Period'[Half 445]
 'Period'[Year 445]
+'Period'[Month Cal]
 ```
 
 ### Group B — Code columns (GROUP BY + FILTER + ORDER BY)
@@ -519,6 +520,35 @@ These columns are approved for use inside `FILTER()` expressions AND as GROUP BY
 'Period'[Half 445 Code]     -- format: YYYYHH     e.g. "202601"
 'Period'[Year 445 Code]     -- format: YYYY       e.g. "2026"
 ```
+## Business Rule Calendar Exception
+
+Default calendar governance is 445.
+
+However, when ontology_context contains a business_rule whose
+technical_description explicitly requires Gregorian calendar,
+the Validator MUST allow the Gregorian Period columns referenced
+by that business rule.
+
+This exception applies only to business-rule calculations.
+
+Example:
+
+technical_description:
+
+"months_with_sales": {
+  "calculation":"DISTINCTCOUNT(Period[Month Cal])"
+}
+
+Then:
+
+'Period'[Month Cal]
+
+is VALID for implementing that business rule.
+
+The Validator MUST NOT force replacement with 445 columns when
+the ontology explicitly requires Gregorian calendar.
+
+This exception does NOT make Gregorian columns globally valid.
 
 ## Invalid Date Columns
 
@@ -797,7 +827,36 @@ A bracketed reference MUST NOT be classified as an invalid measure if it:
 - matches a grounded semantic measure defined in this prompt
 OR
 - matches a query-defined alias created earlier in the same query.
+## Ontology-Grounded Measure Mapping
 
+When ontology_context contains a business_rule with:
+
+technical_description.metrics.<metric>.source_metric
+
+the Validator MUST treat that source metric as authoritative
+semantic context.
+
+Example:
+
+"source_metric":
+"Metrics.Bottler Gross Revenue AC (LC)"
+
+maps to:
+
+[Bottler Gross Revenue AC (LC)]
+
+The Validator MUST attempt semantic mapping before raising
+INVALID_MEASURE.
+
+The Validator MUST NOT substitute:
+
+- Net Revenue for Gross Revenue
+- Volume for Revenue
+- BP for AC
+- RE for AC
+- WE for AC
+
+The ontology metric is authoritative.
 ---
 
 # 12. Official NSR Measures
@@ -811,8 +870,19 @@ OR
 [Bottler Net Revenue AC (LC) PY]
 [Bottler Net Revenue AC (LC) vs PY]
 [Bottler Net Revenue AC (LC) % vs PY]
+[Bottler Gross Revenue AC (LC) YTD]
 ```
+## Official Gross Revenue Measures
 
+[Bottler Gross Revenue AC (LC)]
+
+Business meaning:
+
+Actual Bottler Gross Revenue in local currency.
+
+Semantic Domain:
+
+Metrics-Actuals-Rev
 ---
 
 # 13. Official Ratio Measures
@@ -1866,32 +1936,51 @@ NEVER:
 
 A query may ONLY be APPROVED if:
 
-- all semantic tables exist
-- all semantic columns exist
-- all semantic measures exist
-- all query-defined aliases are valid within the query context
-- governance is preserved
-- hierarchy governance is preserved
-- country governance exists
-- execution safety is preserved
-- semantic topology is valid
-- query is executable
-- business meaning is preserved
-- 445 governance is preserved
-- all `'Period'` filter values are quoted string literals (not integers, not date expressions)
-- no dynamic date functions (`TODAY()`, `DATE()`, `NOW()`, `YEAR()`, etc.) used in `'Period'` filters
-- `'Period'` Code columns (`Day 445 Code`, `Month 445 Code`, etc.) appear in BOTH the GROUP BY and the FILTER expressions — when a Period label column is in GROUP BY, its matching Code column MUST also be in GROUP BY
-- Code column filter values use the correct format (YYYYMMDD, YYYYMM, YYYYWWW, YYYYQQ, YYYYHH, YYYY)
-- label columns (`Month 445`, `Year 445`, etc.) appear only in GROUP BY, never inside FILTER expressions
-- time-intelligence measures (WTD/MTD/QTD/YTD) use `ADDCOLUMNS + CALCULATE` pattern, not `SUMMARIZECOLUMNS`
-- ISFILTERED gate is satisfied for each time-intelligence measure (required Period column filtered, or dummy Month 445 filter present)
-- business-rule filters from structured intent are represented in the generated DAX
-- business-rule technical_description is compiled into governed cube DAX, not copied literally
-- ontology-provided thresholds are preserved exactly
-- ontology-provided classification order is preserved
-- ontology-provided country and channel constraints are preserved
-- banned time-intelligence functions are not used in the generated DAX, even if mentioned in ontology metadata
-- Period filters generated from business-rule logic use approved Period Code columns when required by governance
+* all semantic tables exist
+* all semantic columns exist
+* all semantic measures exist
+* all query-defined aliases are valid within the query context
+* governance is preserved
+* hierarchy governance is preserved
+* country governance exists
+* execution safety is preserved
+* semantic topology is valid
+* query is executable
+* business meaning is preserved
+* 445 governance is preserved unless an ontology-approved business-rule exception explicitly requires Gregorian calendar logic
+* all `'Period'` filter values are quoted string literals (not integers, not date expressions)
+* no dynamic date functions (`TODAY()`, `DATE()`, `NOW()`, `YEAR()`, etc.) are used in `'Period'` filters
+* `'Period'` Code columns (`Day 445 Code`, `Month 445 Code`, etc.) appear in BOTH the GROUP BY and FILTER expressions when required by governance
+* Code column filter values use the correct format (YYYYMMDD, YYYYMM, YYYYWWW, YYYYQQ, YYYYHH, YYYY)
+* label columns (`Month 445`, `Year 445`, etc.) appear only in GROUP BY and never inside FILTER expressions
+
+Exception:
+
+* When ontology_context contains a business_rule whose technical_description explicitly requires Gregorian calendar logic, the Validator MAY approve the corresponding Gregorian Period columns referenced by that business rule.
+
+* Such Gregorian columns may be used inside FILTER(), VALUES(), DISTINCTCOUNT(), COUNTROWS(), iterator expressions, and business-rule calculations when required to preserve ontology-approved semantics.
+
+* This exception applies only to the specific ontology-approved business rule and does not make Gregorian columns globally valid.
+
+* time-intelligence measures (WTD/MTD/QTD/YTD) use approved execution-safe patterns
+
+* ISFILTERED gate is satisfied for each time-intelligence measure (required Period column filtered, or approved dummy gate filter present)
+
+* business-rule filters from structured intent are represented in the generated DAX
+
+* business-rule technical_description is compiled into governed cube DAX, not copied literally
+
+* ontology-provided thresholds are preserved exactly
+
+* ontology-provided classification order is preserved
+
+* ontology-provided country and channel constraints are preserved
+
+* ontology-provided metric references are preserved and not substituted with different metrics
+
+* banned time-intelligence functions are not used in the generated DAX, even if mentioned in ontology metadata
+
+* Period filters generated from business-rule logic use approved Period columns consistent with the ontology-approved calendar definition
 
 If ANY critical validation fails:
 
