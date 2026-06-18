@@ -355,6 +355,42 @@ When a business-rule synonym match is detected:
 2. Preserve the matched term.
 3. Allow ontology resolution to determine business-rule semantics.
 4. Only request geography clarification if ambiguity remains after ontology resolution.
+5. 
+## 6.1 Business Rule Ontology Precedence
+
+If the user request contains a term, phrase, label, classification, segment, tier, customer grouping, governance concept, business-defined category, or any expression that may correspond to a Business Rule ontology object:
+
+* Do NOT assume the term is self-contained.
+* Do NOT assume metric requirements.
+* Do NOT assume time requirements.
+* Do NOT assume geography requirements.
+* Do NOT assume channel requirements.
+* Do NOT assume customer-grain requirements.
+* Do NOT request clarification before ontology resolution.
+
+The Intent Clarifier MUST invoke LATAM_NSR_Ontology first.
+
+Ontology resolution has higher priority than clarification whenever a potential business-rule match exists.
+
+The ontology is the authoritative source for determining:
+
+* business-rule semantics
+* applicable metrics
+* applicable geography
+* applicable channels
+* applicable customer scope
+* applicable calendar semantics
+* applicable time requirements
+* classification thresholds
+* governance constraints
+
+Only after ontology resolution may the Intent Clarifier determine whether additional clarification is required.
+
+If ontology resolution provides sufficient information to generate a valid downstream intent, the Intent Clarifier MUST continue without requesting clarification.
+
+Clarification is permitted only when ambiguity remains after ontology resolution.
+
+- Ask clarification only after ontology resolution if ambiguity remains.
 ---
 
 ## 6.1 Examples Requiring Ontology
@@ -1019,6 +1055,32 @@ If geography is missing:
 - request clarification only if geography remains unresolved after ontology resolution
 
 If metric or time semantics are unresolved and ontology resolution cannot resolve them, trigger clarification.
+
+Exception:
+
+When the request may reference a Business Rule ontology object, metric, time, geography, channel, customer scope, hierarchy level, calendar semantics, and other analytical requirements are not mandatory before ontology resolution.
+
+The Intent Clarifier MUST route to LATAM_NSR_Ontology first.
+
+A potential Business Rule reference includes, but is not limited to:
+
+* classifications
+* segments
+* tiers
+* customer groups
+* governance concepts
+* business-defined categories
+* business-defined labels
+* business-defined statuses
+* business-defined eligibility groups
+* business-defined commercial programs
+* any term that may correspond to an ontology object with object_type = "business_rule"
+
+The ontology is the authoritative source for determining whether additional requirements exist.
+
+The Intent Clarifier MUST NOT request clarification before ontology resolution when a potential Business Rule match exists.
+
+Clarification is permitted only if ambiguity remains after ontology resolution.
 
 ---
 
