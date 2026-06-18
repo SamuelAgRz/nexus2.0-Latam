@@ -132,8 +132,6 @@ Business-rule ontology retrieval MUST occur before any business-rule filter is a
 
 Business-rule ontology results MUST be returned together with the metric ontology results so downstream agents can use the official ontology definition.
 
----
-## Business Rule Retrieval
 
 The ontology may contain both metric definitions and business-rule definitions.
 
@@ -188,6 +186,51 @@ CONTAINSSTRING(
     LOWER('agent_nsr metrics'[synonyms]),
     "<matched term>"
 )
+### Business Rule Retrieval Priority
+
+When the user request contains any business-rule-driven concept, the ontology retrieval MUST prioritize `business_rule` objects before retrieving KPI measures.
+
+Business-rule-driven concepts include, but are not limited to:
+
+* classifications
+* segmentations
+* tiers
+* statuses
+* eligibility rules
+* customer groups
+* product groups
+* channel groups
+* business categories
+* thresholds
+* exception rules
+* inclusion or exclusion rules
+
+Examples:
+
+* Gold customers
+* Silver customers
+* Bronze customers
+* VIP customers
+* active customers
+* inactive customers
+* segmented customers
+* classified customers
+* eligible customers
+* excluded customers
+* customers by business rule
+* products by classification
+* channels by segmentation
+
+Retrieval order:
+
+1. Retrieve matching `business_rule` objects.
+2. Resolve the required hierarchy or dimension level.
+3. Retrieve only the supporting KPI measures explicitly referenced by the matched business rule.
+4. Do not retrieve generic KPI measures only because `source_system`, `grain`, or `aggregation_default` match the request.
+
+If a matching business rule is found, do not broaden retrieval to unrelated measure records.
+
+Classification, segmentation, tier, status, eligibility, and threshold questions are business-rule-first requests, not measure-first requests.
 
 ---
 ## DAX Pattern Rules
@@ -294,3 +337,76 @@ SELECTCOLUMNS(
     "invalid_slicers",      'agent_nsr metrics'[invalid_slicers],
     "known_pitfalls",       'agent_nsr metrics'[known_pitfalls]
 )
+## Example — Business Rule Retrieval with Filter
+
+Input description:
+
+"Gold customers"
+
+```DAX
+EVALUATE
+SELECTCOLUMNS(
+    FILTER(
+        'agent_nsr metrics',
+        'agent_nsr metrics'[object_type] = "business_rule"
+            &&
+        (
+            CONTAINSSTRING(
+                LOWER('agent_nsr metrics'[synonyms]),
+                "gold"
+            )
+            ||
+            CONTAINSSTRING(
+                LOWER('agent_nsr metrics'[display_name]),
+                "gold"
+            )
+            ||
+            CONTAINSSTRING(
+                LOWER('agent_nsr metrics'[business_description]),
+                "gold"
+            )
+        )
+    ),
+    "display_name",             'agent_nsr metrics'[display_name],
+    "business_description",     'agent_nsr metrics'[business_description],
+    "object_type",              'agent_nsr metrics'[object_type],
+    "domain",                   'agent_nsr metrics'[domain],
+    "grain",                    'agent_nsr metrics'[grain],
+    "source_system",            'agent_nsr metrics'[source_system],
+    "aggregation_default",      'agent_nsr metrics'[aggregation_default],
+    "synonyms",                 'agent_nsr metrics'[synonyms],
+    "valid_slicers",            'agent_nsr metrics'[valid_slicers],
+    "invalid_slicers",          'agent_nsr metrics'[invalid_slicers],
+    "known_pitfalls",           'agent_nsr metrics'[known_pitfalls],
+    "technical_description",    'agent_nsr metrics'[technical_description]
+)
+```
+
+Important:
+
+For business-rule-driven requests, do not add a generic measure retrieval branch such as:
+
+```DAX
+||
+(
+    'agent_nsr metrics'[object_type] = "measure" &&
+    'agent_nsr metrics'[source_system] = "AC" &&
+    'agent_nsr metrics'[grain] = "Current"
+)
+```
+
+Also do not add a generic metric branch such as:
+
+```DAX
+||
+(
+    'agent_nsr metrics'[domain] = "Volume" &&
+    'agent_nsr metrics'[source_system] = "AC" &&
+    'agent_nsr metrics'[grain] = "Current" &&
+    'agent_nsr metrics'[aggregation_default] = "Sum"
+)
+```
+
+Only retrieve supporting measures if they are explicitly referenced by the matched business rule.
+
+Classification, segmentation, tier, status, eligibility, and threshold requests are business-rule-first requests.
