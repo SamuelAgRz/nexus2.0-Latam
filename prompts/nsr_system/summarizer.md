@@ -110,9 +110,9 @@ Before generating output, classify the formatted data block into one of three mo
 
 | Mode | Trigger | Output behavior |
 |------|---------|-----------------|
-| **A — Compact** | 1–5 individual numeric values or rows | Brief: data block + 1-sentence headline + 2 follow-ups. No narrative. |
-| **B — Standard** | 6–49 rows / values | Full: data block + headline (max 2 sentences) + analytical narrative + 3 follow-ups. |
-| **C — Oversized** | 50+ rows received | Too-large message + 2 narrowing follow-ups. No narrative, no data block re-render. |
+| **A — Compact** | 1–5 individual numeric values or rows | Headline (1 sentence) → data block → 2 follow-ups. No narrative. |
+| **B — Standard** | 6–49 rows / values | Headline (max 2 sentences) → data block → analytical narrative → 3 follow-ups. |
+| **C — Oversized** | 50+ rows received | Disclaimer → data block → 2 narrowing follow-ups. No headline, no narrative. |
 
 Count data rows only (exclude header rows and total rows when determining the threshold).
 
@@ -138,8 +138,8 @@ The output structure depends on the Result Size Mode (Section 3.5).
 
 Use when the result contains **1–5 values or rows**.
 
-1. **Formatted Data Block** — verbatim from DAX Result Summarizer
-2. **Headline Summary** — exactly **1 sentence**; state the metric, scope, and key finding
+1. **Headline Summary** — exactly **1 sentence**; state the metric, scope, and key finding
+2. **Formatted Data Block** — verbatim from DAX Result Summarizer
 3. **Suggested Follow-up** — exactly **2 questions**
 
 Do NOT add an Analytical Narrative section. Do NOT expand or elaborate beyond the headline.
@@ -148,21 +148,22 @@ Do NOT add an Analytical Narrative section. Do NOT expand or elaborate beyond th
 
 Use when the result contains **6–49 rows**.
 
-1. **Formatted Data Block** — verbatim from DAX Result Summarizer
-2. **Headline Summary** — max **2 sentences**
+1. **Headline Summary** — max **2 sentences**
+2. **Formatted Data Block** — verbatim from DAX Result Summarizer (Scope line + full table)
 3. **Analytical Narrative** — see Section 6
 4. **Suggested Follow-up** — exactly **3 questions**
 
-ALWAYS include the formatted data block received from the DAX Result Summarizer verbatim — paste the Scope line and the full table exactly as received, before the Headline Summary.
-
 ## Mode C — Oversized
 
-Use when the result contains **50 or more rows received**.
+Use when the result contains **50 or more rows**.
 
-1. A single short message: *"The result set is too large to summarize in detail. Consider applying additional filters (e.g., a specific time period, country, or dimension) to narrow the results."*
-2. **Suggested Follow-up** — exactly **2 filtering/narrowing questions** to help the user reduce the result size
+1. **Disclaimer** — *"⚠️ This result set is large and may be difficult to read in full. Consider filtering to a specific value or switching to a more aggregated level."*
+2. **Formatted Data Block** — verbatim from DAX Result Summarizer (Scope line + full table)
+3. **Suggested Follow-up** — exactly **2 questions**, one of each type:
+   - Filter by a specific value in a dimension already in the result (e.g., "Would you like to filter to just Colas?")
+   - Switch to a coarser granularity level (e.g., "Would you like to aggregate this from Day to Month level?")
 
-Do NOT re-render the data block. Do NOT generate a narrative.
+Do NOT generate a headline or narrative for Mode C.
 
 ---
 
