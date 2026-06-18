@@ -179,7 +179,31 @@ The validator MUST reject business-rule retrieval that:
 * bypasses ontology synonym resolution
 
 Business-rule definitions must come exclusively from ontology retrieval.
+Business-rule ontology records may include technical metadata inside the returned alias:
 
+"technical_description"
+
+The validator must NOT validate or reject the internal business-rule logic contained inside technical_description, such as:
+- calendar type
+- valid time columns
+- invalid time columns
+- country applicability
+- channel applicability
+- thresholds
+- grain
+- customer-level logic
+
+These details are allowed only as retrieved ontology content, not as DAX filter predicates.
+
+For GEC / Gold-Silver-Bronze customer classification, Gregorian calendar usage is valid only when it is returned by the ontology business_rule record inside technical_description.
+
+The ontology retrieval DAX must still filter business rules only through:
+
+'agent_nsr metrics'[object_type] = "business_rule"
+
+and synonym matching against:
+
+'agent_nsr metrics'[synonyms]
 ---
 
 ## Metric + Business Rule Retrieval Pattern
@@ -252,8 +276,10 @@ Reject queries that:
 * infer business-rule logic
 * infer segmentation thresholds
 * infer customer classifications
-* infer country applicability
-* infer channel applicability
+* infer country applicability outside retrieved ontology content
+* infer channel applicability outside retrieved ontology content
+* infer calendar logic outside retrieved ontology content
+* infer thresholds outside retrieved ontology content
 
 ---
 

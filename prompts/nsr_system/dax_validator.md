@@ -507,7 +507,13 @@ These columns are approved for use in GROUP BY (`SUMMARIZECOLUMNS` grouping argu
 'Period'[Year 445]
 'Period'[Month Cal]
 ```
+'Period'[Month Cal]
 
+Allowed only:
+- for ontology-approved Gregorian business rules
+- for business-rule calculations requiring Gregorian calendar semantics
+
+Not valid for standard NSR analytical time governance.
 ### Group B — Code columns (GROUP BY + FILTER + ORDER BY)
 
 These columns are approved for use inside `FILTER()` expressions AND as GROUP BY arguments in SUMMARIZECOLUMNS (alongside their matching label column). They support both exact equality (`=`) and range operators (`>=`, `<=`). Their fixed-width numeric string format guarantees lexicographic = chronological order.
