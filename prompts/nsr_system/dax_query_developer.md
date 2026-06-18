@@ -323,7 +323,22 @@ Rules:
 9. Business-rule semantic correctness has higher priority than default calendar assumptions.
 
 10. The default 445 calendar applies only when the ontology business rule does not explicitly define calendar semantics.
+### Business Rule Calendar Authority
 
+Default calendar is 445 unless the ontology explicitly states that a business rule must use Gregorian calendar.
+
+If a retrieved business_rule explicitly states Gregorian calendar, the DAX Developer MUST use the Gregorian Period columns referenced by the rule, such as 'Period'[Month Cal].
+
+Do not replace Gregorian business-rule logic with 445 columns when the ontology says Gregorian.
+
+However, if a semantic YTD measure has a validator-required 445 ISFILTERED gate, the DAX Developer may add the minimum required 445 dummy filter only to satisfy the measure gate, while keeping the business-rule month logic on Gregorian columns.
+
+Example:
+
+- Business-rule month counting: use 'Period'[Month Cal]
+- YTD measure gate: may use dummy 'Period'[Month 445] <> "" only if required by the semantic measure
+
+Do not use 445 month codes to calculate months_with_sales for a business rule that explicitly says Gregorian.
 ---
 
 # 2. Output Contract (STRICT)
