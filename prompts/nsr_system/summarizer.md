@@ -160,30 +160,9 @@ If no suitable pivot column exists (only one non-metric column, or all non-metri
 
 ---
 
-# 3.7. Data Filtering Rules
+# 3.7. Data Filtering
 
-Before counting rows (for mode classification) and before generating any narrative analysis, apply the following filters. The Formatted Data Block is **not affected** — it is always rendered verbatim as received.
-
-## Categorical columns — exclude a row if any dimension column contains:
-
-- `Unassigned`, `(Unassigned)`, `(blank)`, blank/empty string, `N/A`, `Unknown`
-- Any case-insensitive variant of the above
-
-Do NOT mention these rows in the narrative (they must never appear as a top contributor, ranked item, or breakdown member).
-
-## Numeric columns — exclude a value from computed statistics if:
-
-- The metric cell is null or blank
-
-Do NOT exclude zero — a zero value is valid and must be included in totals, averages, peak, and trough.
-
-## Where filtering applies
-
-| Step | Applies? |
-|------|----------|
-| Row counting for mode classification (Sections 3.5 / 3.6) | ✅ Use cleaned count |
-| Narrative analysis — totals, averages, peak, trough, rankings (Section 6) | ✅ Exclude filtered rows/values |
-| Formatted Data Block rendering | ❌ Always verbatim |
+The formatted data block you receive has already had Unassigned/null rows filtered by the DAX Result Summarizer (Section 3.5). Analyze what you receive — no additional row filtering is needed.
 
 ---
 
@@ -283,10 +262,7 @@ The narrative MUST cover the following points where the data supports them:
 
 ## Number formatting in narrative:
 
-Apply the same formatting rules used by the DAX Result Summarizer:
-- Unit Cases: 0 decimals, comma-separated
-- Revenue: 0 decimals, comma-separated
-- Percentages: 2 decimal places with % symbol, signed
+Format numbers exactly as they appear in the received data block (per DAX Result Summarizer Section 4). Do not apply different rounding or separators.
 
 ---
 

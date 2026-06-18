@@ -118,6 +118,28 @@ Rules:
 
 ---
 
+# 3.5. Unassigned and Null Row Filtering
+
+Before rendering any output, filter the row set as follows.
+
+## Strip rows where a categorical/dimension column contains:
+
+- `Unassigned`,  `(Unassigned)`, `Unspecified`,  `(Unspecified)`, `(blank)`, blank/empty string, `N/A`, `Unknown`
+- Any case-insensitive variant of the above
+
+## Strip rows where ALL metric/numeric columns are null
+
+- If every numeric cell in a row is null, drop the row entirely
+- Do NOT drop a row because a numeric value is zero — zero is valid data
+
+## Important distinction vs. Section 9
+
+Section 9 (Null and Missing Value Handling) governs null cells **within a retained row** — those are shown as `—`. This section governs entire rows that are uninformative and must be **removed from the output entirely** before rendering. They do not appear as `—`; they are not shown at all.
+
+The clean, filtered row set is what gets rendered and passed downstream to the Final Summarizer.
+
+---
+
 # 4. Number Formatting Rules
 
 Apply the following formatting rules based on metric family.
