@@ -193,14 +193,69 @@ Rules:
 * If `technical_description` says `aggregation = "DATESYTD"`, map it to the official YTD semantic measure when available.
 * If `technical_description` references `Metrics.Bottler Gross Revenue AC (LC)`, map it to `[Bottler Gross Revenue AC (LC)]`.
 * If YTD logic is required, use `[Bottler Gross Revenue AC (LC) YTD]`.
-* If `technical_description` references `Period[Month Cal]`, do NOT use it directly unless it is an approved cube column.
-* Map month counting logic to approved Period columns available in the cube.
-* Use Period Code columns inside FILTER expressions.
+* If `technical_description` references `Period[Month Cal]`, Gregorian calendar, or Month Cal logic, the DAX Developer MUST preserve that calendar requirement
+* Use `Period[Month Cal]` only if it is an approved/exposed cube column.
+* If `Period[Month Cal]` is not approved or not exposed, the DAX Developer MUST NOT replace it with `Period[Month 445]` or `Period[Month 445 Code]`.
+* Do not approximate Gregorian business-rule logic with 445 calendar columns.
 * Use Period label columns only for grouping/display unless explicitly allowed by execution-tested time-intelligence gate rules.
 * Preserve thresholds and classification order exactly as provided by the ontology.
 * Preserve validation constraints such as country and channel exactly as provided by the ontology.
 * Do NOT invent columns, measures, or precomputed classification attributes.
 * If no precomputed classification column exists, generate the classification logic using governed semantic measures and approved Period columns.
+
+### Business Rule Calendar Precedence
+
+Business rules may define their own calendar semantics.
+
+When ontology_context.business_rules.technical_description contains calendar requirements, those requirements become authoritative for the business rule calculation.
+
+The DAX Developer MUST preserve the calendar semantics defined by the ontology.
+
+Rules:
+
+1. Business-rule calendar semantics override the default calendar behavior when explicitly provided by ontology metadata.
+
+2. The DAX Developer MUST NOT automatically convert:
+
+   * Gregorian calendar logic
+   * Month Cal logic
+   * Fiscal calendar logic
+   * Rolling period logic
+
+   into 445 calendar logic.
+
+3. The DAX Developer MUST first determine whether the business rule explicitly defines:
+
+   * calendar type
+   * month definition
+   * year definition
+   * rolling period definition
+
+4. If the ontology business rule specifies Gregorian calendar semantics:
+
+   * preserve Gregorian month counting
+   * preserve Gregorian year boundaries
+   * preserve Gregorian YTD definitions
+
+5. If the ontology business rule specifies 445 calendar semantics:
+
+   * preserve 445 calendar behavior
+
+6. If the ontology business rule specifies another calendar system:
+
+   * preserve that calendar system exactly
+
+7. The DAX Developer MUST NOT approximate one calendar system using another.
+
+8. If the required calendar columns are not available in the semantic model:
+
+   * do not substitute a different calendar
+   * do not approximate the calculation
+   * return the closest executable implementation consistent with governance rules
+
+9. Business-rule semantic correctness has higher priority than default calendar assumptions.
+
+10. The default 445 calendar applies only when the ontology business rule does not explicitly define calendar semantics.
 
 ---
 
@@ -2189,55 +2244,64 @@ Rules:
 - The Code column MUST appear in the GROUP BY (not only in ORDER BY) — ORDER BY a column that is not in the result set causes a DAX engine error
 
 ---
-
 # 10C. Time-Intelligence Gate — ISFILTERED() Awareness
 
-WTD/MTD/QTD/YTD semantic measures are gated internally by `ISFILTERED()`.
+WTD/MTD/QTD/YTD semantic measures may be gated internally by `ISFILTERED()`.
 
-They return `BLANK()` if the required Period column is NOT explicitly in the filter context.
+They may return `BLANK()` if the required Period column is not explicitly present in the filter context.
 
 ## Required ISFILTERED Triggers
 
-The following Period columns MUST be present in the filter context for each measure family:
+The following Period label columns may be required in the filter context:
 
-| Measure family | Requires at least one of these Period columns |
-|---|---|
-| `WTD` | `'Period'[Day 445]` |
-| `MTD` | `'Period'[Week 445]` OR `'Period'[Day 445]` |
-| `QTD` | `'Period'[Month 445]` OR `'Period'[Week 445]` OR `'Period'[Day 445]` |
-| `YTD` | `'Period'[Quarter 445]` OR `'Period'[Month 445]` OR `'Period'[Week 445]` OR `'Period'[Day 445]` |
-
-If none of the required columns are filtered, the measure returns `BLANK()` at execution.
+| Measure family | Requires at least one of these Period columns                                                   |
+| -------------- | ----------------------------------------------------------------------------------------------- |
+| `WTD`          | `'Period'[Day 445]`                                                                             |
+| `MTD`          | `'Period'[Week 445]` OR `'Period'[Day 445]`                                                     |
+| `QTD`          | `'Period'[Month 445]` OR `'Period'[Week 445]` OR `'Period'[Day 445]`                            |
+| `YTD`          | `'Period'[Quarter 445]` OR `'Period'[Month 445]` OR `'Period'[Week 445]` OR `'Period'[Day 445]` |
 
 ---
 
 ## Dummy Filter Workaround
 
-When the query filters ONLY by Year (`'Period'[Year 445]`) or Quarter (`'Period'[Quarter 445]`) — without a finer grain — the ISFILTERED gate is NOT satisfied.
+When a time-intelligence measure requires a finer Period label column to satisfy the internal `ISFILTERED()` gate, the DAX Developer may use a controlled dummy label-column filter.
 
-In this case, add the following dummy filter inside `CALCULATE` to satisfy the gate WITHOUT distorting the time scope:
+This is the ONLY allowed exception to the general rule that Period filters must use Code columns.
+
+Valid dummy gate pattern:
 
 ```DAX
-KEEPFILTERS(FILTER(ALL('Period'[Month 445]), 'Period'[Month 445] <> ""))
+KEEPFILTERS(
+    FILTER(
+        ALL('Period'[Month 445]),
+        'Period'[Month 445] <> ""
+    )
+)
 ```
 
-This passes a non-empty Month 445 context to satisfy `ISFILTERED('Period'[Month 445])` while allowing the YTD/QTD measure to operate across all months in the filtered year or quarter.
+This dummy filter is allowed only when all of the following are true:
 
----
+* the query uses a WTD/MTD/QTD/YTD semantic measure
+* the measure would otherwise return `BLANK()` because of the internal `ISFILTERED()` gate
+* the filter is non-restrictive
+* the filter does not define a time range
+* the filter does not replace the real time filter
 
-## Mandatory Pattern for Time-Intelligence Measures
+For actual time filtering, continue using Code columns.
 
-NEVER use `SUMMARIZECOLUMNS` with WTD/MTD/QTD/YTD measures.
+Valid actual time filter:
 
-`SUMMARIZECOLUMNS` does not propagate the ISFILTERED context correctly for these measures.
-
-ALWAYS use:
-
-```text
-ADDCOLUMNS + CALCULATE + KEEPFILTERS
+```DAX
+KEEPFILTERS(
+    FILTER(
+        ALL('Period'[Year 445 Code]),
+        'Period'[Year 445 Code] = "2026"
+    )
+)
 ```
 
-### Pattern — YTD with Year-only scope (requires dummy filter)
+Valid YTD pattern with Year scope and Month dummy gate:
 
 ```DAX
 EVALUATE
@@ -2247,33 +2311,34 @@ ADDCOLUMNS(
     CALCULATE(
         [Bottler Net Revenue AC (LC) YTD],
         KEEPFILTERS(FILTER(ALL('Ship From'[Country]), 'Ship From'[Country] = "Colombia")),
-        KEEPFILTERS(FILTER(ALL('Period'[Year 445]), 'Period'[Year 445] = "2026")),
+        KEEPFILTERS(FILTER(ALL('Period'[Year 445 Code]), 'Period'[Year 445 Code] = "2026")),
         KEEPFILTERS(FILTER(ALL('Period'[Month 445]), 'Period'[Month 445] <> ""))
     )
 )
 ```
 
-### Pattern — MTD with Month scope (gate naturally satisfied)
+Invalid:
 
 ```DAX
-EVALUATE
-ADDCOLUMNS(
-    VALUES('Channel'[LT1.3 - Channel Macro Group]),
-    "MTD Revenue",
-    CALCULATE(
-        [Bottler Net Revenue AC (LC) MTD],
-        KEEPFILTERS(FILTER(ALL('Ship From'[Country]), 'Ship From'[Country] = "Colombia")),
-        KEEPFILTERS(FILTER(ALL('Period'[Month 445]), 'Period'[Month 445] = "2026 Jan"))
-    )
-)
+KEEPFILTERS(FILTER(ALL('Period'[Month 445]), 'Period'[Month 445] <> ""))
 ```
+
+Invalid:
+
+```DAX
+KEEPFILTERS(FILTER(ALL('Period'[Month 445 Code]), 'Period'[Month 445 Code] <> ""))
+```
+
+Reason: the Code column may not satisfy an internal `ISFILTERED('Period'[Month 445])` gate.
 
 Rules:
 
-- NEVER use `SUMMARIZECOLUMNS` with time-intelligence measures
-- ALWAYS use `ADDCOLUMNS + CALCULATE + KEEPFILTERS`
-- ALWAYS verify the ISFILTERED gate is satisfied
-- When filtering only by Year or Quarter, ALWAYS add the dummy Month 445 filter
+* NEVER use `SUMMARIZECOLUMNS` with WTD/MTD/QTD/YTD measures.
+* ALWAYS use `ADDCOLUMNS + CALCULATE + KEEPFILTERS`.
+* Use Code columns for actual time filters.
+* Use label columns only for the dummy `ISFILTERED()` gate exception.
+* The dummy label filter must be non-restrictive.
+* The dummy label filter must not be used for ranges, equality period selection, ordering, or business time scoping.
 
 ---
 
@@ -2740,9 +2805,9 @@ Before returning, validate:
 - semantic topology is preserved
 - all `'Period'` filter values are quoted string literals (not integers, not date expressions)
 - no dynamic date functions used in `'Period'` filters (`TODAY()`, `DATE()`, `NOW()`, `YEAR()`, etc.)
-- `'Period'` FILTER expressions use Code columns (`Day 445 Code`, `Month 445 Code`, etc.), not label columns
+- `'Period'` FILTER expressions use Code columns, except for the controlled dummy label-column filter explicitly allowed by Section 10C.
 - Code column filter values are quoted strings in the correct format (YYYYMMDD, YYYYMM, YYYYWWW, etc.)
-- label columns (`Month 445`, `Year 445`, etc.) appear only in GROUP BY, never inside FILTER expressions
+- label columns appear only in GROUP BY, except for the controlled dummy ISFILTERED gate exception in Section 10C.
 - if a Period label column is in GROUP BY, the matching Code column MUST also be in GROUP BY
 - TOPN is never used — ranking/top/max/min queries use SUMMARIZECOLUMNS + ORDER BY [Metric] DESC
 - time-intelligence measures (WTD/MTD/QTD/YTD) use `ADDCOLUMNS + CALCULATE` pattern, not `SUMMARIZECOLUMNS`
@@ -2753,7 +2818,7 @@ Before returning, validate:
 - business-rule filters originate from ontology_context when present
 - business-rule technical_description is compiled into governed cube DAX, not copied literally
 - banned time-intelligence functions from ontology metadata are mapped to official semantic measures
-- Period references from business-rule metadata are compiled using approved Period Code columns inside FILTER expressions
+- Period references from business-rule metadata must preserve the ontology-defined calendar semantics. Use approved Period Code columns only when they preserve the business-rule calendar requirement.
 - business-rule thresholds and classification order are preserved exactly
 
 If validation reveals an issue, correct it inline and return valid DAX. Never block on a validation failure — fix and proceed.

@@ -96,6 +96,7 @@ Preserve the exact notation (e.g. `'Ship From'[L1.5 - Country]`).
 - 'Period'[Half 445 Code]
 - 'Period'[Year 445]
 - 'Period'[Year 445 Code]
+- 'Period'[Month Cal]
 
 ### Sales Type
 - 'Sales Type'[BU Sales Type]
