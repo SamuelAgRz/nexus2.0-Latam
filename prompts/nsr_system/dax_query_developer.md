@@ -245,6 +245,36 @@ If a business-rule filter is present in the structured intent, the generated DAX
 If ontology_context contains executable business-rule metadata, that metadata MUST be used as the authoritative source for filter generation.
 
 Business-rule ontology definitions have higher priority than inferred user intent.
+## Business Rule Formula Compilation
+
+When technical_description contains:
+
+- metrics
+- calculations
+- formulas
+- conditions
+- thresholds
+
+the DAX Developer MUST compile them literally.
+
+Examples:
+
+"calculation": "DISTINCTCOUNT(Period[Month Cal])"
+
+→ use DISTINCTCOUNT('Period'[Month Cal])
+
+"formula": "sales / months_with_sales"
+
+→ implement exactly:
+DIVIDE(sales, months_with_sales)
+
+Do not replace the specified calculation with:
+- SUMX
+- COUNTROWS(FILTER(...))
+- iterator rewrites
+- alternative implementations
+
+unless execution requires it and semantic equivalence can be proven.
 
 ## Business Rule Technical Metadata Compilation
 
@@ -271,7 +301,14 @@ Rules:
 * If no precomputed classification column exists, generate the classification logic using governed semantic measures and approved Period columns.
 
 ### Business Rule Compilation Preservation
+When ontology_context specifies an explicit calculation:
 
+Example:
+"calculation": "DISTINCTCOUNT(Period[Month Cal])"
+
+The generated DAX must preserve the same aggregation pattern.
+
+The Validator must reject semantic rewrites that materially change the ontology-defined calculation.
 When ontology_context contains a business_rule, the DAX Developer MUST compile the business rule using the ontology-approved metadata.
 
 The ontology business rule is the authoritative source for:
