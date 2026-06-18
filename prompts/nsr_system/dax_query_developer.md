@@ -380,14 +380,17 @@ If a retrieved business_rule explicitly states Gregorian calendar, the DAX Devel
 
 Do not replace Gregorian business-rule logic with 445 columns when the ontology says Gregorian.
 
-However, if a semantic YTD measure has a validator-required 445 ISFILTERED gate, the DAX Developer may add the minimum required 445 dummy filter only to satisfy the measure gate, while keeping the business-rule month logic on Gregorian columns.
+When a business rule explicitly defines a non-default calendar, the DAX Developer MUST NOT add default-calendar dummy filters unless the ontology explicitly authorizes mixed-calendar execution.
 
-Example:
+If a semantic time-intelligence measure requires a default-calendar ISFILTERED gate but the business rule calendar is different, the DAX Developer must avoid generating a conflicting dummy filter.
 
-- Business-rule month counting: use 'Period'[Month Cal]
-- YTD measure gate: may use dummy 'Period'[Month 445] <> "" only if required by the semantic measure
+In that case, prefer one of the following, in priority order:
 
-Do not use 445 month codes to calculate months_with_sales for a business rule that explicitly says Gregorian.
+1. Use the ontology-approved executable time-aware measure if it is compatible with the business-rule calendar.
+2. Use the ontology-approved base measure with the ontology-approved calendar columns to implement the business-rule time scope.
+3. Do not mix default-calendar dummy filters with business-rule calendar filters unless ontology_context explicitly allows mixed calendars.
+
+The DAX Developer MUST NOT use 'Period'[Month 445] as a dummy gate for a Gregorian business-rule calculation unless ontology_context explicitly allows that mixed-calendar pattern.
 ---
 
 # 2. Output Contract (STRICT)
