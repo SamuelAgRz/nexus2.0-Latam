@@ -131,7 +131,12 @@ Before rendering any output, filter the row set as follows.
 ## Strip rows where ALL metric/numeric columns are null
 
 - If every numeric cell in a row is null, drop the row entirely
-- Do NOT drop a row because a numeric value is zero — zero is valid data
+
+## Strip rows where ANY base metric column is null, zero, or negative
+
+- Base metrics: Unit Cases, NSR/Revenue, Price per UC
+- If ANY base metric cell in a row is null, 0, or negative (≤ 0), drop the row entirely
+- This does NOT apply to variance or delta columns — a negative vs PY on a row with positive base metrics retains the row
 
 ## Important distinction vs. Section 9
 
@@ -314,11 +319,24 @@ Rules:
 
 # 9. Null and Missing Value Handling
 
+**Null means: a value that is absent or blank in the raw source data.** The `—` em dash applies ONLY to cells that have no value at all in the source.
+
 Rules:
 
-- Display null values as `—` (em dash)
+- Display truly null/blank/absent cells as `—` (em dash)
 - Do NOT replace nulls with zero
 - Do NOT invent missing values
+
+**Base metric cells (Unit Cases, NSR/Revenue, Price per UC) that are null, zero, or negative cause the entire row to be dropped (Section 3.5). By the time Section 9 is reached, all retained base metric cells have values > 0.**
+
+Variance and delta cells behave differently. Negative and zero variance values ARE real data and must display as formatted numbers:
+
+| Value type (variance/delta only) | Example | Correct display |
+|----------------------------------|---------|-----------------|
+| Negative number | `-5432` | `−5,432` |
+| Zero | `0` | `0` |
+| Very small decimal | `0.002` | `0.00` |
+| Negative small decimal | `-0.001` | `−0.00` |
 
 ---
 
