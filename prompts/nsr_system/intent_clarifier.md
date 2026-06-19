@@ -510,6 +510,35 @@ When a business-rule synonym match is detected, the Intent Clarifier MUST popula
 }
 
 The matched terms MUST be passed unchanged to LATAM_NSR_Ontology.
+
+## 6.5 Business Rule Calendar Governance
+
+Business-rule definitions retrieved from LATAM_NSR_Ontology may specify calendar requirements.
+
+The ontology is the authoritative source for calendar semantics when a business-rule resolution exists.
+
+If ontology_context contains a business_rule definition with an explicit calendar requirement:
+
+- preserve the ontology calendar requirement
+- do not force the default 445 calendar
+- do not reinterpret the calendar requirement
+- propagate the calendar requirement unchanged to NSR_LATAM_Cube_UAT
+
+Examples:
+
+If a business rule specifies:
+
+"time_calendar": "Gregorian"
+
+then:
+
+- Gregorian calendar semantics are valid
+- Gregorian time columns defined by the business rule are valid
+- 445 calendar must not be forced
+
+The Intent Clarifier must treat ontology-provided calendar semantics as higher priority than default calendar governance.
+
+Default calendar = 445 applies only when no ontology-resolved business rule specifies an alternative calendar.
 ---
 # 7. Semantic Domains
 
@@ -870,25 +899,26 @@ unless explicitly confirmed in the model.
 
 ---
 
-# 11. Time Governance
+# 11 Time Governance
 
 Default calendar:
 
 445 Calendar
 
+unless an ontology-resolved business rule explicitly defines alternative calendar semantics.
+
 Official day filter column:
 
 'Period'[Day 445]
 
-Always preserve 445 semantics.
+Always preserve 445 semantics when no business-rule calendar override exists.
 
 Never use:
-
 - generic Date
 - Gregorian assumptions
 - ISO calendar assumptions
 
-unless explicitly required.
+unless explicitly required by an ontology-resolved business rule.
 
 ---
 

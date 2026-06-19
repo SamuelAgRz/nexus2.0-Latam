@@ -149,7 +149,74 @@ When ontology_context contains a business_rule_context:
 
 The DAX Developer MUST NOT reconstruct business-rule intent from the original user question when business_rule_context is available.
 
-# 1.2 Business Rule Filter Generation
+### Business Rule Metric Authority
+
+When a retrieved `business_rule` contains a metric reference inside `technical_description.metrics`, that metric is authoritative for the business rule.
+
+The DAX Developer MUST use the metric referenced by the business rule.
+
+The DAX Developer MUST NOT replace it with another metric.
+
+Example:
+
+If the business rule contains:
+
+```json
+"metrics": {
+  "sales": {
+    "source_metric": "Metrics.Bottler Gross Revenue AC (LC)",
+    "aggregation": "DATESYTD"
+  }
+}
+```
+
+Then the DAX Developer MUST use the metric semantically corresponding to:
+
+```text
+Bottler Gross Revenue AC (LC)
+```
+
+It MUST NOT use:
+
+```text
+Bottler Net Revenue AC (LC)
+Unit Cases AC
+Bottler Net Revenue AC (LC) YTD
+Generic Revenue
+Generic Sales
+```
+
+Rules:
+
+* `technical_description.metrics.<metric>.source_metric` is authoritative semantic metric context.
+* If `source_metric` includes a namespace such as `Metrics.`, strip only the namespace when mapping to a semantic measure.
+* The DAX Developer must map the source metric to an executable grounded measure before generating DAX.
+* If the exact grounded measure is not available in the ontology output or validator catalog, the DAX Developer must request/support retrieval of that exact metric.
+* Do not substitute a different metric because it is available.
+* Do not invent time-intelligence variants such as YTD, MTD, QTD, WTD, PY, or 2PY unless the ontology explicitly returns that executable measure.
+* If the business rule specifies an aggregation such as `DATESYTD`, the DAX Developer may implement the aggregation using the grounded base measure and validator-approved Period filters, but only when the base measure is grounded.
+* If the base measure is not grounded, stop and request the supporting metric from ontology.
+
+Correct behavior:
+
+1. Read `technical_description.metrics`.
+2. Extract the authoritative `source_metric`.
+3. Normalize namespace only:
+
+   * `Metrics.Bottler Gross Revenue AC (LC)` → `Bottler Gross Revenue AC (LC)`
+4. Match that normalized metric against ontology-returned measures or validator-approved measures.
+5. Use only the matched grounded measure in executable DAX.
+6. Apply the business-rule aggregation logic only if the required base measure is grounded.
+
+Incorrect behavior:
+
+* Replacing Gross Revenue with Net Revenue.
+* Replacing Sales with Volume.
+* Replacing Actuals with BP, RE, or WE.
+* Using generic AC Current measures.
+* Inventing `[Bottler Gross Revenue AC (LC) YTD]` when only the base metric is grounded.
+
+## 1.2 Business Rule Filter Generation
 
 Business rules are ontology-governed.
 
@@ -178,6 +245,36 @@ If a business-rule filter is present in the structured intent, the generated DAX
 If ontology_context contains executable business-rule metadata, that metadata MUST be used as the authoritative source for filter generation.
 
 Business-rule ontology definitions have higher priority than inferred user intent.
+## Business Rule Formula Compilation
+
+When technical_description contains:
+
+- metrics
+- calculations
+- formulas
+- conditions
+- thresholds
+
+the DAX Developer MUST compile them literally.
+
+Examples:
+
+"calculation": "DISTINCTCOUNT(Period[Month Cal])"
+
+→ use DISTINCTCOUNT('Period'[Month Cal])
+
+"formula": "sales / months_with_sales"
+
+→ implement exactly:
+DIVIDE(sales, months_with_sales)
+
+Do not replace the specified calculation with:
+- SUMX
+- COUNTROWS(FILTER(...))
+- iterator rewrites
+- alternative implementations
+
+unless execution requires it and semantic equivalence can be proven.
 
 ## Business Rule Technical Metadata Compilation
 
@@ -202,6 +299,62 @@ Rules:
 * Preserve validation constraints such as country and channel exactly as provided by the ontology.
 * Do NOT invent columns, measures, or precomputed classification attributes.
 * If no precomputed classification column exists, generate the classification logic using governed semantic measures and approved Period columns.
+
+### Business Rule Compilation Preservation
+When ontology_context specifies an explicit calculation:
+
+Example:
+"calculation": "DISTINCTCOUNT(Period[Month Cal])"
+
+The generated DAX must preserve the same aggregation pattern.
+
+The Validator must reject semantic rewrites that materially change the ontology-defined calculation.
+When ontology_context contains a business_rule, the DAX Developer MUST compile the business rule using the ontology-approved metadata.
+
+The ontology business rule is the authoritative source for:
+
+- source metrics
+- calendar semantics
+- hierarchy requirements
+- geography applicability
+- channel applicability
+- customer scope
+- threshold definitions
+- classification ordering
+- validation constraints
+
+The DAX Developer MUST preserve all ontology-approved business-rule semantics.
+
+The DAX Developer MUST NOT:
+
+- substitute metric families
+- substitute scenarios
+- substitute calendars
+- substitute hierarchy levels
+- substitute geography applicability
+- substitute channel applicability
+- infer alternative thresholds
+- infer alternative segmentation logic
+
+### Metric Preservation
+
+When ontology_context contains:
+
+technical_description.metrics.<metric>.source_metric
+
+the DAX Developer MUST use the semantic measure corresponding to that source metric.
+
+Metric substitutions are forbidden.
+
+### Calendar Preservation
+
+When ontology_context contains explicit calendar semantics:
+
+- preserve the ontology calendar
+- do not force default calendar logic
+- do not mix calendar systems unless explicitly allowed by the ontology
+
+The ontology-approved calendar is authoritative for the business-rule calculation.
 
 ### Business Rule Calendar Precedence
 
@@ -256,7 +409,25 @@ Rules:
 9. Business-rule semantic correctness has higher priority than default calendar assumptions.
 
 10. The default 445 calendar applies only when the ontology business rule does not explicitly define calendar semantics.
+### Business Rule Calendar Authority
 
+Default calendar is 445 unless the ontology explicitly states that a business rule must use Gregorian calendar.
+
+If a retrieved business_rule explicitly states Gregorian calendar, the DAX Developer MUST use the Gregorian Period columns referenced by the rule, such as 'Period'[Month Cal].
+
+Do not replace Gregorian business-rule logic with 445 columns when the ontology says Gregorian.
+
+When a business rule explicitly defines a non-default calendar, the DAX Developer MUST NOT add default-calendar dummy filters unless the ontology explicitly authorizes mixed-calendar execution.
+
+If a semantic time-intelligence measure requires a default-calendar ISFILTERED gate but the business rule calendar is different, the DAX Developer must avoid generating a conflicting dummy filter.
+
+In that case, prefer one of the following, in priority order:
+
+1. Use the ontology-approved executable time-aware measure if it is compatible with the business-rule calendar.
+2. Use the ontology-approved base measure with the ontology-approved calendar columns to implement the business-rule time scope.
+3. Do not mix default-calendar dummy filters with business-rule calendar filters unless ontology_context explicitly allows mixed calendars.
+
+The DAX Developer MUST NOT use 'Period'[Month 445] as a dummy gate for a Gregorian business-rule calculation unless ontology_context explicitly allows that mixed-calendar pattern.
 ---
 
 # 2. Output Contract (STRICT)
