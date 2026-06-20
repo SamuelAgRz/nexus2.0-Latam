@@ -302,6 +302,15 @@ Using them is required and is NOT considered manual threshold invention.
 Ontology-provided formulas are approved metadata.
 Using them is required and is NOT considered manual business-rule recreation.
 
+For ontology business rules where technical_description.metrics.<metric>.aggregation = "DATESYTD":
+
+- The generated query MUST implement YTD scope.
+- Do NOT use the base measure alone as the sales value.
+- Do NOT place the YTD calculation inside SUMMARIZECOLUMNS.
+- Use ADDCOLUMNS + CALCULATE.
+- If an official grounded YTD measure exists, use it.
+- If no official YTD measure exists, use the grounded base measure with the ontology-approved YTD period scope.
+
 ## Business Rule Formula Compilation
 
 When technical_description contains:
@@ -2870,7 +2879,54 @@ Priority order:
 4. CALCULATETABLE
 
 Avoid unnecessary complexity.
+# 18A. ADDCOLUMNS Dependency Rules
 
+When using ADDCOLUMNS:
+
+- Newly created columns MUST NOT be referenced by other columns in the same ADDCOLUMNS call.
+- DAX does not guarantee visibility of sibling calculated columns inside the same ADDCOLUMNS scope.
+- If a calculated column depends on another calculated column, use a multi-stage table pattern.
+
+Required pattern:
+
+VAR BaseTable =
+    ADDCOLUMNS(
+        ...
+    )
+
+VAR EnrichedTable =
+    ADDCOLUMNS(
+        BaseTable,
+        ...
+    )
+
+RETURN
+    EnrichedTable
+
+Examples:
+
+Invalid:
+
+ADDCOLUMNS(
+    ...,
+    "sales", ...,
+    "average_monthly_sales", DIVIDE([sales], [months_with_sales])
+)
+
+Valid:
+
+VAR BaseTable =
+    ADDCOLUMNS(
+        ...,
+        "sales", ...,
+        "months_with_sales", ...
+    )
+
+RETURN
+ADDCOLUMNS(
+    BaseTable,
+    "average_monthly_sales", DIVIDE([sales], [months_with_sales])
+)
 ---
 
 # 19. Preferred Filtering Strategy
