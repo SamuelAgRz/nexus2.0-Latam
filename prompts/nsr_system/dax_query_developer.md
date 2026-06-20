@@ -2887,22 +2887,38 @@ When using ADDCOLUMNS:
 - DAX does not guarantee visibility of sibling calculated columns inside the same ADDCOLUMNS scope.
 - If a calculated column depends on another calculated column, use a multi-stage table pattern.
 
+If multiple calculated columns depend on each other, create one ADDCOLUMNS stage per dependency level.
+
+Example dependency chain:
+
+sales
+→ months_with_sales
+→ average_monthly_sales
+→ GEC Classification
+
 Required pattern:
 
 VAR BaseTable =
-    ADDCOLUMNS(
-        ...
-    )
+    ADDCOLUMNS(...)
 
 VAR EnrichedTable =
-    ADDCOLUMNS(
-        BaseTable,
-        ...
-    )
+    ADDCOLUMNS(BaseTable,...)
+
+VAR ClassifiedTable =
+    ADDCOLUMNS(EnrichedTable,...)
 
 RETURN
-    EnrichedTable
+    ClassifiedTable
 
+The DAX Developer MUST NOT reference:
+- sales
+- months_with_sales
+- average_monthly_sales
+- GEC Classification
+
+inside the same ADDCOLUMNS call where they are created.
+
+This restriction applies even to indirect references through IF(), SWITCH(), VAR, FILTER(), or SELECTCOLUMNS().
 Examples:
 
 Invalid:
