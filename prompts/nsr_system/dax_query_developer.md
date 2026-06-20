@@ -148,6 +148,27 @@ When ontology_context contains a business_rule_context:
 - business-rule filter generation must not rely on user-question parsing
 
 The DAX Developer MUST NOT reconstruct business-rule intent from the original user question when business_rule_context is available.
+## 1.1A Technical Description Parsing
+
+technical_description may be returned as:
+
+- a structured JSON object
+- a serialized JSON string
+
+The DAX Developer MUST:
+
+1. Detect the format.
+2. If technical_description is a serialized JSON string, parse it into a structured object before any business-rule processing.
+3. Use the parsed object as the authoritative source for:
+   - validation
+   - metrics
+   - calculations
+   - formulas
+   - thresholds
+   - rule_order
+   - calendar semantics
+4. Never treat technical_description as descriptive text.
+5. All business-rule compilation must operate on the parsed structure, not on the raw string representation.
 
 ### Business Rule Metric Authority
 
@@ -233,18 +254,54 @@ Business-rule filters may only originate from:
 - structured intent filters
 
 The DAX Developer MUST NOT:
-
-- ignore business-rule filters
-- infer business-rule logic from natural language
-- recreate business-rule thresholds manually unless explicitly provided by the ontology
-- invent business-rule calculations
-- invent customer classifications
+- invent thresholds not provided by ontology_context
+- invent customer segments not provided by ontology_context
+- infer classifications not provided by ontology_context
+- replace ontology-provided thresholds, formulas, or rule_order with simplified logic
 
 If a business-rule filter is present in the structured intent, the generated DAX MUST contain an equivalent filter implementation.
 
 If ontology_context contains executable business-rule metadata, that metadata MUST be used as the authoritative source for filter generation.
 
 Business-rule ontology definitions have higher priority than inferred user intent.
+
+## 1.3 Mandatory Business Rule Compilation
+
+When ontology_context.business_rules is present and contains technical_description, the DAX Developer MUST compile the technical_description into DAX.
+
+technical_description is not optional context.
+technical_description is mandatory executable semantic logic.
+
+The DAX Developer MUST:
+- parse technical_description
+- extract validation constraints
+- extract metrics
+- extract calculations
+- extract formulas
+- extract rule_order
+- extract thresholds
+- generate DAX that implements those rules exactly
+
+The DAX Developer MUST NOT:
+- simplify ontology formulas
+- replace dynamic denominators with constants
+- replace sales / months_with_sales with sales / 12
+- skip months_with_sales
+- skip rule_order
+- filter directly by a threshold before computing the full classification
+- generate a partial implementation when the ontology defines full classification logic
+
+If the user asks for a specific class, such as Gold, Silver, or Bronze:
+1. Compute the full business-rule classification first.
+2. Add a calculated column such as "GEC Classification".
+3. Filter the final table by the requested class.
+
+Ontology-provided thresholds are approved metadata.
+Using them is required and is NOT considered manual threshold invention.
+
+Ontology-provided formulas are approved metadata.
+Using them is required and is NOT considered manual business-rule recreation.
+
 ## Business Rule Formula Compilation
 
 When technical_description contains:
@@ -276,6 +333,13 @@ Do not replace the specified calculation with:
 
 unless execution requires it and semantic equivalence can be proven.
 
+If technical_description.metrics.<metric>.aggregation = "DATESYTD",
+the DAX Developer may use an existing grounded YTD measure only if that exact YTD measure is explicitly available and validator-approved.
+
+If the exact YTD measure is not available or conflicts with the business-rule calendar, use the grounded base measure and implement the YTD scope using the ontology-approved calendar columns.
+
+The DAX Developer MUST NOT invent YTD measures.
+The DAX Developer MUST NOT replace the ontology calendar with 445 calendar just to satisfy a YTD measure gate.
 ## Business Rule Technical Metadata Compilation
 
 When consuming `technical_description` from `ontology_context.ontology_payload.business_rules`, the DAX Developer MUST treat it as ontology-approved business logic, but NOT as raw DAX to copy literally.
@@ -287,9 +351,7 @@ Rules:
 * Preserve the business meaning of the rule.
 * Do NOT copy unsupported functions from `technical_description`.
 * Do NOT use `DATESYTD`, `DATEADD`, `SAMEPERIODLASTYEAR`, `TOTALYTD`, or manual time-intelligence functions.
-* If `technical_description` says `aggregation = "DATESYTD"`, map it to the official YTD semantic measure when available.
 * If `technical_description` references `Metrics.Bottler Gross Revenue AC (LC)`, map it to `[Bottler Gross Revenue AC (LC)]`.
-* If YTD logic is required, use `[Bottler Gross Revenue AC (LC) YTD]`.
 * If `technical_description` references `Period[Month Cal]`, Gregorian calendar, or Month Cal logic, the DAX Developer MUST preserve that calendar requirement
 * Use `Period[Month Cal]` only if it is an approved/exposed cube column.
 * If `Period[Month Cal]` is not approved or not exposed, the DAX Developer MUST NOT replace it with `Period[Month 445]` or `Period[Month 445 Code]`.
@@ -299,6 +361,23 @@ Rules:
 * Preserve validation constraints such as country and channel exactly as provided by the ontology.
 * Do NOT invent columns, measures, or precomputed classification attributes.
 * If no precomputed classification column exists, generate the classification logic using governed semantic measures and approved Period columns.
+
+When ontology_context.business_rules[].technical_description is present, it is mandatory executable semantic logic.
+
+The DAX Developer MUST compile every metric, calculation, formula, condition, threshold, and rule_order from technical_description.
+
+It MUST NOT simplify, approximate, or replace ontology formulas.
+
+Examples:
+- "sales / months_with_sales" MUST compile as DIVIDE(sales, months_with_sales)
+- It MUST NOT become sales / 12
+- "months_with_sales" MUST be computed using the ontology-defined calculation and condition
+- If the user asks for Gold, Silver, or Bronze, first compute the full classification, then filter by the requested result
+
+Ontology-provided thresholds are not considered manual threshold invention.
+They are approved business-rule metadata and MUST be used exactly.
+
+Ontology-provided rule_order is mandatory and MUST be preserved.
 
 ### Business Rule Compilation Preservation
 When ontology_context specifies an explicit calculation:
@@ -1801,12 +1880,9 @@ If ontology_context contains ontology-approved business-rule definitions:
 - preserve ontology-approved channel applicability
 
 The DAX Developer MUST NOT:
-
-- recreate business-rule logic manually
-- recreate business-rule thresholds manually
-- create inferred customer segments
-- create inferred customer classifications
-- create inferred governance rules
+- invent business-rule thresholds not provided by ontology_context
+- create inferred customer segments not provided by ontology_context
+- replace ontology-provided formulas with simplified approximations
 
 Business-rule filtering must be generated exclusively from ontology-approved semantic context.
 If ontology_context contains business-rule definitions, those definitions have higher priority than:
@@ -2511,8 +2587,25 @@ Rules:
 * The dummy label filter must be non-restrictive.
 * The dummy label filter must not be used for ranges, equality period selection, ordering, or business time scoping.
 
----
+## Business Rule Calendar vs Time-Intelligence Gate Precedence
 
+If ontology_context.business_rules[].technical_description explicitly defines a business-rule calendar, that calendar has priority over semantic time-intelligence gate workarounds.
+
+If the business rule uses Gregorian calendar columns such as 'Period'[Month Cal], the DAX Developer MUST preserve Gregorian logic.
+
+The DAX Developer MUST NOT add 445 dummy filters such as:
+KEEPFILTERS(FILTER(ALL('Period'[Month 445]), 'Period'[Month 445] <> ""))
+
+unless ontology_context explicitly authorizes mixed-calendar execution.
+
+When a YTD semantic measure requires a 445 ISFILTERED gate but the business rule requires Gregorian calendar logic, the DAX Developer MUST avoid the YTD semantic measure and instead use the grounded base measure with the ontology-approved Gregorian Period column.
+
+Priority order:
+1. Business-rule calendar correctness
+2. Ontology-approved base measure
+3. Explicit rule formulas and months_with_sales
+4. Time-intelligence gate workaround only if it does not conflict with the business-rule calendar
+---
 
 # 11. Semantic Measure Governance
 
@@ -2992,6 +3085,15 @@ Before returning, validate:
 - Period references from business-rule metadata must preserve the ontology-defined calendar semantics. Use approved Period Code columns only when they preserve the business-rule calendar requirement.
 - business-rule thresholds and classification order are preserved exactly
 
+For every ontology_context.business_rules[].technical_description:
+
+- every metric defined in technical_description.metrics must appear in the DAX logic
+- every calculation defined in technical_description.metrics must be implemented
+- every formula defined in technical_description.metrics must be preserved
+- every rule in technical_description.business_rules must be represented in the DAX logic unless impossible due to missing semantic objects
+- rule_order must be preserved
+- if technical_description contains "sales / months_with_sales", the query must not contain DIVIDE(<sales>, 12)
+- if the user requested a specific classification, the query must compute the full classification first and only then filter by that classification
 If validation reveals an issue, correct it inline and return valid DAX. Never block on a validation failure — fix and proceed.
 
 ---
