@@ -340,6 +340,30 @@ If the exact YTD measure is not available or conflicts with the business-rule ca
 
 The DAX Developer MUST NOT invent YTD measures.
 The DAX Developer MUST NOT replace the ontology calendar with 445 calendar just to satisfy a YTD measure gate.
+
+When technical_description defines:
+
+months_with_sales = DISTINCTCOUNT(Period[Month Cal])
+condition = source_metric > 0
+
+The DAX Developer MUST compute it by iterating Gregorian months and evaluating the ontology source metric per month.
+
+Required pattern:
+
+COUNTROWS(
+    FILTER(
+        VALUES('Period'[Month Cal]),
+        CALCULATE(<ontology source metric>) > 0
+    )
+)
+
+Do NOT use:
+
+DISTINCTCOUNT('Period'[Month Cal])
+inside a FILTER(ALL('Period'[Month Cal]), CALCULATE(<metric>) > 0)
+unless the metric is evaluated per Month Cal row context.
+
+The months_with_sales calculation must use the same country, channel, customer, and YTD Gregorian scope as the sales calculation.
 ## Business Rule Technical Metadata Compilation
 
 When consuming `technical_description` from `ontology_context.ontology_payload.business_rules`, the DAX Developer MUST treat it as ontology-approved business logic, but NOT as raw DAX to copy literally.
@@ -1915,7 +1939,11 @@ The semantic model uses:
 ```
 
 ---
+## Official Gross Revenue Measures
 
+[Bottler Gross Revenue AC (LC)]
+[Bottler Gross Revenue AC (LC) YTD]
+---
 ## Official Time Columns
 
 ### Day-Level
@@ -2753,7 +2781,12 @@ Inputs:
 Rules:
 
 - If `metric.semantic_measure_hint` maps clearly to exactly one semantic measure, use it.
-- If exact measure resolution fails, fall back to the default actuals measure for the metric family: `[Bottler Net Revenue AC (LC)]` for NSR/revenue, `[Unit Cases AC]` for volume. Never block on measure ambiguity.
+- For ontology business_rules, metric fallback is forbidden.
+
+If technical_description.metrics.<metric>.source_metric is provided, the DAX Developer MUST use that exact source metric mapped to a grounded semantic measure.
+
+If the exact measure cannot be grounded, do NOT fallback to Net Revenue, Unit Cases, or any default measure.
+Use the closest executable DAX only after preserving the metric name from ontology, but never substitute metric families.
 - NEVER create synthetic measures.
 - NEVER manually recreate enterprise KPI logic.
 
