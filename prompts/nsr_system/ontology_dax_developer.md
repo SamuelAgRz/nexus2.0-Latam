@@ -74,6 +74,33 @@ Use ONLY these columns to filter. Map the text description to values from each c
 | CAGR | Compound Annual Growth Rate over 2, 3, or 5 years |
 | Flag | Binary indicator (_Y and _N suffix variants) |
 
+### cardinality — Comparative period embedded in the metric
+| Value | Description |
+|---|---|
+| PY | Previous Year — vs, or the stored value of, the same period one year ago |
+| 2PY | 2 Years Prior |
+| 3PY | 3 Years Prior |
+| 5PY | 5 Years Prior |
+| AC PY | A plan/forecast value compared against Actuals from the prior year |
+| AC 2PY | A plan/forecast value compared against Actuals from two years ago |
+| AC 3PY | A plan/forecast value compared against Actuals from three years ago |
+| BP | Actuals vs the (unversioned/current) Business Plan |
+| RE | Actuals vs the (unversioned/current) Rolling Estimate |
+| WE | Actuals vs the Weekly Estimate |
+| Official BP | Actuals vs the locked, published Business Plan version |
+| WIP BP | Actuals vs the Work-in-Progress (draft) Business Plan version |
+| Current RE | Actuals vs the Rolling Estimate from the current planning cycle |
+| Prior RE | Actuals vs the Rolling Estimate from the previous planning cycle |
+| PY vs 2PY | Cycling — prior year's value measured against the value from two years ago |
+| none | No comparative reference period — plain current-period values |
+
+### normalization — Day-based adjustment methodology
+| Value | Description |
+|---|---|
+| none | No day-based normalization — raw accumulated or compared values |
+| CD | Normalized by Consumption Days |
+| WD | Normalized by Working Days |
+
 ### object_type — Ontology object category
 
 | Value         | Description                                                                                      |
@@ -83,14 +110,6 @@ Use ONLY these columns to filter. Map the text description to values from each c
 
 ---
 
-### object_type — Ontology object category
-
-| Value | Description |
-|---|---|
-| measure | Standard KPI or metric definition |
-| business_rule | Business-specific classification, segmentation, threshold, or governance rule |
----
-
 ## Business Rule Retrieval
 
 The ontology may contain both metric definitions and business-rule definitions.
@@ -98,6 +117,28 @@ The ontology may contain both metric definitions and business-rule definitions.
 Business rules are stored as:
 
 'agent_nsr metrics'[object_type] = "business_rule"
+
+### rule_scope — Business-rule purpose (business-rule predicate ONLY)
+
+`rule_scope` classifies the business purpose of a business rule. Use it ONLY in combination
+with `'agent_nsr metrics'[object_type] = "business_rule"`. NEVER apply `rule_scope` to a
+metric branch.
+
+| Value | Description |
+|---|---|
+| Customer Segmentation | Rules that classify customers into business-defined groups (Gold/Silver/Bronze, tiers, loyalty segments, outlet segmentation) |
+| Territory Mapping | Rules that define business territories, geographic aggregations, or virtual regions derived from one or more geographic entities (VALLE DE MEXICO, commercial regions, sales territories, bottler zone aggregations) |
+
+When the Intent Clarifier provides a `rule_scope` value in `business_rule_context`, add it as
+an additional predicate inside the business_rule branch to narrow retrieval, e.g.:
+
+```DAX
+'agent_nsr metrics'[object_type] = "business_rule" &&
+'agent_nsr metrics'[rule_scope] = "Customer Segmentation" &&
+CONTAINSSTRING(LOWER('agent_nsr metrics'[synonyms]), "<matched term>")
+```
+
+If `rule_scope` is null or not provided, omit the predicate.
 
 If the Intent Clarifier identifies a synonym from the {Business Rules & Segmentation} category, the DAX Developer MUST retrieve both:
 
@@ -237,7 +278,10 @@ Classification, segmentation, tier, status, eligibility, and threshold questions
 
 - Use `EVALUATE SELECTCOLUMNS(FILTER(...), ...)` — always include the SELECTCOLUMNS wrapper
 - FILTER predicates: use `=` for a single value, `IN {…}` for multiple values, combine with `&&`
+- Metric predicates may use ONLY: `domain`, `grain`, `source_system`, `aggregation_default`, `cardinality`, `normalization`
+- `rule_scope` is a business-rule predicate ONLY — use it solely inside an `object_type = "business_rule"` branch, never on a metric branch
 - If a category is NOT mentioned or not applicable → omit that predicate from the FILTER
+- `cardinality = "none"` and `normalization = "none"` are explicit values — apply them as predicates when the Intent Clarifier sends them
 - If NO filter predicates apply → use `SELECTCOLUMNS('agent_nsr metrics', ...)` with no FILTER wrapper
 - Always include ALL 10 required output columns in SELECTCOLUMNS (see below)
 - Query MUST start with `EVALUATE`
@@ -262,7 +306,7 @@ Note: `business description` is the actual column name (with a space) — the al
 
 ## Example — with filter
 
-Input description: "Volume metrics, actuals, current grain, sum aggregation"
+Input description: "Volume metrics, actuals, current grain, sum aggregation, no comparison, no normalization"
 
 EVALUATE
 SELECTCOLUMNS(
@@ -271,7 +315,9 @@ SELECTCOLUMNS(
         'agent_nsr metrics'[domain] = "Volume" &&
         'agent_nsr metrics'[grain] = "Current" &&
         'agent_nsr metrics'[source_system] = "AC" &&
-        'agent_nsr metrics'[aggregation_default] = "Sum"
+        'agent_nsr metrics'[aggregation_default] = "Sum" &&
+        'agent_nsr metrics'[cardinality] = "none" &&
+        'agent_nsr metrics'[normalization] = "none"
     ),
     "display_name",         'agent_nsr metrics'[display_name],
     "business_description", 'agent_nsr metrics'[business_description],
@@ -341,7 +387,7 @@ SELECTCOLUMNS(
 
 Input description:
 
-"Gold customers"
+"Gold customers" (business_rule_context.rule_scope = "Customer Segmentation")
 
 ```DAX
 EVALUATE
@@ -349,6 +395,8 @@ SELECTCOLUMNS(
     FILTER(
         'agent_nsr metrics',
         'agent_nsr metrics'[object_type] = "business_rule"
+            &&
+        'agent_nsr metrics'[rule_scope] = "Customer Segmentation"
             &&
         (
             CONTAINSSTRING(

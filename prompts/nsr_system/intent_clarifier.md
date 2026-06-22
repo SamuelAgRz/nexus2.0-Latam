@@ -688,16 +688,20 @@ Example:
 ---
 ## Ontology Metric Classification Filter Governance
 
-When invoking LATAM_NSR_Ontology, the Intent Clarifier MUST include ontology classification filters for the four ontology metric classification categories.
+When invoking LATAM_NSR_Ontology, the Intent Clarifier MUST include ontology classification filters for the six ontology metric classification categories.
 
-These four categories are mandatory in the ontology JSON payload:
+These six categories are mandatory in the ontology JSON payload:
 
 1. aggregation_default
 2. domain
 3. grain
 4. source_system
+5. cardinality
+6. normalization
 
 The ontology layer uses these categories to filter ontology metrics deterministically.
+
+Note: `rule_scope` is NOT a metric classification filter. It applies ONLY to business rules and is carried separately in `business_rule_context` (see Business Rule Ontology Handling).
 
 The Intent Clarifier MUST infer the best classification values from the user request and semantic context. If a value cannot be safely inferred, set it to null and include the category in required_resolutions.
 
@@ -756,6 +760,31 @@ source_system:
 - WIP BP
 - (none)
 
+cardinality:
+
+- PY
+- 2PY
+- 3PY
+- 5PY
+- AC PY
+- AC 2PY
+- AC 3PY
+- BP
+- RE
+- WE
+- Official BP
+- WIP BP
+- Current RE
+- Prior RE
+- PY vs 2PY
+- none
+
+normalization:
+
+- none
+- CD
+- WD
+
 Classification inference rules:
 
 - NSR, sales, revenue, net sales → domain = Revenue.
@@ -773,6 +802,17 @@ Classification inference rules:
 - BP/plan/budget → source_system = BP unless user explicitly says Official BP or WIP BP.
 - RE/rolling estimate → source_system = RE unless user explicitly says Current RE or Prior RE.
 - WE/weekly estimate → source_system = WE.
+- vs PY, % vs PY, growth vs prior year, or a PY baseline value → cardinality = PY.
+- vs 2PY/3PY/5PY or those baseline values → cardinality = 2PY/3PY/5PY respectively.
+- A plan/forecast value compared against prior-year actuals → cardinality = AC PY (and AC 2PY/AC 3PY for two/three years ago).
+- Actuals vs Business Plan → cardinality = BP unless user explicitly says Official BP or WIP BP.
+- Actuals vs Rolling Estimate → cardinality = RE unless user explicitly says Current RE or Prior RE.
+- Actuals vs Weekly Estimate → cardinality = WE.
+- Cycling (prior-year sub-period aligned to the current window) → cardinality = PY vs 2PY.
+- No comparison or reference period implied → cardinality = none.
+- "per consumption day", consumption-day adjusted → normalization = CD.
+- "per working day", working-day adjusted → normalization = WD.
+- No day-based normalization implied → normalization = none.
 
 Ontology classification filter structure:
 
@@ -780,7 +820,9 @@ Ontology classification filter structure:
   "aggregation_default": "Sum",
   "domain": "Volume",
   "grain": "Current",
-  "source_system": "AC"
+  "source_system": "AC",
+  "cardinality": "none",
+  "normalization": "none"
 }
 
 If any value is unresolved:
@@ -789,7 +831,9 @@ If any value is unresolved:
   "aggregation_default": null,
   "domain": "Revenue",
   "grain": "YTD",
-  "source_system": "AC"
+  "source_system": "AC",
+  "cardinality": "PY",
+  "normalization": "none"
 }
 
 Then include the unresolved category in required_resolutions.
@@ -1297,7 +1341,9 @@ LATAM_NSR_Ontology
     "aggregation_default": null,
     "domain": null,
     "grain": null,
-    "source_system": null
+    "source_system": null,
+    "cardinality": "none",
+    "normalization": "none"
   },
   "requested_kpis": [],
   "requested_hierarchies": [],
@@ -1308,7 +1354,8 @@ LATAM_NSR_Ontology
 "business_rule_context": {
   "business_rule_resolution_required": false,
   "matched_terms": [],
-  "preserve_original_terms": true
+  "preserve_original_terms": true,
+  "rule_scope": null
 },
 
 "downstream_constraints": {
@@ -1346,7 +1393,8 @@ Example:
 "business_rule_context": {
   "business_rule_resolution_required": true,
   "matched_terms": ["silver"],
-  "preserve_original_terms": true
+  "preserve_original_terms": true,
+  "rule_scope": "Customer Segmentation"
 }
 
 If no business-rule synonym match is detected:
@@ -1354,8 +1402,26 @@ If no business-rule synonym match is detected:
 "business_rule_context": {
   "business_rule_resolution_required": false,
   "matched_terms": [],
-  "preserve_original_terms": true
+  "preserve_original_terms": true,
+  "rule_scope": null
 }
+
+#### rule_scope
+
+`rule_scope` classifies the business purpose of the matched business rule. It applies ONLY to business rules — never to metrics — and is used by LATAM_NSR_Ontology to scope business-rule retrieval. Set it to the best-inferred value when a business-rule synonym match is detected; otherwise set it to null.
+
+Allowed values:
+
+- Customer Segmentation — rules that classify customers into business-defined groups (Gold/Silver/Bronze, tiers, loyalty segments, outlet segmentation).
+- Territory Mapping — rules that define business territories, geographic aggregations, or virtual regions derived from one or more geographic entities (e.g. VALLE DE MEXICO, commercial regions, sales territories, bottler zone aggregations).
+- null — no business-rule match detected, or scope cannot be safely inferred.
+
+Inference rules:
+
+- Classification, tier, status, eligibility, loyalty, or customer/outlet group terms (Gold, Silver, Bronze, VIP, active/inactive customers) → rule_scope = Customer Segmentation.
+- Territory, region, zone, or virtual-geography aggregation terms (VALLE DE MEXICO, commercial region, sales territory, bottler zone) → rule_scope = Territory Mapping.
+- No business-rule match → rule_scope = null.
+
 ### Ontology Context Propagation Rules
 
 When ontology resolution has been performed, the Intent Clarifier MUST populate the ontology_context field.

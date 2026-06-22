@@ -207,6 +207,8 @@ Return ONLY a valid JSON object — no markdown fences, no prose, no commentary.
       "grain": "<from ontology>",
       "source_system": "<from ontology>",
       "aggregation_default": "<from ontology>",
+      "cardinality": "<from ontology>",
+      "normalization": "<from ontology>",
       "valid_slicers": "<verbatim from ontology>",
       "invalid_slicers": "<verbatim from ontology>",
       "known_pitfalls": "<verbatim from ontology>"
@@ -221,6 +223,7 @@ Return ONLY a valid JSON object — no markdown fences, no prose, no commentary.
       "domain": "<from ontology>",
       "grain": "<from ontology>",
       "source_system": "<from ontology>",
+      "rule_scope": "<from ontology>",
       "synonyms": "<from ontology>",
       "valid_slicers": "<verbatim from ontology>",
       "invalid_slicers": "<verbatim from ontology>",
@@ -251,6 +254,8 @@ Return ONLY a valid JSON object — no markdown fences, no prose, no commentary.
   3. `grain` matches the requested time grain (e.g. MTD, YTD, WTD)
   4. `source_system` matches the requested scenario (e.g. AC, BP, RE)
   5. `aggregation_default` fits the aggregation intent of the question
+  6. `cardinality` matches the requested comparison period (e.g. PY, BP, none)
+  7. `normalization` matches the requested day-normalization (none, CD, WD)
 - Never include more than 5 measures — even if the ontology returns more rows
 - Strip any namespace or table prefix from `display_name` (e.g. `Metrics.Unit Cases AC` → `Unit Cases AC`)
 - Copy `dax_expression`, `valid_slicers`, `invalid_slicers`, `known_pitfalls` verbatim — never alter them

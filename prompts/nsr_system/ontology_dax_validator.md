@@ -31,8 +31,11 @@ domain
 grain
 source_system
 aggregation_default
+cardinality
+normalization
 object_type
 synonyms
+rule_scope
 ```
 
 6. Metric filter predicates may use ONLY:
@@ -42,6 +45,8 @@ domain
 grain
 source_system
 aggregation_default
+cardinality
+normalization
 ```
 
 7. Business-rule filter predicates may use ONLY:
@@ -49,6 +54,7 @@ aggregation_default
 ```text
 object_type
 synonyms
+rule_scope
 ```
 
 8. `object_type` values may only be:
@@ -135,11 +141,49 @@ CAGR
 Flag
 ```
 
+### cardinality
+
+```text
+PY
+2PY
+3PY
+5PY
+AC PY
+AC 2PY
+AC 3PY
+BP
+RE
+WE
+Official BP
+WIP BP
+Current RE
+Prior RE
+PY vs 2PY
+none
+```
+
+### normalization
+
+```text
+none
+CD
+WD
+```
+
 ### object_type
 
 ```text
 measure
 business_rule
+```
+
+### rule_scope
+
+`rule_scope` is valid ONLY on a business-rule branch (combined with `object_type = "business_rule"`). The validator MUST reject `rule_scope` used on a metric branch.
+
+```text
+Customer Segmentation
+Territory Mapping
 ```
 
 ---
@@ -271,7 +315,11 @@ Reject queries that:
 * use unsupported grain values
 * use unsupported source_system values
 * use unsupported aggregation_default values
+* use unsupported cardinality values
+* use unsupported normalization values
 * use unsupported object_type values
+* use unsupported rule_scope values
+* apply rule_scope to a metric branch (rule_scope is business-rule-only)
 * invent ontology metadata
 * infer business-rule logic
 * infer segmentation thresholds
