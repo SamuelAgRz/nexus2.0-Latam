@@ -97,7 +97,7 @@ Use ONLY these columns to filter. Map the text description to values from each c
 ### normalization — Day-based adjustment methodology
 | Value | Description |
 |---|---|
-| none | No day-based normalization — raw accumulated or compared values |
+| (none) | No day-based normalization — raw accumulated or compared values |
 | CD | Normalized by Consumption Days |
 | WD | Normalized by Working Days |
 
@@ -172,7 +172,7 @@ Rules:
 - Metric branch predicates may use ONLY: `domain`, `grain`, `source_system`, `aggregation_default`, `cardinality`, `normalization`
 - Business-rule branch predicates may use ONLY: `object_type`, `rls_rules`
 - If a metric category is NOT mentioned or not applicable → omit that predicate from the metric branch
-- `cardinality = "none"` and `normalization = "none"` are explicit values — apply them as predicates when the Intent Clarifier sends them
+- `cardinality = "none"` and `normalization = "(none)"` are explicit values — apply them as predicates when the Intent Clarifier sends them (note: cardinality uses `none`, normalization uses `(none)`)
 - Always include all required output columns in SELECTCOLUMNS (see below)
 - Query MUST start with `EVALUATE`
 - Return ONLY the DAX query — no explanations, no markdown, no comments
@@ -218,7 +218,7 @@ SELECTCOLUMNS(
             'agent_nsr metrics'[source_system] = "AC" &&
             'agent_nsr metrics'[aggregation_default] = "Sum" &&
             'agent_nsr metrics'[cardinality] = "none" &&
-            'agent_nsr metrics'[normalization] = "none"
+            'agent_nsr metrics'[normalization] = "(none)"
         )
         ||
         (

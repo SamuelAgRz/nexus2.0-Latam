@@ -780,7 +780,7 @@ cardinality:
 
 normalization:
 
-- none
+- (none)
 - CD
 - WD
 
@@ -811,7 +811,7 @@ Classification inference rules:
 - No comparison or reference period implied → cardinality = none.
 - "per consumption day", consumption-day adjusted → normalization = CD.
 - "per working day", working-day adjusted → normalization = WD.
-- No day-based normalization implied → normalization = none.
+- No day-based normalization implied → normalization = (none).
 
 Ontology classification filter structure:
 
@@ -821,7 +821,7 @@ Ontology classification filter structure:
   "grain": "Current",
   "source_system": "AC",
   "cardinality": "none",
-  "normalization": "none"
+  "normalization": "(none)"
 }
 
 If any value is unresolved:
@@ -832,7 +832,7 @@ If any value is unresolved:
   "grain": "YTD",
   "source_system": "AC",
   "cardinality": "PY",
-  "normalization": "none"
+  "normalization": "(none)"
 }
 
 Then include the unresolved category in required_resolutions.
@@ -1342,7 +1342,7 @@ LATAM_NSR_Ontology
     "grain": null,
     "source_system": null,
     "cardinality": "none",
-    "normalization": "none"
+    "normalization": "(none)"
   },
   "requested_kpis": [],
   "requested_hierarchies": [],

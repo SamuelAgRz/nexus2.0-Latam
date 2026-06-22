@@ -256,7 +256,7 @@ Return ONLY a valid JSON object — no markdown fences, no prose, no commentary.
   4. `source_system` matches the requested scenario (e.g. AC, BP, RE)
   5. `aggregation_default` fits the aggregation intent of the question
   6. `cardinality` matches the requested comparison period (e.g. PY, BP, none)
-  7. `normalization` matches the requested day-normalization (none, CD, WD)
+  7. `normalization` matches the requested day-normalization ((none), CD, WD)
 - Never include more than 5 measures — even if the ontology returns more rows
 - Strip any namespace or table prefix from `display_name` (e.g. `Metrics.Unit Cases AC` → `Unit Cases AC`)
 - Copy `dax_expression`, `valid_slicers`, `invalid_slicers`, `known_pitfalls` verbatim — never alter them
