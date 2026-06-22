@@ -203,12 +203,6 @@ Return ONLY a valid JSON object — no markdown fences, no prose, no commentary.
       "display_name": "<measure name, no namespace prefix>",
       "business_description": "<from ontology>",
       "dax_expression": "<verbatim from ontology>",
-      "domain": "<from ontology>",
-      "grain": "<from ontology>",
-      "source_system": "<from ontology>",
-      "aggregation_default": "<from ontology>",
-      "cardinality": "<from ontology>",
-      "normalization": "<from ontology>",
       "valid_slicers": "<verbatim from ontology>",
       "invalid_slicers": "<verbatim from ontology>",
       "known_pitfalls": "<verbatim from ontology>"
@@ -220,12 +214,6 @@ Return ONLY a valid JSON object — no markdown fences, no prose, no commentary.
       "business_description": "<from ontology>",
       "technical_description": "<from ontology>",
       "dax_expression": "<verbatim from ontology>",
-      "domain": "<from ontology>",
-      "grain": "<from ontology>",
-      "source_system": "<from ontology>",
-      "rule_scope": "<from ontology>",
-      "rls_rules": "<from ontology>",
-      "synonyms": "<from ontology>",
       "valid_slicers": "<verbatim from ontology>",
       "invalid_slicers": "<verbatim from ontology>",
       "known_pitfalls": "<verbatim from ontology>"
@@ -250,13 +238,8 @@ Return ONLY a valid JSON object — no markdown fences, no prose, no commentary.
 
 - Select ONLY the **top 5 most relevant** measures from the ontology input
 - Rank by relevance to the user's business question using this priority order:
-  1. Measure name or `display_name` directly matches the requested metric
-  2. `domain` aligns with the metric family in the question (e.g. revenue, volume, price)
-  3. `grain` matches the requested time grain (e.g. MTD, YTD, WTD)
-  4. `source_system` matches the requested scenario (e.g. AC, BP, RE)
-  5. `aggregation_default` fits the aggregation intent of the question
-  6. `cardinality` matches the requested comparison period (e.g. PY, BP, none)
-  7. `normalization` matches the requested day-normalization ((none), CD, WD)
+  1. `display_name` directly matches or closely matches the requested metric
+  2. `business_description` describes the metric family/concept the question is about
 - Never include more than 5 measures — even if the ontology returns more rows
 - Strip any namespace or table prefix from `display_name` (e.g. `Metrics.Unit Cases AC` → `Unit Cases AC`)
 - Copy `dax_expression`, `valid_slicers`, `invalid_slicers`, `known_pitfalls` verbatim — never alter them
@@ -287,11 +270,9 @@ The Summarizer is responsible for narrowing them to the user's question.
 - Consider ONLY ontology rows where `object_type = "business_rule"`.
 - **Filter by relevance to the user's question.** Keep a business rule only when it is relevant to
   what the user asked. Rank by relevance using this priority order:
-  1. `display_name` or `synonyms` matches a term, classification, segment, tier, program, or
-     territory named or implied in the user's question
+  1. `display_name` matches a term, classification, segment, tier, program, or territory named or
+     implied in the user's question
   2. `business_description` describes a concept the question is about
-  3. `rule_scope` matches the kind of breakdown requested (Customer Segmentation, Territory Mapping)
-  4. `domain` aligns with the metric family in the question
 - **If NO business rule is clearly relevant to the user's question, return an empty array `[]`.**
   Do not include business rules just because they were returned for the country.
 - Preserve the fields of the SELECTED business rules exactly as returned by the ontology.
@@ -300,7 +281,7 @@ The Summarizer is responsible for narrowing them to the user's question.
 - Do NOT treat business rules as KPI measures, and do NOT include them in `kpi_measures`.
 - If a business-rule field is missing, null, or not present in the ontology row, return "".
 - Do NOT invent business-rule attributes.
-- Do NOT assume that all business-rule rows contain dax_expression, grain, source_system, aggregation_default, synonyms, rule_scope, or rls_rules.
+- Do NOT assume that all business-rule rows contain dax_expression.
 - The output schema must remain structurally consistent across all responses.
 
 Business rules are ontology context.

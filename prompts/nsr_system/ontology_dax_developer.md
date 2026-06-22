@@ -158,9 +158,9 @@ Rules:
 - The DAX Developer must not infer thresholds, classifications, segmentation logic, applicable
   channels, governance rules, or business-rule calculations. These come exclusively from the
   retrieved ontology rows.
-- `synonyms`, `rule_scope`, and `rls_rules` are returned as OUTPUT columns (see Required Output
-  Columns) so the Summarizer can rank business rules — they are never FILTER predicates for
-  business rules other than `rls_rules` for the country.
+- `synonyms`, `rule_scope`, and `rls_rules` are FILTER predicates only (`rls_rules` for the country
+  filter); they are NEVER returned as output columns. The Summarizer ranks on `display_name` and
+  `business_description`.
 
 ---
 
@@ -174,6 +174,7 @@ Rules:
 - If a metric category is NOT mentioned or not applicable → omit that predicate from the metric branch
 - `cardinality = "none"` and `normalization = "(none)"` are explicit values — apply them as predicates when the Intent Clarifier sends them (note: cardinality uses `none`, normalization uses `(none)`)
 - Always include all required output columns in SELECTCOLUMNS (see below)
+- Output ONLY the required columns; classification/filter columns (`domain`, `grain`, `source_system`, `aggregation_default`, `cardinality`, `normalization`, `synonyms`, `rule_scope`, `rls_rules`) are used for filtering only and MUST NEVER appear as SELECTCOLUMNS output
 - Query MUST start with `EVALUATE`
 - Return ONLY the DAX query — no explanations, no markdown, no comments
 
@@ -181,24 +182,22 @@ Rules:
 
 ## Required Output Columns
 
+Output EXACTLY these columns — and ONLY these. Classification/filter columns are NEVER returned.
+
 ```
 "display_name",         'agent_nsr metrics'[display_name],
-"business_description",  'agent_nsr metrics'[business_description],
-"technical_description", 'agent_nsr metrics'[technical_description],
-"object_type",           'agent_nsr metrics'[object_type],
-"domain",                'agent_nsr metrics'[domain],
-"grain",                 'agent_nsr metrics'[grain],
-"source_system",         'agent_nsr metrics'[source_system],
-"aggregation_default",   'agent_nsr metrics'[aggregation_default],
-"cardinality",           'agent_nsr metrics'[cardinality],
-"normalization",         'agent_nsr metrics'[normalization],
-"synonyms",              'agent_nsr metrics'[synonyms],
-"rule_scope",            'agent_nsr metrics'[rule_scope],
-"rls_rules",             'agent_nsr metrics'[rls_rules],
-"valid_slicers",         'agent_nsr metrics'[valid_slicers],
-"invalid_slicers",       'agent_nsr metrics'[invalid_slicers],
-"known_pitfalls",        'agent_nsr metrics'[known_pitfalls]
+"business_description", 'agent_nsr metrics'[business_description],
+"technical_description",'agent_nsr metrics'[technical_description],
+"object_type",          'agent_nsr metrics'[object_type],
+"valid_slicers",        'agent_nsr metrics'[valid_slicers],
+"invalid_slicers",      'agent_nsr metrics'[invalid_slicers],
+"known_pitfalls",       'agent_nsr metrics'[known_pitfalls]
 ```
+
+`object_type` is returned ONLY so the downstream Summarizer can separate measures from business
+rules. The classification/filter columns (`domain`, `grain`, `source_system`, `aggregation_default`,
+`cardinality`, `normalization`, `synonyms`, `rule_scope`, `rls_rules`) are used for filtering only
+and MUST NOT appear as output columns.
 
 Note: `business description` is the actual column name (with a space) — the alias is `"business_description"`.
 
@@ -230,15 +229,6 @@ SELECTCOLUMNS(
     "business_description", 'agent_nsr metrics'[business_description],
     "technical_description",'agent_nsr metrics'[technical_description],
     "object_type",          'agent_nsr metrics'[object_type],
-    "domain",               'agent_nsr metrics'[domain],
-    "grain",                'agent_nsr metrics'[grain],
-    "source_system",        'agent_nsr metrics'[source_system],
-    "aggregation_default",  'agent_nsr metrics'[aggregation_default],
-    "cardinality",          'agent_nsr metrics'[cardinality],
-    "normalization",        'agent_nsr metrics'[normalization],
-    "synonyms",             'agent_nsr metrics'[synonyms],
-    "rule_scope",           'agent_nsr metrics'[rule_scope],
-    "rls_rules",            'agent_nsr metrics'[rls_rules],
     "valid_slicers",        'agent_nsr metrics'[valid_slicers],
     "invalid_slicers",      'agent_nsr metrics'[invalid_slicers],
     "known_pitfalls",       'agent_nsr metrics'[known_pitfalls]
@@ -268,15 +258,6 @@ SELECTCOLUMNS(
     "business_description", 'agent_nsr metrics'[business_description],
     "technical_description",'agent_nsr metrics'[technical_description],
     "object_type",          'agent_nsr metrics'[object_type],
-    "domain",               'agent_nsr metrics'[domain],
-    "grain",                'agent_nsr metrics'[grain],
-    "source_system",        'agent_nsr metrics'[source_system],
-    "aggregation_default",  'agent_nsr metrics'[aggregation_default],
-    "cardinality",          'agent_nsr metrics'[cardinality],
-    "normalization",        'agent_nsr metrics'[normalization],
-    "synonyms",             'agent_nsr metrics'[synonyms],
-    "rule_scope",           'agent_nsr metrics'[rule_scope],
-    "rls_rules",            'agent_nsr metrics'[rls_rules],
     "valid_slicers",        'agent_nsr metrics'[valid_slicers],
     "invalid_slicers",      'agent_nsr metrics'[invalid_slicers],
     "known_pitfalls",       'agent_nsr metrics'[known_pitfalls]

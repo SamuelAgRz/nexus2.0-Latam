@@ -13,16 +13,22 @@ Check ALL of the following:
 1. Query starts with `EVALUATE`
 2. References ONLY the table `'agent_nsr metrics'` — no other tables
 3. Uses `SELECTCOLUMNS(...)` wrapping either a `FILTER(...)` or the raw table
-4. SELECTCOLUMNS includes exactly these string aliases (order does not matter):
+4. SELECTCOLUMNS includes ONLY these string aliases (order does not matter) — no others:
 
 ```text
 "display_name"
 "business_description"
+"technical_description"
+"object_type"
 "valid_slicers"
 "invalid_slicers"
 "known_pitfalls"
-"technical_description"
 ```
+
+`object_type` is the only filter column allowed as output (the Summarizer uses it to split measures
+from business rules). All other classification/filter columns (`domain`, `grain`, `source_system`,
+`aggregation_default`, `cardinality`, `normalization`, `synonyms`, `rule_scope`, `rls_rules`) MUST
+NOT appear as SELECTCOLUMNS output aliases — reject the query if any does.
 
 5. FILTER predicates, if any, use ONLY the approved ontology columns:
 
@@ -305,9 +311,10 @@ Reject queries that:
 * use unsupported normalization values
 * use unsupported object_type values
 * use unsupported rls_rules values (only Colombia, Mexico)
-* use `synonyms` or `rule_scope` as a FILTER predicate (output columns only)
+* use `synonyms` or `rule_scope` as a FILTER predicate
 * use `CONTAINSSTRING`/`LOWER` synonym matching for business rules
 * omit the business-rule branch on an ontology query (business rules are always retrieved)
+* output any classification/filter column as a SELECTCOLUMNS alias — `domain`, `grain`, `source_system`, `aggregation_default`, `cardinality`, `normalization`, `synonyms`, `rule_scope`, `rls_rules` are filter-only and must never be returned (only `object_type` may be both filtered and output)
 * invent ontology metadata
 * infer business-rule logic
 * infer segmentation thresholds
