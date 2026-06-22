@@ -34,11 +34,10 @@ aggregation_default
 cardinality
 normalization
 object_type
-synonyms
-rule_scope
+rls_rules
 ```
 
-6. Metric filter predicates may use ONLY:
+6. Metric filter predicates (the metric branch) may use ONLY:
 
 ```text
 domain
@@ -49,12 +48,11 @@ cardinality
 normalization
 ```
 
-7. Business-rule filter predicates may use ONLY:
+7. Business-rule filter predicates (the business-rule branch) may use ONLY:
 
 ```text
 object_type
-synonyms
-rule_scope
+rls_rules
 ```
 
 8. `object_type` values may only be:
@@ -64,17 +62,20 @@ measure
 business_rule
 ```
 
-9. Business-rule synonym matching is valid ONLY when performed against:
+9. Business rules are filtered by country ONLY, via exact equality on `rls_rules` (e.g.
+   `'agent_nsr metrics'[rls_rules] = "Colombia"` or `IN {"Colombia", "Mexico"}`).
+   `synonyms` and `rule_scope` MUST NOT be used as FILTER predicates (they are output columns only).
+   `CONTAINSSTRING`/`LOWER` synonym matching for business rules is NO LONGER allowed and MUST be rejected.
 
-```DAX
-'agent_nsr metrics'[synonyms]
-```
+10. Every ontology query MUST include a business-rule branch (`object_type = "business_rule"` with an
+   `rls_rules` country filter), OR-combined with the metric branch. Reject a query that retrieves
+   metrics but omits the business-rule branch.
 
-10. Filter values come only from the approved ontology values listed below
-11. No invented tables
-12. No invented columns
-13. No invented measures
-14. No invented ontology object types
+11. Filter values come only from the approved ontology values listed below
+12. No invented tables
+13. No invented columns
+14. No invented measures
+15. No invented ontology object types
 
 ---
 
@@ -177,50 +178,41 @@ measure
 business_rule
 ```
 
-### rule_scope
+### rls_rules
 
-`rule_scope` is valid ONLY on a business-rule branch (combined with `object_type = "business_rule"`). The validator MUST reject `rule_scope` used on a metric branch.
+`rls_rules` is valid ONLY on a business-rule branch (combined with `object_type = "business_rule"`), using exact equality. The validator MUST reject `rls_rules` used on a metric branch.
 
 ```text
-Customer Segmentation
-Territory Mapping
+Colombia
+Mexico
 ```
+
+Note: `synonyms` and `rule_scope` are returned as OUTPUT columns but MUST NOT appear as FILTER predicates. They have no allowed-values list because they are never used to filter.
 
 ---
 
 ## Business Rule Validation Rules
 
-Business-rule retrieval is allowed when the DAX query contains:
+Business rules are ALWAYS retrieved. Every ontology query MUST contain a business-rule branch:
 
 ```DAX
-'agent_nsr metrics'[object_type] = "business_rule"
+'agent_nsr metrics'[object_type] = "business_rule" &&
+'agent_nsr metrics'[rls_rules] = "Colombia"        -- or IN {"Colombia", "Mexico"}
 ```
 
-combined with synonym matching against:
+OR-combined with the metric branch. Reject any query that retrieves metrics but omits the
+business-rule branch.
 
-```DAX
-'agent_nsr metrics'[synonyms]
-```
+Business rules are filtered by COUNTRY ONLY, using exact equality on `rls_rules`. The validator
+MUST reject:
 
-using:
-
-```DAX
-CONTAINSSTRING(
-    LOWER('agent_nsr metrics'[synonyms]),
-    "<matched term>"
-)
-```
-
-Business-rule retrieval must be ontology-driven.
-
-The validator MUST reject business-rule retrieval that:
-
-* hardcodes customer classifications
-* hardcodes segmentation thresholds
-* hardcodes country-specific business logic
-* hardcodes channel-specific business logic
-* hardcodes governance rules
-* bypasses ontology synonym resolution
+* synonym matching for business rules, i.e. `CONTAINSSTRING(LOWER('agent_nsr metrics'[synonyms]), ...)`
+* `synonyms` used as a FILTER predicate
+* `rule_scope` used as a FILTER predicate
+* any business-rule predicate other than `object_type` and `rls_rules`
+* `rls_rules` matched with anything other than the approved country values (`Colombia`, `Mexico`)
+* hardcoded customer classifications, segmentation thresholds, country-specific or channel-specific
+  business logic, or governance rules
 
 Business-rule definitions must come exclusively from ontology retrieval.
 Business-rule ontology records may include technical metadata inside the returned alias:
@@ -241,24 +233,24 @@ These details are allowed only as retrieved ontology content, not as DAX filter 
 
 For GEC / Gold-Silver-Bronze customer classification, Gregorian calendar usage is valid only when it is returned by the ontology business_rule record inside technical_description.
 
-The ontology retrieval DAX must still filter business rules only through:
+The ontology retrieval DAX must filter business rules only through:
 
 'agent_nsr metrics'[object_type] = "business_rule"
 
-and synonym matching against:
+combined with the country filter:
 
-'agent_nsr metrics'[synonyms]
+'agent_nsr metrics'[rls_rules] = "<country>"
+
 ---
 
 ## Metric + Business Rule Retrieval Pattern
 
-A query may retrieve:
+Every valid query has BOTH branches, OR-combined.
 
-### Metric only
+### Metric branch
 
 ```DAX
-FILTER(
-    'agent_nsr metrics',
+(
     'agent_nsr metrics'[domain] = "Volume" &&
     'agent_nsr metrics'[grain] = "Current" &&
     'agent_nsr metrics'[source_system] = "AC" &&
@@ -266,20 +258,16 @@ FILTER(
 )
 ```
 
-### Business Rule only
+### Business-rule branch (always present, country-filtered)
 
 ```DAX
-FILTER(
-    'agent_nsr metrics',
+(
     'agent_nsr metrics'[object_type] = "business_rule" &&
-    CONTAINSSTRING(
-        LOWER('agent_nsr metrics'[synonyms]),
-        "silver"
-    )
+    'agent_nsr metrics'[rls_rules] = "Colombia"
 )
 ```
 
-### Metric + Business Rule
+### Metric + Business Rule (the required shape)
 
 ```DAX
 FILTER(
@@ -293,15 +281,13 @@ FILTER(
     ||
     (
         'agent_nsr metrics'[object_type] = "business_rule" &&
-        CONTAINSSTRING(
-            LOWER('agent_nsr metrics'[synonyms]),
-            "silver"
-        )
+        'agent_nsr metrics'[rls_rules] = "Colombia"
     )
 )
 ```
 
-Business-rule retrieval is additive to metric retrieval and must never replace metric retrieval when a metric has been requested.
+Business-rule retrieval is additive to metric retrieval and must never replace it. The business-rule
+branch must be present even when the request is a plain metric query with no segmentation term.
 
 ---
 
@@ -318,8 +304,10 @@ Reject queries that:
 * use unsupported cardinality values
 * use unsupported normalization values
 * use unsupported object_type values
-* use unsupported rule_scope values
-* apply rule_scope to a metric branch (rule_scope is business-rule-only)
+* use unsupported rls_rules values (only Colombia, Mexico)
+* use `synonyms` or `rule_scope` as a FILTER predicate (output columns only)
+* use `CONTAINSSTRING`/`LOWER` synonym matching for business rules
+* omit the business-rule branch on an ontology query (business rules are always retrieved)
 * invent ontology metadata
 * infer business-rule logic
 * infer segmentation thresholds

@@ -224,6 +224,7 @@ Return ONLY a valid JSON object — no markdown fences, no prose, no commentary.
       "grain": "<from ontology>",
       "source_system": "<from ontology>",
       "rule_scope": "<from ontology>",
+      "rls_rules": "<from ontology>",
       "synonyms": "<from ontology>",
       "valid_slicers": "<verbatim from ontology>",
       "invalid_slicers": "<verbatim from ontology>",
@@ -280,19 +281,26 @@ KPI measure ontology records are authoritative and must remain unchanged.
 
 ### business_rules
 
-- Include ONLY ontology rows where `object_type = "business_rule"`.
-- Preserve business rule fields exactly as returned by the ontology.
-- Do NOT infer thresholds.
-- Do NOT infer applicable countries.
-- Do NOT infer applicable channels.
+The ontology query retrieves ALL business rules for the in-scope country (no synonym pre-filter).
+The Summarizer is responsible for narrowing them to the user's question.
+
+- Consider ONLY ontology rows where `object_type = "business_rule"`.
+- **Filter by relevance to the user's question.** Keep a business rule only when it is relevant to
+  what the user asked. Rank by relevance using this priority order:
+  1. `display_name` or `synonyms` matches a term, classification, segment, tier, program, or
+     territory named or implied in the user's question
+  2. `business_description` describes a concept the question is about
+  3. `rule_scope` matches the kind of breakdown requested (Customer Segmentation, Territory Mapping)
+  4. `domain` aligns with the metric family in the question
+- **If NO business rule is clearly relevant to the user's question, return an empty array `[]`.**
+  Do not include business rules just because they were returned for the country.
+- Preserve the fields of the SELECTED business rules exactly as returned by the ontology.
+- Do NOT infer thresholds, applicable countries, or applicable channels.
 - Do NOT convert business rules into cube filters unless the ontology explicitly provides that behavior.
-- Do NOT treat business rules as KPI measures.
-- Do NOT include business rules in `kpi_measures`.
-- If no business-rule rows are returned, use an empty array.
+- Do NOT treat business rules as KPI measures, and do NOT include them in `kpi_measures`.
 - If a business-rule field is missing, null, or not present in the ontology row, return "".
 - Do NOT invent business-rule attributes.
-- Do NOT assume that all business-rule rows contain dax_expression, grain, source_system, aggregation_default, or synonyms.
-- If a business-rule field defined in the schema is missing from the ontology row, return "".
+- Do NOT assume that all business-rule rows contain dax_expression, grain, source_system, aggregation_default, synonyms, rule_scope, or rls_rules.
 - The output schema must remain structurally consistent across all responses.
 
 Business rules are ontology context.

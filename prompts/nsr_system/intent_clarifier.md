@@ -345,17 +345,18 @@ Ontology resolution is REQUIRED when:
 - driver/dragger logic is requested
 - relationship validation is required
 - business-rule interpretation is required
-- business-rule synonym matching is detected
-  
+
+Business rules are ALWAYS resolved by the ontology (scoped by country), so any ontology intent
+automatically retrieves them — no synonym detection is involved.
+
 Business-rule ontology resolution has higher priority than geography clarification.
 
-When a business-rule synonym match is detected:
+When routing to the ontology:
 
 1. Invoke LATAM_NSR_Ontology.
-2. Preserve the matched term.
+2. Ensure the in-scope country is resolved in `country_scope` (used to retrieve business rules via `rls_rules`).
 3. Allow ontology resolution to determine business-rule semantics.
 4. Only request geography clarification if ambiguity remains after ontology resolution.
-5. 
 ## 6.1 Business Rule Ontology Precedence
 
 If the user request contains a term, phrase, label, classification, segment, tier, customer grouping, governance concept, business-defined category, or any expression that may correspond to a Business Rule ontology object:
@@ -476,15 +477,15 @@ The Intent Clarifier MUST NOT remove, modify, reinterpret, or override ontology-
 
 ### 6.4 Business Rule Resolution
 
-If a user term matches a synonym from the {Business Rules & Segmentation} category:
+Business rules are ALWAYS resolved by LATAM_NSR_Ontology alongside metrics, scoped by country. The
+Intent Clarifier does not detect or match business-rule terms.
 
-1. Do not interpret the term as a dimension value.
+1. Do not interpret user terms as dimension values.
 2. Do not assume any country-specific business logic.
 3. Do not infer thresholds, classifications, customer tiers, channel restrictions, calculations, or business definitions.
-4. Route the request through LATAM_NSR_Ontology.
-5. Pass the matched term exactly as provided by the user.
-6. Preserve the original user terminology.
-7. The ontology is the only source of truth for business-rule definitions.
+4. Route analytical requests through LATAM_NSR_Ontology so business rules for the in-scope country are retrieved.
+5. Preserve the original user terminology.
+6. The ontology is the only source of truth for business-rule definitions.
 
 Business rules must never be hardcoded in the Intent Clarifier.
 
@@ -498,18 +499,16 @@ The Intent Clarifier must not maintain lists of:
 
 These definitions must be resolved exclusively through ontology retrieval.
 
-If a business-rule synonym match is detected, ontology resolution MUST occur before any DAX generation.
 Business-rule ontology resolutions MUST be preserved exactly as returned by LATAM_NSR_Ontology and MUST NOT be modified, reinterpreted, expanded, or overridden by the Intent Clarifier.
 
-When a business-rule synonym match is detected, the Intent Clarifier MUST populate:
+On every ontology intent, the Intent Clarifier MUST populate:
 
 "business_rule_context": {
   "business_rule_resolution_required": true,
-  "matched_terms": ["<detected term>"],
   "preserve_original_terms": true
 }
 
-The matched terms MUST be passed unchanged to LATAM_NSR_Ontology.
+The in-scope country travels in `country_scope`; the ontology matches it against `rls_rules`.
 
 ## 6.5 Business Rule Calendar Governance
 
@@ -701,7 +700,7 @@ These six categories are mandatory in the ontology JSON payload:
 
 The ontology layer uses these categories to filter ontology metrics deterministically.
 
-Note: `rule_scope` is NOT a metric classification filter. It applies ONLY to business rules and is carried separately in `business_rule_context` (see Business Rule Ontology Handling).
+Note: business rules are NOT part of metric classification filters. They are always retrieved by the ontology, scoped by country (`country_scope` matched against `rls_rules`). The Intent Clarifier does not set any business-rule filter — see Business Rule Context Rules.
 
 The Intent Clarifier MUST infer the best classification values from the user request and semantic context. If a value cannot be safely inferred, set it to null and include the category in required_resolutions.
 
@@ -1352,10 +1351,8 @@ LATAM_NSR_Ontology
   "requested_business_logic": [],
 
 "business_rule_context": {
-  "business_rule_resolution_required": false,
-  "matched_terms": [],
-  "preserve_original_terms": true,
-  "rule_scope": null
+  "business_rule_resolution_required": true,
+  "preserve_original_terms": true
 },
 
 "downstream_constraints": {
@@ -1386,41 +1383,28 @@ Allowed values include:
 Use one or more values depending on the user request.
 ### Business Rule Context Rules
 
-The Intent Clarifier MUST populate business_rule_context whenever a business-rule synonym match is detected.
+Business rules are ALWAYS resolved by LATAM_NSR_Ontology, in addition to metrics, on every
+ontology intent. They are NOT gated on synonym detection. The ontology retrieves business rules by
+COUNTRY (the `country_scope` values), so the Intent Clarifier does not need to detect, match, or
+pass any business-rule term.
 
-Example:
+The Intent Clarifier MUST populate business_rule_context on every ontology intent with the standing
+default:
 
 "business_rule_context": {
   "business_rule_resolution_required": true,
-  "matched_terms": ["silver"],
-  "preserve_original_terms": true,
-  "rule_scope": "Customer Segmentation"
+  "preserve_original_terms": true
 }
 
-If no business-rule synonym match is detected:
+Country source: the in-scope country for business-rule retrieval is `country_scope.values`
+(Colombia and/or Mexico). The ontology layer matches it against the `rls_rules` column. Country must
+be resolved (it is already mandatory governance) before ontology retrieval.
 
-"business_rule_context": {
-  "business_rule_resolution_required": false,
-  "matched_terms": [],
-  "preserve_original_terms": true,
-  "rule_scope": null
-}
+The Intent Clarifier MUST NOT:
 
-#### rule_scope
-
-`rule_scope` classifies the business purpose of the matched business rule. It applies ONLY to business rules — never to metrics — and is used by LATAM_NSR_Ontology to scope business-rule retrieval. Set it to the best-inferred value when a business-rule synonym match is detected; otherwise set it to null.
-
-Allowed values:
-
-- Customer Segmentation — rules that classify customers into business-defined groups (Gold/Silver/Bronze, tiers, loyalty segments, outlet segmentation).
-- Territory Mapping — rules that define business territories, geographic aggregations, or virtual regions derived from one or more geographic entities (e.g. VALLE DE MEXICO, commercial regions, sales territories, bottler zone aggregations).
-- null — no business-rule match detected, or scope cannot be safely inferred.
-
-Inference rules:
-
-- Classification, tier, status, eligibility, loyalty, or customer/outlet group terms (Gold, Silver, Bronze, VIP, active/inactive customers) → rule_scope = Customer Segmentation.
-- Territory, region, zone, or virtual-geography aggregation terms (VALLE DE MEXICO, commercial region, sales territory, bottler zone) → rule_scope = Territory Mapping.
-- No business-rule match → rule_scope = null.
+- perform synonym matching for business rules
+- populate matched_terms (the field is removed)
+- set or infer a rule_scope (the ontology returns it; relevance filtering happens in the summarizer)
 
 ### Ontology Context Propagation Rules
 

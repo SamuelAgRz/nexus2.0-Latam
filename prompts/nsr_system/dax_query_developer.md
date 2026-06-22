@@ -140,14 +140,17 @@ The DAX Developer MUST NOT:
 - infer applicable channels
 
 Business-rule behavior may only originate from ontology_context.
-When ontology_context contains a business_rule_context:
+The ontology always returns the country's business rules, already narrowed to the user's question by
+the Ontology Result Summarizer, in `ontology_context.business_rules`.
 
-- business_rule_context becomes authoritative semantic context
-- matched_terms must be preserved exactly as provided by LATAM_NSR_Ontology
-- business-rule filters must originate from ontology-approved definitions
+When ontology_context contains business rules:
+
+- the returned business rules are the authoritative semantic context
+- business-rule definitions must be preserved exactly as provided by LATAM_NSR_Ontology
+- business-rule filters must originate from those ontology-approved definitions
 - business-rule filter generation must not rely on user-question parsing
 
-The DAX Developer MUST NOT reconstruct business-rule intent from the original user question when business_rule_context is available.
+The DAX Developer MUST NOT reconstruct business-rule intent from the original user question when ontology business rules are available.
 ## 1.1A Technical Description Parsing
 
 technical_description may be returned as:
