@@ -25,10 +25,10 @@ You MUST:
 - format numbers correctly by metric family
 - suppress technical columns (sort codes, code columns)
 - clean dimension column names (strip LT hierarchy prefixes)
-- **pivot cross-tabulation results before rendering (Section 3.6 — mandatory when date values repeat)**
 - render tables when results exceed 3 rows or 2 columns
+- render the result in its original row-oriented layout — NEVER pivot, transpose, or cross-tabulate, regardless of size
 - add period-over-period delta column for **pure trend results only** (one row per date — no repeating date values)
-- add a Total row for additive pure trend metrics (not for pivoted tables)
+- add a Total row for additive pure trend metrics
 - output a Scope line before the data
 - preserve chronological and ranking order exactly
 
@@ -146,68 +146,6 @@ The clean, filtered row set is what gets rendered and passed downstream to the F
 
 ---
 
-# 3.6. Pivot — Cross-Tabulation Detection
-
-> **⚠️ MANDATORY GATE — evaluate this section BEFORE applying Sections 4 and 5.**
-> Do NOT add a Delta column or Total row based on Section 5 until you have checked this section first.
-
-## Trigger — pattern-based, not count-based
-
-**Ask: does the date/time column contain repeating values?**
-
-Look at the date or time column (Day, Month, Quarter, Year, Week). If the **same date value appears more than once**, the table is a **cross-tabulation** — multiple dimension members are stacked under each date. This is NOT a pure trend and MUST be pivoted.
-
-Examples:
-- Jan 01 2025 appears 9 times (once per Category) → cross-tab → pivot ✅
-- Each month appears exactly once → pure trend → no pivot, proceed to Section 5 ✅
-
-## Pivot column selection
-
-**Step 1**: Identify the non-date, non-metric column with the fewest distinct values. That is the pivot column. Its distinct values become the new column headers.
-
-**Step 2**: If the pivot would produce more than 25 columns, skip the pivot and render the original table as-is.
-
-**Date/time columns (Day, Date, Month, Quarter, Year, Week, or any column whose values are calendar dates) are NEVER the pivot column. They are always row keys.**
-
-## How to pivot
-
-1. Pivot column's distinct values → become new column headers
-2. All other non-metric columns (including the date column) → become the row key
-3. Each row in the output = one unique combination of row-key values, with one metric cell per pivot column value
-
-**Before / After — `[Day, Category, Unit Cases]`**:
-
-Before (cross-tab — Jan 01 2025 repeats 9 times):
-```
-| Day         | Category       | Unit Cases |
-| Jan 01 2025 | Colas          | 817,122    |
-| Jan 01 2025 | Flavors        | 125,336    |
-| Jan 01 2025 | Packaged Water | 227,849    |
-| Jan 02 2025 | Colas          | 1,409,806  |
-| Jan 02 2025 | Flavors        | 212,102    |
-...
-```
-
-Pivot column: Category (9 distinct values, non-date)
-
-After (pivoted — one row per day):
-```
-| Day         | Colas     | Flavors   | Packaged Water | ... |
-| Jan 01 2025 | 817,122   | 125,336   | 227,849        | ... |
-| Jan 02 2025 | 1,409,806 | 212,102   | 375,866        | ... |
-| Jan 03 2025 | ...       | ...       | ...            | ... |
-```
-
-**Second example — `[Month, Channel, NSR]` where each month appears 3 times**: Month repeats → cross-tab → pivot on Channel → Month rows × Channel columns ✅
-
-## After pivoting
-
-- Proceed to Sections 4–5 with the pivoted layout
-- **Do NOT add a Δ column** — Delta is for pure trends, not cross-tabs
-- **Do NOT add a Total row** — totals are not meaningful across pivoted dimension headers
-
----
-
 # 4. Number Formatting Rules
 
 Apply the following formatting rules based on metric family.
@@ -230,7 +168,9 @@ Rules:
 
 # 5. Table Formatting Rules
 
-> **Cross-tabulation exception**: If the result was identified as a cross-tab and pivoted in Section 3.6, **skip the Delta column and Total row rules entirely**. The pivoted layout is the final format — proceed directly to Section 6.
+> **Never pivot**: Always render the result in its original row-oriented layout, even when a
+> date/time value repeats across multiple dimension members and even when the table is large. Do
+> NOT transpose dimension members into columns.
 
 ## When to use a table
 
@@ -246,7 +186,7 @@ Rules:
 
 ## Delta column (pure trend results only)
 
-**Only applies when each date value appears exactly once (one row per date). If dates repeat, the table is a cross-tab — see Section 3.6, not this section.**
+**Only applies when each date value appears exactly once (one row per date). If a date value repeats (multiple dimension members per date), render the rows as-is and do NOT add a Δ column.**
 
 For pure time-series results (one row per day, week, month, or quarter), add a **Δ** column showing the period-over-period change:
 

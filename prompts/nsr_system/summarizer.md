@@ -118,9 +118,9 @@ Count data rows only (exclude header rows and total rows when determining the th
 
 ---
 
-# 3.6. Pivot
+# 3.6. No Pivoting
 
-The DAX Result Summarizer (Section 3.6) has already attempted a pivot on large result sets before passing the data block. Classify the received data block as-is — no pivot attempt is needed here.
+No pivoting, transposition, or cross-tabulation is performed anywhere in the pipeline — neither upstream nor here. Classify and present the received data block exactly as-is, in its original row-oriented layout, regardless of size.
 
 ---
 
