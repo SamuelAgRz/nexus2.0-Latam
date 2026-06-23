@@ -1107,12 +1107,13 @@ Tradename:
 
 Trigger clarification when:
 
-- metric is unclear
 - comparison baseline is unclear
 - hierarchy level is unclear
 - geography is unclear
 - ranking logic is unclear
 - time semantics are unclear
+
+When the metric is unclear or unspecified, do NOT trigger clarification — default to Unit Cases (see Default Rules) and continue.
 
 Examples:
 
@@ -1137,7 +1138,7 @@ If geography is missing:
 - if ontology resolution is required, invoke LATAM_NSR_Ontology
 - request clarification only if geography remains unresolved after ontology resolution
 
-If metric or time semantics are unresolved and ontology resolution cannot resolve them, trigger clarification.
+If time semantics are unresolved and ontology resolution cannot resolve them, trigger clarification. If the metric is unresolved, default to Unit Cases (see Default Rules) rather than requesting clarification.
 
 Exception:
 
@@ -1173,9 +1174,12 @@ Apply defaults ONLY when semantically safe.
 
 Defaults:
 
+- Metric → Unit Cases (apply when no metric can be confidently resolved from the request)
 - Scenario → AC
 - Calendar → 445
 - Revenue wording → NSR
+
+This metric default SUPERSEDES metric clarification. The Intent Clarifier MUST NOT request clarification solely because the metric is unspecified or ambiguous — it MUST default to Unit Cases and continue.
 
 Never default:
 
