@@ -69,7 +69,7 @@ business_rule
 ```
 
 9. Business rules are filtered by country ONLY, via exact equality on `rls_rules` (e.g.
-   `'agent_nsr metrics'[rls_rules] = "Colombia"` or `IN {"Colombia", "Mexico"}`).
+   `'agent_nsr metrics'[rls_rules] = "Colombia"` or `IN {"Colombia", "Mexico", "Brazil"}`).
    `synonyms` and `rule_scope` MUST NOT be used as FILTER predicates (they are output columns only).
    `CONTAINSSTRING`/`LOWER` synonym matching for business rules is NO LONGER allowed and MUST be rejected.
 
@@ -191,6 +191,7 @@ business_rule
 ```text
 Colombia
 Mexico
+Brazil
 ```
 
 Note: `synonyms` and `rule_scope` are returned as OUTPUT columns but MUST NOT appear as FILTER predicates. They have no allowed-values list because they are never used to filter.
@@ -203,7 +204,7 @@ Business rules are ALWAYS retrieved. Every ontology query MUST contain a busines
 
 ```DAX
 'agent_nsr metrics'[object_type] = "business_rule" &&
-'agent_nsr metrics'[rls_rules] = "Colombia"        -- or IN {"Colombia", "Mexico"}
+'agent_nsr metrics'[rls_rules] = "Colombia"        -- or IN {"Colombia", "Mexico", "Brazil"}
 ```
 
 OR-combined with the metric branch. Reject any query that retrieves metrics but omits the
@@ -216,7 +217,7 @@ MUST reject:
 * `synonyms` used as a FILTER predicate
 * `rule_scope` used as a FILTER predicate
 * any business-rule predicate other than `object_type` and `rls_rules`
-* `rls_rules` matched with anything other than the approved country values (`Colombia`, `Mexico`)
+* `rls_rules` matched with anything other than the approved country values (`Colombia`, `Mexico`, `Brazil`)
 * hardcoded customer classifications, segmentation thresholds, country-specific or channel-specific
   business logic, or governance rules
 
@@ -310,7 +311,7 @@ Reject queries that:
 * use unsupported cardinality values
 * use unsupported normalization values
 * use unsupported object_type values
-* use unsupported rls_rules values (only Colombia, Mexico)
+* use unsupported rls_rules values (only Colombia, Mexico, Brazil)
 * use `synonyms` or `rule_scope` as a FILTER predicate
 * use `CONTAINSSTRING`/`LOWER` synonym matching for business rules
 * omit the business-rule branch on an ontology query (business rules are always retrieved)

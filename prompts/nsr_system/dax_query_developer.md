@@ -36,7 +36,7 @@ You MUST:
 - preserve semantic topology
 - preserve enterprise filtering logic
 - preserve 445 calendar semantics
-- preserve Colombia deployment restrictions
+- preserve deployment country restrictions
 - generate deterministic DAX
 - minimize hallucinations
 - minimize unsupported semantic logic
@@ -1837,6 +1837,7 @@ Supported countries:
 
 * Colombia
 * Mexico
+* Brazil
 
 Country Filter Generation Rule
 
@@ -1858,11 +1859,20 @@ ALL('Ship From'[Country]),
 'Ship From'[Country] = "Mexico"
 )
 
-* NEVER include both Colombia and Mexico in the same query unless the structured intent explicitly requests a multi-country comparison.
+* If intent country = Brazil, generate only:
+
+FILTER(
+ALL('Ship From'[Country]),
+'Ship From'[Country] = "Brazil"
+)
+
+* NEVER include more than one supported country in the same query unless the structured intent explicitly requests a multi-country comparison.
 
 * NEVER add Colombia as a fallback country.
 
 * NEVER add Mexico as a fallback country.
+
+* NEVER add Brazil as a fallback country.
 
 * NEVER stack multiple country filters on 'Ship From'[Country] for a single-country request.
 
@@ -1890,6 +1900,15 @@ Valid:
 FILTER(
 ALL('Ship From'[Country]),
 'Ship From'[Country] = "Mexico"
+)
+
+Intent Country = Brazil
+
+Valid:
+
+FILTER(
+ALL('Ship From'[Country]),
+'Ship From'[Country] = "Brazil"
 )
 
 Invalid:

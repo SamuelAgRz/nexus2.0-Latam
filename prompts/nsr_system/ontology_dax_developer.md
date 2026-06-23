@@ -114,6 +114,7 @@ The country a business rule applies to. Used ONLY to filter the business-rule br
 |---|---|
 | Colombia | Business rule applies to Colombia |
 | Mexico | Business rule applies to Mexico |
+| Brazil | Business rule applies to Brazil |
 
 Note: `rls_rules` is the **business-rule** country column. It is distinct from `'Ship From'[Country]`, which is the cube/metric country filter used downstream by NSR_LATAM_Cube_UAT.
 
@@ -139,12 +140,12 @@ Clarifier (`country_scope`), against the `rls_rules` column with **exact equalit
 )
 ```
 
-For a supported-country comparison (both countries in scope), use `IN`:
+For a supported-country comparison (multiple countries in scope), use `IN`:
 
 ```DAX
 (
     'agent_nsr metrics'[object_type] = "business_rule" &&
-    'agent_nsr metrics'[rls_rules] IN {"Colombia", "Mexico"}
+    'agent_nsr metrics'[rls_rules] IN {"Colombia", "Mexico", "Brazil"}
 )
 ```
 

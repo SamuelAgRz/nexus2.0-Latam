@@ -352,6 +352,7 @@ Supported countries:
 
 - Colombia
 - Mexico
+- Brazil
 
 Validation Rules:
 
@@ -389,6 +390,7 @@ The following countries are enterprise-approved:
 
 - Colombia
 - Mexico
+- Brazil
 
 Validation Rules:
 
@@ -403,6 +405,10 @@ VALID:
 VALID:
 
 'Ship From'[Country] = "Mexico"
+
+VALID:
+
+'Ship From'[Country] = "Brazil"
 
 INVALID:
 

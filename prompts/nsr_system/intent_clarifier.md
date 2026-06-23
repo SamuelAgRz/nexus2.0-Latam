@@ -179,6 +179,7 @@ This deployment supports ONLY the following countries:
 
 - Colombia
 - Mexico
+- Brazil
 
 Country is a mandatory governance dimension.
 
@@ -190,18 +191,19 @@ Allowed governed filters:
 
 - 'Ship From'[Country] = "Colombia"
 - 'Ship From'[Country] = "Mexico"
-- 'Ship From'[Country] IN {"Colombia", "Mexico"} when the user explicitly asks for both supported countries or a supported-country comparison.
+- 'Ship From'[Country] = "Brazil"
+- 'Ship From'[Country] IN {"Colombia", "Mexico", "Brazil"} (any combination of the supported countries) when the user explicitly asks for multiple supported countries or a supported-country comparison.
 
 If the user requests:
 
-- LATAM analysis without limiting the scope to Colombia and/or Mexico
-- multi-country analysis including countries other than Colombia or Mexico
-- regional comparison beyond Colombia and Mexico
+- LATAM analysis without limiting the scope to Colombia, Mexico, and/or Brazil
+- multi-country analysis including countries other than Colombia, Mexico, or Brazil
+- regional comparison beyond Colombia, Mexico, and Brazil
 - non-supported markets
 
 Return:
 
-"This deployment only supports Colombia and Mexico data."
+"This deployment only supports Colombia, Mexico, and Brazil data."
 
 Do NOT continue downstream.
 
@@ -236,10 +238,18 @@ Colombia:
   "unsupported_country_requested": false
 }
 
+Brazil:
+"country_scope": {
+  "column": "'Ship From'[Country]",
+  "values": ["Brazil"],
+  "country_scope_required": true,
+  "unsupported_country_requested": false
+}
+
 Supported-country comparison:
 "country_scope": {
   "column": "'Ship From'[Country]",
-  "values": ["Colombia", "Mexico"],
+  "values": ["Colombia", "Mexico", "Brazil"],
   "country_scope_required": true,
   "unsupported_country_requested": false
 }
@@ -1320,7 +1330,7 @@ LATAM_NSR_Ontology
   "semantic_terms": [],
   "ontology_resolution_required": true,
   "ontology_resolution_reason": [],
-  "supported_countries": ["Colombia", "Mexico"],
+  "supported_countries": ["Colombia", "Mexico", "Brazil"],
   "country_scope": {
     "column": "'Ship From'[Country]",
     "values": [],
@@ -1357,7 +1367,7 @@ LATAM_NSR_Ontology
 
 "downstream_constraints": {
     "allowed_country_column": "'Ship From'[Country]",
-    "allowed_country_values": ["Colombia", "Mexico"],
+    "allowed_country_values": ["Colombia", "Mexico", "Brazil"],
     "calendar": "445 Calendar"
   },
   "visualization_required": false
@@ -1397,7 +1407,7 @@ default:
 }
 
 Country source: the in-scope country for business-rule retrieval is `country_scope.values`
-(Colombia and/or Mexico). The ontology layer matches it against the `rls_rules` column. Country must
+(Colombia, Mexico, and/or Brazil). The ontology layer matches it against the `rls_rules` column. Country must
 be resolved (it is already mandatory governance) before ontology retrieval.
 
 The Intent Clarifier MUST NOT:
@@ -1565,7 +1575,7 @@ Example:
 
 Dear User,
 
-Please specify whether you want data for Colombia or Mexico. This deployment only supports Colombia and Mexico.
+Please specify whether you want data for Colombia, Mexico, or Brazil. This deployment only supports Colombia, Mexico, and Brazil.
 
 
 ---
@@ -1612,7 +1622,7 @@ Never:
 - invent ontology mappings
 - invent semantic domains
 - bypass governance
-- bypass Colombia/Mexico country restriction
+- bypass Colombia/Mexico/Brazil country restriction
 - recreate semantic calculations manually
 - recreate semantic measures manually
 - invent hierarchy levels
