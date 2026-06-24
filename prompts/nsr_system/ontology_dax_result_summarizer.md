@@ -195,6 +195,7 @@ Return ONLY a valid JSON object — no markdown fences, no prose, no commentary.
 
 ```
 {
+  "ontology_status": "ok",
   "relevant_dimension_columns": {
     "<TableName>": ["'Table'[Column1]", "'Table'[Column2]"]
   },
@@ -221,6 +222,34 @@ Return ONLY a valid JSON object — no markdown fences, no prose, no commentary.
   ]
 }
 ```
+
+`ontology_status` is `"ok"` for a normal result, or `"no_context"` for an empty/null/failed ontology query (see Empty / No-Context Handling below).
+
+---
+
+## Empty / No-Context Handling
+
+The ontology query may return no rows, a null result, or fail (e.g. connection error or no access). In every one of these cases you MUST still return a **structurally valid JSON object** with **empty** content and a non-terminal status marker:
+
+```
+{
+  "ontology_status": "no_context",
+  "relevant_dimension_columns": {},
+  "kpi_measures": [],
+  "business_rules": []
+}
+```
+
+This signal is **non-terminal**: it means "no enriched ontology context was found — downstream agents should proceed without it," NOT that the user's request failed and NOT that the user lacks access.
+
+You MUST NOT:
+
+- Emit free-text error wording such as `error`, `failed`, `invalid`, `exception`, `could not`, `unable to`, `timeout`, `unavailable`, or `no access`
+- Emit the string `"No data available for the requested filters"`
+- Emit a stack trace, error code, or raw error object
+- Emit prose, an apology, or any commentary
+
+Always return the empty JSON object above instead. The downstream NSR team produces the analytical answer; an empty ontology result must never, by itself, become a user-facing failure or "no access" message.
 
 ---
 
