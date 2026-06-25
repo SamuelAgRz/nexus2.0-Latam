@@ -46,7 +46,7 @@ flowchart TB
         direction TB
         IC[Intent Clarifier]
         VIZ[Visualization Agent]
-        SUM["Summarizer<br/>(reads last 5 outer-team messages)"]
+        SUM["Summarizer<br/>(last 5 outer-team messages, total)"]
 
         subgraph Ont["Ontology team — Society-of-Mind (inner context: 5 messages)"]
             direction TB
@@ -81,7 +81,9 @@ inner-team communication does not.
 ### 1. Intent Clarifier
 
 The Intent Clarifier sees **user messages and outer-team responses**, but **not**
-inner-team communication. Its context is limited to the **last 25 messages**.
+inner-team communication. Its context is limited to the **last 25 messages** — a combined
+total that counts both the user's messages and the outer-team responses together (not 25
+of each, and not user messages only).
 
 ### 2. Ontology team and NSR team
 
@@ -91,9 +93,14 @@ the team.
 
 ### 3. Inner agents
 
-Inner agents operate within their own context. They see only the **messages passed into
-their inner team** plus the **responses from other inner agents**. Each inner agent has a
-context limit of **5 messages**.
+Inner agents operate within their own context. They see only the **last 5 messages within
+their own inner team** — the messages passed into the inner team plus the responses from
+other inner agents, up to that window.
+
+Because the window spans the whole inner team (not just the immediately preceding agent),
+a later inner agent sees **every earlier inner agent's response still inside the 5-message
+window**. For example, the DAX Result Summarizer sees the DAX Developer's *and* the
+Validator's responses — not only the Executor's.
 
 ### 4. Tool results
 
@@ -102,19 +109,28 @@ those results **if they are still within the context window** (the 5-message inn
 
 ### 5. Summarizer
 
-The Summarizer reviews the **last 5 outer-team messages** and produces the user-facing
+The Summarizer reviews the **last 5 outer-team messages in total** (not the last 5 from
+each agent) and produces the user-facing response. A typical window is:
+
+1. the user message
+2. the Intent Clarifier statement
+3. the Ontology team response
+4. the NSR team response
+
+Like the Intent Clarifier, the Summarizer is an outer agent and **cannot** access the
+messages exchanged inside the Ontology or NSR inner teams — only each team's final
 response.
 
 ## Context-window summary
 
 | Agent / team | Sees | Cannot see | Message limit |
 | --- | --- | --- | --- |
-| Intent Clarifier | User messages + outer-team responses | Inner-team communication | Last 25 messages |
+| Intent Clarifier | User messages + outer-team responses | Inner-team communication | Last 25 messages (user + outer-team responses combined) |
 | Ontology team | Outer-team context (on entry) | Other teams' inner communication | Returns final response only |
 | NSR team | Outer-team context (on entry) | Other teams' inner communication | Returns final response only |
-| Inner agents (DAX Developer, Validator, Executor, DAX Result Summarizer) | Messages passed into their inner team + other inner agents' responses + in-window tool results | Outer-team conversation; other teams' inner communication | 5 messages |
+| Inner agents (DAX Developer, Validator, Executor, DAX Result Summarizer) | Last 5 messages within their own inner team — all earlier inner agents' responses in the window (e.g. DAX Result Summarizer sees Developer + Validator) + in-window tool results | Outer-team conversation; other teams' inner communication | Last 5 messages (within own inner team) |
 | Visualization Agent | Outer-team context | Inner-team communication | (outer-team) |
-| Summarizer | Last 5 outer-team messages | Inner-team communication | Last 5 messages |
+| Summarizer | Last 5 outer-team messages (total) | Inner-team communication | Last 5 outer-team messages, total |
 
 ## Agent prompt references
 
