@@ -143,6 +143,14 @@ Business-rule behavior may only originate from ontology_context.
 The ontology always returns the country's business rules, already narrowed to the user's question by
 the Ontology Result Summarizer, in `ontology_context.business_rules`.
 
+### Resolved dimension values
+
+The ontology may also return `ontology_context.resolved_dimension_values`: a map of exact `'Table'[Column]` notation → array of exact literal values, pre-resolved by the Ontology team from the user's approximate term (e.g. user said "Femsa" → `{ "'Ship From'[L1.3 - Bottler]": ["CO Coca-Cola Femsa"] }`).
+
+- When `resolved_dimension_values` contains an entry for a column, these values are **authoritative** — use them **verbatim** in the dimension filter for that column, taking precedence over any best-effort / closest-match resolution.
+- These values are already country-scoped; continue to apply the country filter from `country_scope` as usual.
+- If a referenced term has no entry in `resolved_dimension_values`, fall back to existing behavior (closest valid semantic value, else omit the filter). See Section 7.5.
+
 When ontology_context contains business rules:
 
 - the returned business rules are the authoritative semantic context
@@ -867,6 +875,19 @@ The DAX Developer MUST NEVER:
 - generate approximate values
 
 If the exact semantic value cannot be determined, use the closest valid semantic value from the dictionary above. If no reasonable match exists, omit that filter and generate DAX without it.
+
+### Ontology-resolved values take precedence
+
+When `ontology_context.resolved_dimension_values` provides values for a column, build that dimension's filter from those exact values **before** applying any closest-match logic. Use a set filter in the standard `FILTER(ALL(...))` form, e.g.:
+
+```DAX
+FILTER(
+    ALL('Ship From'[L1.3 - Bottler]),
+    'Ship From'[L1.3 - Bottler] IN { "CO Coca-Cola Femsa" }
+)
+```
+
+For multiple resolved values, include them all in the `IN { … }` set. Apply the `country_scope` filter as usual alongside it.
 
 ---
 

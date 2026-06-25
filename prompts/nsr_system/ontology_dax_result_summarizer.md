@@ -168,6 +168,323 @@ Year:
 Business-rule references to Period columns found inside technical_description MUST NOT automatically be added to relevant_dimension_columns unless the user's question actually requires a time filter.
 
 ---
+## Canonical Dimension Value Reference
+
+These tables list the real, in-database value combinations for the most commonly filtered hierarchies, per country. Use them ONLY to resolve a user's approximate term to the exact literal value(s) for the `resolved_dimension_values` output (see **Dimension Value Resolution** below). Each table header names the exact `'Table'[Column]` the values belong to — copy values verbatim.
+
+### Channel (Country → Channel Macro Group → Channel Group)
+
+| 'Ship From'[Country] | 'Channel'[LT1.3 - Channel Macro Group] | 'Channel'[LT1.2 - Channel Group] |
+| --- | --- | --- |
+| Brazil | Intermediaries (b2b) | Off Premise - B2B |
+| Brazil | Modern | Off Premise |
+| Brazil | Modern | On Premise |
+| Brazil | Traditional | Off Premise |
+| Brazil | Traditional | On Premise |
+| Colombia | D2C | D2C |
+| Colombia | Modern | Off Premise |
+| Colombia | Modern | On Premise |
+| Colombia | Others | Others |
+| Colombia | Traditional | Off Premise |
+| Colombia | Traditional | On Premise |
+| Mexico | D2C | D2C |
+| Mexico | Modern | Off Premise |
+| Mexico | Modern | On Premise |
+| Mexico | Traditional | Off Premise |
+| Mexico | Traditional | On Premise |
+
+### Product (Country → Industry → Category → Sub-Category → Trademark Category → Brand Group)
+
+| 'Ship From'[Country] | 'Product'[LT1.8 - Industry] | 'Product'[LT1.5 - Category] | 'Product'[LT1.4 - Sub-Category] | 'Product'[LT1.3 - Trademark Category] | 'Product'[LT1.2 - Brand Group] |
+| --- | --- | --- | --- | --- | --- |
+| Brazil | Alcoholic Beverages | ARTD | Flavored Alcoholic Beverages | Lemon-Dou | Lemon-Dou |
+| Brazil | Alcoholic Beverages | ARTD | Hard Seltzers | Schweppes TM | Schweppes Mixed |
+| Brazil | Alcoholic Beverages | ARTD | Hard Seltzers | Schweppes TM | Schweppes Premium Drink |
+| Brazil | Alcoholic Beverages | ARTD | Pre-Mixed Cocktails | Absolut Vodka & Sprite | Absolut Vodka & Sprite |
+| Brazil | Alcoholic Beverages | ARTD | Pre-Mixed Cocktails | Jack Daniels & Coke | Jack Daniels & Coke |
+| Brazil | Non Alcoholic Beverages | Active Hydration | Sports Drinks | Powerade TM | Powerade |
+| Brazil | Non Alcoholic Beverages | Active Hydration | Sports Drinks | Powerade TM | Powerade Zero |
+| Brazil | Non Alcoholic Beverages | Colas | Colas | Coca-Cola TM | Coca-Cola |
+| Brazil | Non Alcoholic Beverages | Colas | Colas | Coca-Cola TM | Coca-Cola Creations |
+| Brazil | Non Alcoholic Beverages | Colas | Colas | Coca-Cola TM | Coca-Cola Functional |
+| Brazil | Non Alcoholic Beverages | Colas | Colas | Coca-Cola TM | Coca-Cola Less Sugar |
+| Brazil | Non Alcoholic Beverages | Colas | Colas | Coca-Cola TM | Coca-Cola Low-Cal |
+| Brazil | Non Alcoholic Beverages | Colas | Colas | Coca-Cola TM | Coca-Cola Zero |
+| Brazil | Non Alcoholic Beverages | Core Flavors | Core Flavors | Fanta TM | Fanta |
+| Brazil | Non Alcoholic Beverages | Core Flavors | Core Flavors | Fanta TM | Fanta Zero |
+| Brazil | Non Alcoholic Beverages | Core Flavors | Core Flavors | Schweppes TM | Schweppes |
+| Brazil | Non Alcoholic Beverages | Core Flavors | Core Flavors | Schweppes TM | Schweppes Zero |
+| Brazil | Non Alcoholic Beverages | Core Flavors | Core Flavors | Sprite TM | Sprite |
+| Brazil | Non Alcoholic Beverages | Core Flavors | Core Flavors | Sprite TM | Sprite Zero |
+| Brazil | Non Alcoholic Beverages | Dairy Beverages | Yoghurt | Verde Campo TM | Verde Campo Natural Whey |
+| Brazil | Non Alcoholic Beverages | Energy Drinks | Energy Drinks | Burn | Burn |
+| Brazil | Non Alcoholic Beverages | Energy Drinks | Energy Drinks | Monster-KO | Monster Dragon Iced Tea |
+| Brazil | Non Alcoholic Beverages | Energy Drinks | Energy Drinks | Monster-KO | Monster Energy |
+| Brazil | Non Alcoholic Beverages | Energy Drinks | Energy Drinks | Monster-KO | Monster Juiced |
+| Brazil | Non Alcoholic Beverages | Energy Drinks | Energy Drinks | Reign-KO | Reign |
+| Brazil | Non Alcoholic Beverages | Energy Drinks | Energy Drinks | Reign-KO | Reign Total Body Fuel |
+| Brazil | Non Alcoholic Beverages | Flavors | Flavors | Guarana Jesus | Guarana Jesus |
+| Brazil | Non Alcoholic Beverages | Flavors | Flavors | Guarana Jesus | Guarana Jesus Zero |
+| Brazil | Non Alcoholic Beverages | Flavors | Flavors | Kuat | Charrua |
+| Brazil | Non Alcoholic Beverages | Flavors | Flavors | Kuat | Guarapan |
+| Brazil | Non Alcoholic Beverages | Flavors | Flavors | Kuat | Kuat |
+| Brazil | Non Alcoholic Beverages | Flavors | Flavors | Kuat | Kuat Zero |
+| Brazil | Non Alcoholic Beverages | Flavors | Flavors | Kuat | Tuchaua |
+| Brazil | Non Alcoholic Beverages | Juices & Juice Drinks | Juice Drinks | Del Valle-Minute Maid TM | Del Valle |
+| Brazil | Non Alcoholic Beverages | Juices & Juice Drinks | Juice Drinks | Del Valle-Minute Maid TM | Del Valle Fresh |
+| Brazil | Non Alcoholic Beverages | Juices & Juice Drinks | Juice Drinks | Del Valle-Minute Maid TM | Del Valle Frut |
+| Brazil | Non Alcoholic Beverages | Juices & Juice Drinks | Juice Drinks | Del Valle-Minute Maid TM | Del Valle Kapo |
+| Brazil | Non Alcoholic Beverages | Juices & Juice Drinks | Juice Drinks | Del Valle-Minute Maid TM | Del Valle Mais |
+| Brazil | Non Alcoholic Beverages | Juices & Juice Drinks | Juice Drinks 100% | Del Valle-Minute Maid TM | Del Valle 100% |
+| Brazil | Non Alcoholic Beverages | Juices & Juice Drinks | Nectar | Del Valle-Minute Maid TM | Del Valle |
+| Brazil | Non Alcoholic Beverages | Juices & Juice Drinks | Nectar | Del Valle-Minute Maid TM | Del Valle Mais |
+| Brazil | Non Alcoholic Beverages | Juices & Juice Drinks | Nectar | Del Valle-Minute Maid TM | Del Valle No Sugar |
+| Brazil | Non Alcoholic Beverages | Packaged Water | Flavored Sparkling Water | Crystal | Crystal (Carb) |
+| Brazil | Non Alcoholic Beverages | Packaged Water | Flavored Sparkling Water | Crystal | Crystal Sparkling |
+| Brazil | Non Alcoholic Beverages | Packaged Water | Plain Water | Crystal | Belagua |
+| Brazil | Non Alcoholic Beverages | Packaged Water | Plain Water | Crystal | Crystal |
+| Brazil | Non Alcoholic Beverages | Packaged Water | Plain Water | Glaceau | Glaceau Smartwater |
+| Brazil | Non Alcoholic Beverages | Packaged Water | Sparkling Water | Crystal | Belagua (Carb) |
+| Brazil | Non Alcoholic Beverages | Packaged Water | Sparkling Water | Crystal | Crystal |
+| Brazil | Non Alcoholic Beverages | Packaged Water | Sparkling Water | Crystal | Crystal (Carb) |
+| Brazil | Non Alcoholic Beverages | Packaged Water | Sparkling Water | Glaceau | Glaceau Smartwater |
+| Brazil | Non Alcoholic Beverages | Packaged Water | Sparkling Water | Schweppes TM | Schweppes |
+| Brazil | Non Alcoholic Beverages | Plant Based Beverages | Almond | Ades TM | Plant Based (Seeds) |
+| Brazil | Non Alcoholic Beverages | Plant Based Beverages | Coconut | Ades TM | Plant Based (Seeds) |
+| Brazil | Non Alcoholic Beverages | Plant Based Beverages | Fruit Soy | Ades TM | Plant Based (Fruit) |
+| Brazil | Non Alcoholic Beverages | Plant Based Beverages | Oat | Ades TM | Plant Based (Seeds) |
+| Brazil | Non Alcoholic Beverages | Plant Based Beverages | Soy | Ades TM | Plant Based (Seeds) |
+| Brazil | Non Alcoholic Beverages | Tea | Tea | Leao TM | Cha Leao |
+| Brazil | Non Alcoholic Beverages | Tea | Tea | Leao TM | Cha Leao Ice Tea |
+| Brazil | Non Alcoholic Beverages | Tea | Tea | Leao TM | Cha Leao Kids |
+| Brazil | Non Alcoholic Beverages | Tea | Tea | Leao TM | Cha Leao Vitaminico |
+| Brazil | Non Alcoholic Beverages | Tea | Tea | Leao TM | Ice Tea Leao |
+| Brazil | Non Alcoholic Beverages | Tea | Tea | Leao TM | Leao |
+| Brazil | Non Alcoholic Beverages | Tea | Tea | Leao TM | Leao Cold Brew |
+| Brazil | Non Alcoholic Beverages | Tea | Tea | Leao TM | Leao Functional |
+| Brazil | Non Alcoholic Beverages | Tea | Tea | Leao TM | Leao Fuze |
+| Brazil | Non Alcoholic Beverages | Tea | Tea | Leao TM | Leao Ice Tea |
+| Brazil | Non Alcoholic Beverages | Tea | Tea | Leao TM | Leao Senses |
+| Brazil | Non Alcoholic Beverages | Tea | Tea | Leao TM | Matte Leao |
+| Brazil | Non Alcoholic Beverages | Tea | Tea | Leao TM | Matte Leao Toasted |
+| Brazil | Unassigned | Unassigned | Unassigned | Unassigned | Unassigned |
+| Colombia | Non Alcoholic Beverages | Active Hydration | Serums | FlashLyte | FlashLyte |
+| Colombia | Non Alcoholic Beverages | Active Hydration | Sports Drinks | Powerade TM | Powerade |
+| Colombia | Non Alcoholic Beverages | Colas | Colas | Coca-Cola TM | Coca-Cola |
+| Colombia | Non Alcoholic Beverages | Colas | Colas | Coca-Cola TM | Coca-Cola Creations |
+| Colombia | Non Alcoholic Beverages | Colas | Colas | Coca-Cola TM | Coca-Cola Functional |
+| Colombia | Non Alcoholic Beverages | Colas | Colas | Coca-Cola TM | Coca-Cola Less Sugar |
+| Colombia | Non Alcoholic Beverages | Colas | Colas | Coca-Cola TM | Coca-Cola Low-Cal |
+| Colombia | Non Alcoholic Beverages | Colas | Colas | Coca-Cola TM | Coca-Cola Zero |
+| Colombia | Non Alcoholic Beverages | Core Flavors | Core Flavors | Fanta TM | Fanta |
+| Colombia | Non Alcoholic Beverages | Core Flavors | Core Flavors | Schweppes TM | Schweppes |
+| Colombia | Non Alcoholic Beverages | Core Flavors | Core Flavors | Schweppes TM | Schweppes Zero |
+| Colombia | Non Alcoholic Beverages | Core Flavors | Core Flavors | Sprite TM | Sprite |
+| Colombia | Non Alcoholic Beverages | Core Flavors | Core Flavors | Sprite TM | Sprite Zero |
+| Colombia | Non Alcoholic Beverages | Energy Drinks | Energy Drinks | Monster-KO | Monster Dragon Iced Tea |
+| Colombia | Non Alcoholic Beverages | Energy Drinks | Energy Drinks | Monster-KO | Monster Energy |
+| Colombia | Non Alcoholic Beverages | Energy Drinks | Energy Drinks | Monster-KO | Monster Juiced |
+| Colombia | Non Alcoholic Beverages | Flavors | Flavors | Canada Dry TM | Canada Dry |
+| Colombia | Non Alcoholic Beverages | Flavors | Flavors | Canada Dry TM | Canada Dry Zero |
+| Colombia | Non Alcoholic Beverages | Flavors | Flavors | Crush-KO | Crush |
+| Colombia | Non Alcoholic Beverages | Flavors | Flavors | Fanta TM | Premio |
+| Colombia | Non Alcoholic Beverages | Flavors | Flavors | Quatro | Quatro |
+| Colombia | Non Alcoholic Beverages | Juices & Juice Drinks | Juice Drinks | Del Valle-Minute Maid TM | Del Valle |
+| Colombia | Non Alcoholic Beverages | Juices & Juice Drinks | Juice Drinks | Del Valle-Minute Maid TM | Del Valle Fresh |
+| Colombia | Non Alcoholic Beverages | Juices & Juice Drinks | Juice Drinks | Del Valle-Minute Maid TM | Del Valle Frutal |
+| Colombia | Non Alcoholic Beverages | Juices & Juice Drinks | Nectar | Del Valle-Minute Maid TM | Del Valle Kids |
+| Colombia | Non Alcoholic Beverages | Juices & Juice Drinks | Nectar | Del Valle-Minute Maid TM | Del Valle Nutridefensas |
+| Colombia | Non Alcoholic Beverages | Juices & Juice Drinks | Nectar | Del Valle-Minute Maid TM | Minute Maid Nectar |
+| Colombia | Non Alcoholic Beverages | Packaged Water | Flavored Sparkling Water | Brisa-KO | Brisa (Carb) |
+| Colombia | Non Alcoholic Beverages | Packaged Water | Flavored Water | Brisa-KO | Brisa Spa |
+| Colombia | Non Alcoholic Beverages | Packaged Water | Plain Water | Brisa-KO | Brisa |
+| Colombia | Non Alcoholic Beverages | Packaged Water | Plain Water | Dasani | Dasani |
+| Colombia | Non Alcoholic Beverages | Packaged Water | Plain Water | Manantial | Manantial |
+| Colombia | Non Alcoholic Beverages | Packaged Water | Sparkling Water | Brisa-KO | Brisa (Carb) |
+| Colombia | Non Alcoholic Beverages | Packaged Water | Sparkling Water | Manantial | Manantial(Carb) |
+| Colombia | Non Alcoholic Beverages | Packaged Water | Sparkling Water | Schweppes TM | Schweppes |
+| Colombia | Non Alcoholic Beverages | Plant Based Beverages | Almond | Ades TM | Plant Based (Seeds) |
+| Colombia | Non Alcoholic Beverages | Plant Based Beverages | Coconut | Ades TM | Plant Based (Seeds) |
+| Colombia | Non Alcoholic Beverages | Plant Based Beverages | Fruit Soy | Ades TM | Plant Based (Fruit) |
+| Colombia | Non Alcoholic Beverages | Plant Based Beverages | Soy | Ades TM | Plant Based (Seeds) |
+| Colombia | Non Alcoholic Beverages | Tea | Tea | Fuze Tea TM | Fuze Tea |
+| Colombia | Non Alcoholic Beverages | Tea | Tea | Fuze Tea TM | Fuze Tea Black Tea |
+| Colombia | Non Alcoholic Beverages | Tea | Tea | Fuze Tea TM | Fuze Tea Green Tea |
+| Colombia | Unassigned | Unassigned | Unassigned | Unassigned | Unassigned |
+| Mexico | Alcoholic Beverages | ARTD | Flavored Alcoholic Beverages | Lemon-Dou | Lemon-Dou |
+| Mexico | Alcoholic Beverages | ARTD | Hard Seltzers | Topo Chico TM | Topo Chico Hard Seltzer |
+| Mexico | Alcoholic Beverages | ARTD | Pre-Mixed Cocktails | Bacardi & Coke | Bacardi & Coke |
+| Mexico | Alcoholic Beverages | ARTD | Pre-Mixed Cocktails | Jack Daniels & Coke | Jack Daniels & Coke |
+| Mexico | Alcoholic Beverages | ARTD | Pre-Mixed Cocktails | Topo Chico TM | Topo Chico Drinks Mexicanos |
+| Mexico | Non Alcoholic Beverages | Active Hydration | Serums | FlashLyte | FlashLyte |
+| Mexico | Non Alcoholic Beverages | Active Hydration | Serums | Isolite | Isolite |
+| Mexico | Non Alcoholic Beverages | Active Hydration | Sports Drinks | Powerade TM | Powerade |
+| Mexico | Non Alcoholic Beverages | Active Hydration | Sports Drinks | Powerade TM | Powerade Fit |
+| Mexico | Non Alcoholic Beverages | Active Hydration | Sports Drinks | Powerade TM | Powerade Zero |
+| Mexico | Non Alcoholic Beverages | Coffee | Coffee | Barista Bros | Barista Bros |
+| Mexico | Non Alcoholic Beverages | Coffee | Coffee | Costa | Costa |
+| Mexico | Non Alcoholic Beverages | Coffee | Coffee | Santa Clara TM | Santa Clara |
+| Mexico | Non Alcoholic Beverages | Colas | Colas | Coca-Cola TM | Coca-Cola |
+| Mexico | Non Alcoholic Beverages | Colas | Colas | Coca-Cola TM | Coca-Cola Creations |
+| Mexico | Non Alcoholic Beverages | Colas | Colas | Coca-Cola TM | Coca-Cola Functional |
+| Mexico | Non Alcoholic Beverages | Colas | Colas | Coca-Cola TM | Coca-Cola Less Sugar |
+| Mexico | Non Alcoholic Beverages | Colas | Colas | Coca-Cola TM | Coca-Cola Low-Cal |
+| Mexico | Non Alcoholic Beverages | Colas | Colas | Coca-Cola TM | Coca-Cola Zero |
+| Mexico | Non Alcoholic Beverages | Core Flavors | Core Flavors | Fanta TM | Fanta |
+| Mexico | Non Alcoholic Beverages | Core Flavors | Core Flavors | Fanta TM | Fanta Zero |
+| Mexico | Non Alcoholic Beverages | Core Flavors | Core Flavors | Sprite TM | Sprite |
+| Mexico | Non Alcoholic Beverages | Core Flavors | Core Flavors | Sprite TM | Sprite Zero |
+| Mexico | Non Alcoholic Beverages | Dairy Beverages | Flavored Milk | Santa Clara TM | Santa Clara |
+| Mexico | Non Alcoholic Beverages | Dairy Beverages | Flavored Milk | TBC | Bevi |
+| Mexico | Non Alcoholic Beverages | Dairy Beverages | Frappe | Santa Clara TM | Santa Clara |
+| Mexico | Non Alcoholic Beverages | Dairy Beverages | White Milk | Santa Clara TM | Santa Clara |
+| Mexico | Non Alcoholic Beverages | Dairy Beverages | Yoghurt | Santa Clara TM | Santa Clara |
+| Mexico | Non Alcoholic Beverages | Energy Drinks | Colas | Coca-Cola TM | Coca-Cola Energy |
+| Mexico | Non Alcoholic Beverages | Energy Drinks | Energy Drinks | Burn | Burn |
+| Mexico | Non Alcoholic Beverages | Energy Drinks | Energy Drinks | Gladiator | Gladiator |
+| Mexico | Non Alcoholic Beverages | Energy Drinks | Energy Drinks | Monster-KO | Monster |
+| Mexico | Non Alcoholic Beverages | Energy Drinks | Energy Drinks | Monster-KO | Monster Energy |
+| Mexico | Non Alcoholic Beverages | Energy Drinks | Energy Drinks | Monster-KO | Monster Juiced |
+| Mexico | Non Alcoholic Beverages | Energy Drinks | Energy Drinks | Predator-KO | Predator |
+| Mexico | Non Alcoholic Beverages | Flavors | Flavors | Ameyal-KO | Ameyal-KO |
+| Mexico | Non Alcoholic Beverages | Flavors | Flavors | Cristal-KO | Cristal (Carb) |
+| Mexico | Non Alcoholic Beverages | Flavors | Flavors | Cristal-KO | Cristal Flavors |
+| Mexico | Non Alcoholic Beverages | Flavors | Flavors | Del Valle-Minute Maid TM | Del Valle & Nada |
+| Mexico | Non Alcoholic Beverages | Flavors | Flavors | Del Valle-Minute Maid TM | Del Valle Fizz |
+| Mexico | Non Alcoholic Beverages | Flavors | Flavors | Escuis | Escuis |
+| Mexico | Non Alcoholic Beverages | Flavors | Flavors | Fanta TM | Senzao |
+| Mexico | Non Alcoholic Beverages | Flavors | Flavors | Fresca | Fresca |
+| Mexico | Non Alcoholic Beverages | Flavors | Flavors | Fresca | Fresca Zero |
+| Mexico | Non Alcoholic Beverages | Flavors | Flavors | Joya - KO | Joya |
+| Mexico | Non Alcoholic Beverages | Flavors | Flavors | Seagrams TM | Seagrams |
+| Mexico | Non Alcoholic Beverages | Flavors | Flavors | Sidral TM | Ameyal |
+| Mexico | Non Alcoholic Beverages | Flavors | Flavors | Sidral TM | Lift |
+| Mexico | Non Alcoholic Beverages | Flavors | Flavors | Sidral TM | Prisco |
+| Mexico | Non Alcoholic Beverages | Flavors | Flavors | Sidral TM | Sidral |
+| Mexico | Non Alcoholic Beverages | Flavors | Flavors | Sidral TM | Sidral Mundet |
+| Mexico | Non Alcoholic Beverages | Flavors | Flavors | Sidral TM | Victoria |
+| Mexico | Non Alcoholic Beverages | Flavors | Flavors | TBC | CRISTAL |
+| Mexico | Non Alcoholic Beverages | Flavors | Flavors | Topo Chico TM | Topo Chico |
+| Mexico | Non Alcoholic Beverages | Flavors | Flavors | Yoli | Yoli |
+| Mexico | Non Alcoholic Beverages | Juices & Juice Drinks | Juice Drinks | Ciel | Ciel Mini |
+| Mexico | Non Alcoholic Beverages | Juices & Juice Drinks | Juice Drinks | Del Valle-Minute Maid TM | Del Valle |
+| Mexico | Non Alcoholic Beverages | Juices & Juice Drinks | Juice Drinks | Del Valle-Minute Maid TM | Del Valle Frut |
+| Mexico | Non Alcoholic Beverages | Juices & Juice Drinks | Juice Drinks | Del Valle-Minute Maid TM | Del Valle Frutal |
+| Mexico | Non Alcoholic Beverages | Juices & Juice Drinks | Juice Drinks | Del Valle-Minute Maid TM | Del Valle Junior |
+| Mexico | Non Alcoholic Beverages | Juices & Juice Drinks | Juice Drinks | Del Valle-Minute Maid TM | Del Valle Nutriforce |
+| Mexico | Non Alcoholic Beverages | Juices & Juice Drinks | Juice Drinks | Del Valle-Minute Maid TM | Del Valle Pulpy |
+| Mexico | Non Alcoholic Beverages | Juices & Juice Drinks | Juice Drinks | Del Valle-Minute Maid TM | Del Valle Seleccion |
+| Mexico | Non Alcoholic Beverages | Juices & Juice Drinks | Juice Drinks | Del Valle-Minute Maid TM | Frutsi |
+| Mexico | Non Alcoholic Beverages | Juices & Juice Drinks | Juice Drinks | Del Valle-Minute Maid TM | Valle Frut |
+| Mexico | Non Alcoholic Beverages | Juices & Juice Drinks | Juice Drinks | Delaware Punch | Delaware Punch |
+| Mexico | Non Alcoholic Beverages | Juices & Juice Drinks | Juice Drinks | Florida 7 | Bebere |
+| Mexico | Non Alcoholic Beverages | Juices & Juice Drinks | Juice Drinks | Florida 7 | Florida 7 |
+| Mexico | Non Alcoholic Beverages | Juices & Juice Drinks | Juice Drinks | Florida 7 | Shandy |
+| Mexico | Non Alcoholic Beverages | Juices & Juice Drinks | Juice Drinks 100% | Del Valle-Minute Maid TM | Del Valle 100% |
+| Mexico | Non Alcoholic Beverages | Juices & Juice Drinks | Nectar | Del Valle-Minute Maid TM | Del Valle |
+| Mexico | Non Alcoholic Beverages | Juices & Juice Drinks | Nectar | Del Valle-Minute Maid TM | Del Valle Kids |
+| Mexico | Non Alcoholic Beverages | Juices & Juice Drinks | Nectar | Del Valle-Minute Maid TM | Del Valle Nutridefensas |
+| Mexico | Non Alcoholic Beverages | Juices & Juice Drinks | Nectar | Del Valle-Minute Maid TM | Del Valle Nutrivegetables |
+| Mexico | Non Alcoholic Beverages | Juices & Juice Drinks | Nectar | Del Valle-Minute Maid TM | Del Valle Reserva |
+| Mexico | Non Alcoholic Beverages | Juices & Juice Drinks | Nectar | Del Valle-Minute Maid TM | Del Valle Reserva Antiox |
+| Mexico | Non Alcoholic Beverages | Packaged Water | Enhanced Water Beverages | Ciel | Ciel Exprim |
+| Mexico | Non Alcoholic Beverages | Packaged Water | Enhanced Water Beverages | Glaceau | Glaceau Vitamine Water |
+| Mexico | Non Alcoholic Beverages | Packaged Water | Enhanced Water Beverages | Powerade TM | Powerade |
+| Mexico | Non Alcoholic Beverages | Packaged Water | Flavored Sparkling Water | Topo Chico TM | Topo Chico |
+| Mexico | Non Alcoholic Beverages | Packaged Water | Flavored Water | Ciel | Ciel Zero |
+| Mexico | Non Alcoholic Beverages | Packaged Water | Plain Water | Ciel | Ciel |
+| Mexico | Non Alcoholic Beverages | Packaged Water | Plain Water | Cristal-KO | Cristal Purified Water |
+| Mexico | Non Alcoholic Beverages | Packaged Water | Plain Water | Florida 7 | Friolin |
+| Mexico | Non Alcoholic Beverages | Packaged Water | Sparkling Water | Ciel | Agua de Taxco |
+| Mexico | Non Alcoholic Beverages | Packaged Water | Sparkling Water | Ciel | Ciel (Carb) |
+| Mexico | Non Alcoholic Beverages | Packaged Water | Sparkling Water | Ciel | Sierra Azul |
+| Mexico | Non Alcoholic Beverages | Packaged Water | Sparkling Water | Cristal-KO | Cristal Mineral Water |
+| Mexico | Non Alcoholic Beverages | Packaged Water | Sparkling Water | Topo Chico TM | Topo Chico |
+| Mexico | Non Alcoholic Beverages | Plant Based Beverages | Almond | Ades TM | Plant Based (Seeds) |
+| Mexico | Non Alcoholic Beverages | Plant Based Beverages | Coconut | Ades TM | Plant Based (Seeds) |
+| Mexico | Non Alcoholic Beverages | Plant Based Beverages | Fruit Soy | Ades TM | Plant Based (Fruit) |
+| Mexico | Non Alcoholic Beverages | Plant Based Beverages | Oat | Ades TM | Plant Based (Seeds) |
+| Mexico | Non Alcoholic Beverages | Plant Based Beverages | Soy | Ades TM | Plant Based (Seeds) |
+| Mexico | Non Alcoholic Beverages | Tea | Tea | Fuze Tea TM | Fuze Iced Tea |
+| Mexico | Non Alcoholic Beverages | Tea | Tea | Fuze Tea TM | Fuze Tea Black Tea |
+| Mexico | Non Alcoholic Beverages | Tea | Tea | Fuze Tea TM | Fuze Tea Green Tea |
+| Mexico | Non Alcoholic Beverages | Tea | Tea | Fuze Tea TM | Fuze Tea White Tea |
+| Mexico | Non Alcoholic Beverages | Tea | Tea | TBC | CRISTAL |
+| Mexico | Unassigned | Unassigned | Unassigned | Unassigned | Unassigned |
+
+### Ship From / Bottler (Country → Bottler → Bottler Zone)
+
+| 'Ship From'[Country] | 'Ship From'[L1.3 - Bottler] | 'Ship From'[L1.2 - Bottler Zone] |
+| --- | --- | --- |
+| Brazil | BR Andina | BR Andina-ES |
+| Brazil | BR Andina | BR Andina-RJ |
+| Brazil | BR Andina | BR Andina-RP |
+| Brazil | BR Bandeirantes | BR Bandeirantes |
+| Brazil | BR Brasal | BR Brasal |
+| Brazil | BR Coca-Cola Femsa | BR Femsa-MG |
+| Brazil | BR Coca-Cola Femsa | BR Femsa-MS |
+| Brazil | BR Coca-Cola Femsa | BR Femsa-PR |
+| Brazil | BR Coca-Cola Femsa | BR Femsa-RS |
+| Brazil | BR Coca-Cola Femsa | BR Femsa-SC |
+| Brazil | BR Coca-Cola Femsa | BR Femsa-SPI |
+| Brazil | BR Coca-Cola Femsa | BR Femsa-SPM |
+| Brazil | BR Del Valle | BR Delvalle |
+| Brazil | BR Leao | BR Leao NRTD |
+| Brazil | BR Solar | BR Solar-AL |
+| Brazil | BR Solar | BR Solar-BA |
+| Brazil | BR Solar | BR Solar-CE |
+| Brazil | BR Solar | BR Solar-MA |
+| Brazil | BR Solar | BR Solar-MT |
+| Brazil | BR Solar | BR Solar-Oc |
+| Brazil | BR Solar | BR Solar-Or |
+| Brazil | BR Solar | BR Solar-PB |
+| Brazil | BR Solar | BR Solar-PE |
+| Brazil | BR Solar | BR Solar-PI |
+| Brazil | BR Solar | BR Solar-RN |
+| Brazil | BR Solar | BR Solar-SE |
+| Brazil | BR Sorocaba | BR Sorocaba |
+| Brazil | BR Uberlandia | BR Uberlandia |
+| Colombia | CO Coca-Cola Femsa | CO Centro |
+| Colombia | CO Coca-Cola Femsa | CO Nororiente |
+| Colombia | CO Coca-Cola Femsa | CO Occidente |
+| Colombia | CO Leticia | CO Leticia |
+| Colombia | CO MM Volumen | CO McDonalds MM CO |
+| Colombia | CO Postobon | CO Schweppes Colombia |
+| Colombia | CO Uraba | CO Uraba |
+| Mexico | MX Arca Continental | MX Zona Noreste |
+| Mexico | MX Arca Continental | MX Zona Norte |
+| Mexico | MX Arca Continental | MX Zona Occidente |
+| Mexico | MX Arca Continental | MX Zona Pacifico |
+| Mexico | MX Bepensa | MX Bepensa |
+| Mexico | MX CDF | MX CDF |
+| Mexico | MX Coca-Cola Femsa | MX Bajio |
+| Mexico | MX Coca-Cola Femsa | MX Centro-Pacifico |
+| Mexico | MX Coca-Cola Femsa | MX Ciudad de Mexico |
+| Mexico | MX Coca-Cola Femsa | MX Estado de Mexico |
+| Mexico | MX Coca-Cola Femsa | MX Golfo |
+| Mexico | MX Coca-Cola Femsa | MX Monarca |
+| Mexico | MX Coca-Cola Femsa | MX Sureste |
+| Mexico | MX Colima | MX Colima |
+| Mexico | MX JDV | MX JDV |
+| Mexico | MX Nogales | MX Nogales |
+| Mexico | MX Rica | MX RICA |
+| Mexico | MX Santa Clara | MX Santa Clara |
+| Mexico | MX Tepic | MX Tepic |
+
+## Dimension Value Resolution
+
+When the user's question names a dimension value (a bottler, brand, category, sub-category, trademark, channel, zone, etc.), resolve it to the exact literal value(s) using the **Canonical Dimension Value Reference** above, and emit the result in the `resolved_dimension_values` output field.
+
+Matching rules:
+
+- Match **case-insensitively** and **accent-insensitively**, allow **partial / substring** matches, and **ignore country prefixes** in the stored value. Example: the user term "Femsa" matches "CO Coca-Cola Femsa", "MX Coca-Cola Femsa", and "BR Coca-Cola Femsa".
+- **Scope candidates to the in-scope country first** (from the Intent Clarifier `country_scope`). This usually disambiguates the prefix on its own — e.g. within Colombia, "Femsa" resolves to only "CO Coca-Cola Femsa".
+- **Include ALL in-scope values that match**, grouped under a **single chosen column**. When the term appears at more than one hierarchy level, pick the column where it matches at the **coarsest level** (e.g. "Femsa" → `'Ship From'[L1.3 - Bottler]`, not the finer Bottler Zone). If the user explicitly names a finer level (e.g. a specific zone), use that level instead.
+- Copy matched values **verbatim** — never translate, abbreviate, reorder, normalize, or invent values.
+- If the question names no resolvable dimension value, or nothing matches in scope, emit `resolved_dimension_values: {}` and do not guess.
+
+These resolved values are authoritative downstream: the DAX Developer uses them directly in dimension filter predicates.
+
 ## Ontology Object Types
 
 Ontology rows may represent different semantic object types.
@@ -199,6 +516,9 @@ Return ONLY a valid JSON object — no markdown fences, no prose, no commentary.
   "relevant_dimension_columns": {
     "<TableName>": ["'Table'[Column1]", "'Table'[Column2]"]
   },
+  "resolved_dimension_values": {
+    "'Ship From'[L1.3 - Bottler]": ["CO Coca-Cola Femsa"]
+  },
   "kpi_measures": [
     {
       "display_name": "<measure name, no namespace prefix>",
@@ -225,6 +545,8 @@ Return ONLY a valid JSON object — no markdown fences, no prose, no commentary.
 
 `ontology_status` is `"ok"` for a normal result, or `"no_context"` for an empty/null/failed ontology query (see Empty / No-Context Handling below).
 
+`resolved_dimension_values` maps an **exact `'Table'[Column]` notation** to an array of **exact literal values** resolved from the user's approximate term (see **Dimension Value Resolution**). Emit `{}` when the question names no resolvable dimension value.
+
 ---
 
 ## Empty / No-Context Handling
@@ -235,6 +557,7 @@ The ontology query may return no rows, a null result, or fail (e.g. connection e
 {
   "ontology_status": "no_context",
   "relevant_dimension_columns": {},
+  "resolved_dimension_values": {},
   "kpi_measures": [],
   "business_rules": []
 }
@@ -262,6 +585,14 @@ Always return the empty JSON object above instead. The downstream NSR team produ
 - Include ONLY tables and columns that are directly relevant to the user's question
 - Omit unrelated tables entirely
 - Use the exact notation from the list — do not rephrase
+
+### resolved_dimension_values
+
+- Keys are **exact `'Table'[Column]` strings** taken verbatim from the Canonical Dimension Value Reference headers (e.g. `'Ship From'[L1.3 - Bottler]`)
+- Values are arrays of **exact literal values** copied verbatim from that reference
+- Populate this only by applying the **Dimension Value Resolution** rules above (country-scoped, all in-scope matches, single coarsest-matching column per term)
+- Emit `{}` when the question names no resolvable dimension value, or nothing matches in scope
+- Never invent, translate, or normalize values; never add a column that is not in the reference
 
 ### kpi_measures
 
