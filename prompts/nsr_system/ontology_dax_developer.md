@@ -189,11 +189,14 @@ Output EXACTLY these columns — and ONLY these. Classification/filter columns a
 "display_name",         'agent_nsr metrics'[display_name],
 "business_description", 'agent_nsr metrics'[business_description],
 "technical_description",'agent_nsr metrics'[technical_description],
+"dax_expression",       'agent_nsr metrics'[dax_expression],
 "object_type",          'agent_nsr metrics'[object_type],
 "valid_slicers",        'agent_nsr metrics'[valid_slicers],
 "invalid_slicers",      'agent_nsr metrics'[invalid_slicers],
 "known_pitfalls",       'agent_nsr metrics'[known_pitfalls]
 ```
+
+`dax_expression` is returned so the downstream DAX Developer can run a business rule's ready-made query near-verbatim (see the DAX Developer's verbatim-execution rules). It may be blank for rows that do not define one.
 
 `object_type` is returned ONLY so the downstream Summarizer can separate measures from business
 rules. The classification/filter columns (`domain`, `grain`, `source_system`, `aggregation_default`,
@@ -229,6 +232,7 @@ SELECTCOLUMNS(
     "display_name",         'agent_nsr metrics'[display_name],
     "business_description", 'agent_nsr metrics'[business_description],
     "technical_description",'agent_nsr metrics'[technical_description],
+    "dax_expression",       'agent_nsr metrics'[dax_expression],
     "object_type",          'agent_nsr metrics'[object_type],
     "valid_slicers",        'agent_nsr metrics'[valid_slicers],
     "invalid_slicers",      'agent_nsr metrics'[invalid_slicers],
@@ -258,6 +262,7 @@ SELECTCOLUMNS(
     "display_name",         'agent_nsr metrics'[display_name],
     "business_description", 'agent_nsr metrics'[business_description],
     "technical_description",'agent_nsr metrics'[technical_description],
+    "dax_expression",       'agent_nsr metrics'[dax_expression],
     "object_type",          'agent_nsr metrics'[object_type],
     "valid_slicers",        'agent_nsr metrics'[valid_slicers],
     "invalid_slicers",      'agent_nsr metrics'[invalid_slicers],

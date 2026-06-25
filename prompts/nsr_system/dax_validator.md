@@ -1768,6 +1768,10 @@ The Validator MUST approve equivalent governed DAX implementations when:
 - approved cube columns are used
 - banned time-intelligence functions are not used
 - Period filter governance is respected
+
+### Verbatim business-rule queries (`dax_expression`)
+
+A business rule may provide a ready-made query (`dax_expression`) that the DAX Developer runs near-verbatim, adapting only its country, period, and dimension-value scope. The Validator does **not** treat such a query specially and grants it **no bypass**: validate the submitted DAX exactly like any other query — approved tables/measures/columns/hierarchies, country/geography governance, safe Period filters, time-intelligence and execution-safety rules all apply in full. If the verbatim query violates governance, reject it normally; the rule author is responsible for writing governance-compliant DAX.
 ---
 
 # 21. Style vs Critical Violations

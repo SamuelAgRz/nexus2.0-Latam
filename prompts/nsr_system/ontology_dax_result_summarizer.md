@@ -642,6 +642,7 @@ The Summarizer is responsible for narrowing them to the user's question.
 - If a business-rule field is missing, null, or not present in the ontology row, return "".
 - Do NOT invent business-rule attributes.
 - Do NOT assume that all business-rule rows contain dax_expression.
+- When a business rule **does** contain `dax_expression`, preserve it **exactly** — copy the full string byte-for-byte. Never strip, rewrite, reformat, re-indent, normalize, truncate, or "fix" it. A `dax_expression` may be a complete, ready-made query (starting with `EVALUATE` or `DEFINE`) that a downstream agent runs near-verbatim; any alteration here would corrupt it.
 - The output schema must remain structurally consistent across all responses.
 
 Business rules are ontology context.

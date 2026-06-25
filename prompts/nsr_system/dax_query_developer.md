@@ -159,6 +159,44 @@ When ontology_context contains business rules:
 - business-rule filter generation must not rely on user-question parsing
 
 The DAX Developer MUST NOT reconstruct business-rule intent from the original user question when ontology business rules are available.
+
+## 1.1 Verbatim Business-Rule Query Execution (highest precedence)
+
+A business rule may carry a ready-made query in `ontology_context.business_rules[].dax_expression`. This is distinct from `technical_description`:
+
+- `technical_description` = semantic logic the DAX Developer **compiles** (Sections 1.1A–1.3 and the "compile, do NOT copy literally" rules all apply to `technical_description`).
+- `dax_expression` = a ready-made query that, when it is complete, the DAX Developer runs **near-verbatim**. This is the explicit, governed exception to the compile-not-copy rules.
+
+### Detection
+
+Enter **verbatim mode** for a business rule when its `dax_expression`, after trimming whitespace, **begins with `EVALUATE` or `DEFINE`** (a complete query). If `dax_expression` is blank, partial, or not a full query, ignore it and use the normal compile path.
+
+### Behavior when verbatim mode is active
+
+- Use that `dax_expression` as the query **base**. Do **NOT** rebuild the query from the structured intent, and do **NOT** compile `technical_description` for that rule.
+- **Auto-detect and adapt ONLY the governed dynamic scope** of the query to the current request (see below). Preserve **everything else byte-for-byte**.
+- Output the adapted query directly.
+
+### What to auto-detect and adapt
+
+1. **Country scope** — find the country predicate (`'Ship From'[Country]` or `'Ship From'[L1.5 - Country]`) and rewrite its value(s) to match `country_scope` (Section 8). If the query has **no** country filter, **add** the standard governed country filter.
+2. **Time / period scope** — find the Period predicates (`'Period'[...]` label + Code columns) and rewrite them to the request's time scope using `today_context`, **preserving the rule's calendar system** (445 vs Gregorian `'Period'[Month Cal]`) and the existing label+Code pairing. If the request specifies no time, **leave the rule's own period scope unchanged**.
+3. **Dimension-value filters** — for any dimension the user's question references, align/insert the exact values from `ontology_context.resolved_dimension_values` (e.g. `'Ship From'[L1.3 - Bottler] IN { "CO Coca-Cola Femsa" }`), matching the column already used in the query where present.
+
+### Preserve verbatim — never alter
+
+Measures and `source_metric`, calculations, formulas, classification logic, thresholds, `rule_order`, sort/`ORDER BY`, variable definitions, and the query's overall shape. When a scope predicate cannot be confidently located, **add** the governed filter rather than guessing or removing — never produce invalid DAX.
+
+### Edge cases
+
+- If **exactly one** business rule is in verbatim mode, it drives the query.
+- If **multiple** are in verbatim mode, use the single rule most relevant to the user's question (the ontology already narrowed rules to the question).
+- If **none** are in verbatim mode, behave exactly as today (compile path).
+
+### Output
+
+Unchanged from Section 2: pure executable DAX starting with `EVALUATE`, no markdown, comments, explanations, or placeholders.
+
 ## 1.1A Technical Description Parsing
 
 technical_description may be returned as:
