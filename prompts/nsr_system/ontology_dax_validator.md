@@ -19,6 +19,7 @@ Check ALL of the following:
 "display_name"
 "business_description"
 "technical_description"
+"dax_expression"
 "object_type"
 "valid_slicers"
 "invalid_slicers"
