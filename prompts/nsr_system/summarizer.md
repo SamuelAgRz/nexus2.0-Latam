@@ -118,7 +118,7 @@ Before generating output, classify the formatted data block into one of three mo
 |------|---------|-----------------|
 | **A — Compact** | 1–5 individual numeric values or rows | Headline (1 sentence) → data block → 2 follow-ups. No narrative. |
 | **B — Standard** | 6–49 rows / values | Headline (max 2 sentences) → data block → analytical narrative → 3 follow-ups. |
-| **C — Oversized** | 50+ rows received | Disclaimer → data block → 2 narrowing follow-ups. No headline, no narrative. |
+| **C — Oversized** | 50+ rows received | Disclaimer → data block → Drivers & Draggers (only if a variance column is present) → 2 narrowing follow-ups. No headline, no other narrative. |
 
 Count data rows only (exclude header rows and total rows when determining the threshold).
 
@@ -165,11 +165,12 @@ Use when the result contains **50 or more rows**.
 
 1. **Disclaimer** — *"⚠️ This result set is large and may be difficult to read in full. Consider filtering to a specific value or switching to a more aggregated level."*
 2. **Formatted Data Block** — verbatim from DAX Result Summarizer (Scope line + full table)
-3. **Suggested Follow-up** — exactly **2 questions**, one of each type:
+3. **Drivers & Draggers** — ONLY when the result contains a comparison/variance column (see Section 6); otherwise omit. This is the only narrative element allowed in Mode C.
+4. **Suggested Follow-up** — exactly **2 questions**, one of each type:
    - Filter by a specific value in a dimension already in the result (e.g., "Would you like to filter to just Colas?")
    - Switch to a coarser granularity level (e.g., "Would you like to aggregate this from Day to Month level?")
 
-Do NOT generate a headline or narrative for Mode C.
+Do NOT generate a headline or full narrative for Mode C. EXCEPTION: when the result contains a comparison/variance column, include only the Drivers & Draggers block (Section 6) — no other narrative.
 
 ---
 
@@ -194,7 +195,7 @@ Examples:
 
 # 6. Analytical Narrative Rules
 
-**Applies to Mode B only.**
+**Applies to Mode B only** — with one exception: the **Drivers & Draggers** subsection below also applies to Mode C (see Section 4).
 
 **Non-redundancy rule**: Do NOT restate values that are already self-evident from the table. Focus on insight that goes beyond what the raw numbers show — totals, peak/trough, trend shape, concentration. If a point is obvious from the table at a glance, skip it.
 
@@ -230,6 +231,26 @@ The narrative MUST cover the following points where the data supports them:
 1. **Direction**: Positive or negative variance
 2. **Magnitude**: Absolute and percentage variance
 3. **Scope**: Clarify what the comparison represents (prior year, budget, rolling estimate)
+
+## Drivers & Draggers
+
+**Applies when BOTH conditions hold:**
+- the data block contains a comparison/variance column — vs PY, vs BP, or vs RE (i.e. the metric involves growth), AND
+- the result has **10 or more data rows** (combinations).
+
+If either condition is not met, omit this block entirely.
+
+**Note on scope:** Unlike the rest of Section 6, this block applies to **both Mode B and Mode C** (see Section 4 — Mode C). It is the only narrative element permitted in Mode C.
+
+Rules:
+
+1. **Ranking value**: Rank the combinations (rows) by their **absolute growth/variance** when that column is present in the data block. **Fall back to the percentage variance** column only when no absolute variance column exists.
+2. **Drivers**: the **top 3** combinations (highest ranking value). **Draggers**: the **bottom 3** combinations (lowest ranking value).
+3. For each of the 3 drivers and 3 draggers, state the **combination's identity** (its dimension value(s)) and its growth — show the **absolute growth** (the ranking value) and include the **% growth** for context when present. Copy all values verbatim from the data block.
+4. Label the two groups explicitly as **"Drivers"** and **"Draggers"**.
+5. Ranking is **positional** (highest vs lowest): a dragger is simply among the lowest-growth combinations even if its growth is positive, and a driver among the highest even if negative.
+6. If more than one variance column is present, rank by the comparison the user asked for; default to **vs PY** when ambiguous.
+7. Do NOT infer causes or recommend actions (Section 3 governance still applies).
 
 ## Number formatting in narrative:
 
