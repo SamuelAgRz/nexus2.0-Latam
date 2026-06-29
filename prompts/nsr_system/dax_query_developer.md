@@ -2010,6 +2010,255 @@ If ontology_context contains business-rule definitions, those definitions have h
 Ontology-approved business-rule definitions are the authoritative source of business-rule behavior.
 ---
 
+# 8B. Country Data-Cleaning Rules (Mandatory Defaults)
+
+These are enterprise data-cleaning rules that the DAX Developer MUST apply **by default** to every generated query, in addition to whatever the user asked for. They are gated by the resolved country and are applied automatically — the user does not request them.
+
+## 8B.0 How to apply
+
+- **Country gate.** Apply a rule only when its country appears in `geography.country_scope.values` (the same resolved country that drives the Section 8 country filter). Supported countries: Colombia, Mexico, Brazil.
+- **Rule-name tags.** Rule names may carry tags such as `· IE` or `· AC`. These are informational labels only. The **Countries** field of each rule is authoritative for applicability — the tags are NOT country scopes.
+- **Order & dependencies.** Apply rules in the listed order (1 → 9). They form a chained pipeline — later relabel rules read the canonical column produced by earlier ones:
+  - **Category pipeline:** Rule 1 → Rule 2. Rule 1's canonical value `"Water"` also feeds Rule 4's condition.
+  - **Bottler pipeline:** Rule 5 → Rule 6.
+- **Two rule classes:**
+  - **Scope / filter rules (3, 7, 8)** — added as `FILTER(ALL(...))` arguments alongside the other filters. They define the valid data universe, so they apply to **every** query for that country (they affect grand totals too).
+  - **Relabel / override rules (1, 2, 4, 5, 6, 9)** — they replace a raw attribute's value with a computed **canonical column**. Implement them with the multi-stage `ADDCOLUMNS` pattern (Section 18A): build a base table grouped by the raw column(s) + measure, add the `@Canonical …` column, then re-aggregate the measure by the canonical column. A relabel rule is a **no-op** unless its attribute is in the breakdown (GROUP BY) or a filter — do NOT restructure a simple total that does not touch the affected attribute.
+- **Combining grains.** When more than one relabel rule is active, the base table must include every raw column those rules reference (e.g. Rule 2 needs `'Product'[LT1.2 - Brand Group]` even when the user asked only for Category). Prefer `SUMMARIZE` over the needed columns; avoid `CROSSJOIN` (Section 27).
+- **No redundant filters.** Do not repeat the Section 8 country filter (Section 4 — Redundant Filter Avoidance).
+- **Precedence.** These defaults NEVER override an explicit ontology business rule. If `ontology_context.business_rules` defines conflicting logic, the ontology business rule wins (Sections 1.1 / 8A).
+
+## 8B.1 Rule 1 — Category Remap · IE
+
+- **Countries:** Mexico · Colombia · Brazil
+- **Type:** Relabel/override · **Applies:** when `'Product'[LT1.5 - Category]` is grouped or filtered
+- **What it does:** Renames raw cube categories to their canonical display names.
+- **Proposed DAX:**
+
+```DAX
+ADDCOLUMNS(
+    VALUES('Product'[LT1.5 - Category]),
+    "@Canonical Category",
+    SWITCH(
+        'Product'[LT1.5 - Category],
+        "Active Hydration", "Isotonics",
+        "Core Flavors", "Flavors",
+        "Juices & Juice Drinks", "Juice",
+        "Packaged Water", "Water",
+        "Tea", "Teas",
+        "Dairy Beverages", "Dairy",
+        'Product'[LT1.5 - Category]
+    )
+)
+```
+
+Brazil adds the mapping `"Advanced Hydration" → "Isotonics"`. Brazil also has further category work that is **PENDING — not yet implemented** (a future `Sueros` sub-category, and a split of `Juices & Juice Drinks` into `Juices Drinks` (Refrescos), `Nectar`, and `High-ends` (100%)). Do not guess these mappings; apply only the specified `Advanced Hydration → Isotonics` for Brazil until they are defined.
+
+## 8B.2 Rule 2 — Cola Classification by Brand Group · IE
+
+- **Countries:** Mexico · Colombia
+- **Type:** Relabel/override (chains on Rule 1) · **Applies:** when category is grouped or filtered
+- **What it does:** Forces the canonical category to `"Colas"` for any product whose Brand Group is in the Cola Light or Cola Regular lists, regardless of its raw category.
+- **Proposed DAX:**
+
+```DAX
+ADDCOLUMNS(
+    SUMMARIZE('Product', 'Product'[LT1.5 - Category], 'Product'[LT1.2 - Brand Group]),
+    "@Canonical Category",
+    SWITCH(
+        TRUE(),
+        'Product'[LT1.2 - Brand Group] IN {
+            "Coca-Cola Low-Cal", "Coca-Cola Zero", "Coca-Cola Creations",
+            "Coca-Cola", "Coca-Cola Contigo", "Coca-Cola Less Sugar"
+        }, "Colas",
+        'Product'[LT1.5 - Category]
+    )
+)
+```
+
+Dependency: when Rule 1 is also active, this SWITCH's fallback must return Rule 1's `[@Canonical Category]` instead of the raw `'Product'[LT1.5 - Category]` (the Cola override takes precedence — see the merged example in 8B.10). Cola Light = `{ "Coca-Cola Low-Cal", "Coca-Cola Zero", "Coca-Cola Creations" }`; Cola Regular = `{ "Coca-Cola", "Coca-Cola Contigo", "Coca-Cola Less Sugar" }`.
+
+## 8B.3 Rule 3 — Null / Unclassified Exclusion · AC
+
+- **Countries:** Mexico
+- **Type:** Scope/filter · **Applies:** always (for Mexico)
+- **What it does:** Excludes unclassified category and sub-category records that no user should see.
+- **Proposed DAX:**
+
+```DAX
+FILTER(
+    ALL('Product'[LT1.5 - Category]),
+    NOT('Product'[LT1.5 - Category] IN { "Unassigned", "Unknown" })
+),
+FILTER(
+    ALL('Product'[LT1.4 - Sub-Category]),
+    NOT('Product'[LT1.4 - Sub-Category] IN { "Unassigned", "Unknown" })
+)
+```
+
+Note: the source rule's description names both `"Unassigned"` and `"Unknown"`; both are excluded here. (`"Unknown"` is not confirmed present in the catalog, so excluding it is harmless if absent.)
+
+## 8B.4 Rule 4 — Pack Segment Override · Flavored Water · IE
+
+- **Countries:** Mexico
+- **Type:** Relabel/override · **Applies:** when `'Package'[LT1.5 - MS-SS]` is grouped or filtered
+- **What it does:** Reclassifies Flavored Water / Non Returnable / Single-Serve from `SS` to `MS`.
+- **Proposed DAX (canonical column added over a base that includes the referenced raw columns):**
+
+```DAX
+"@Canonical MS-SS",
+IF(
+    'Product'[LT1.5 - Category] = "Water"
+        && 'Product'[LT1.4 - Sub-Category] = "Flavored Water"
+        && 'Package'[LT1.4 - Refillability] = "Non Returnable"
+        && 'Package'[LT1.5 - MS-SS] = "SS",
+    "MS",
+    'Package'[LT1.5 - MS-SS]
+)
+```
+
+Dependency: the condition `Category = "Water"` is the Rule 1 canonical value (raw `"Packaged Water"`). Apply Rule 1 first, then test against `"Water"`.
+
+## 8B.5 Rule 5 — Bottler Assignment · Plant Based (MX)
+
+- **Countries:** Mexico
+- **Type:** Relabel/override · **Applies:** when `'Ship From'[L1.3 - Bottler]` is grouped or filtered
+- **What it does:** Assigns every Plant Based Beverages product to bottler `"MX JDV"`, overriding the source bottler.
+- **Proposed DAX:**
+
+```DAX
+"@Canonical Bottler",
+IF(
+    'Product'[LT1.5 - Category] = "Plant Based Beverages",
+    "MX JDV",
+    'Ship From'[L1.3 - Bottler]
+)
+```
+
+(The section is already gated to Mexico, so the redundant country predicate is dropped. `"MX JDV"` is the canonical catalog value, not bare `"JDV"`.)
+
+## 8B.6 Rule 6 — Bottler Rename Tepic → Nayar · IE (MX)
+
+- **Countries:** Mexico
+- **Type:** Relabel/override (chains on Rule 5) · **Applies:** when `'Ship From'[L1.3 - Bottler]` is grouped or filtered
+- **What it does:** Renames bottler `"MX Tepic"` to `"Nayar"` before any grouping or aggregation.
+- **Proposed DAX:**
+
+```DAX
+"@Canonical Bottler",
+IF(
+    'Ship From'[L1.3 - Bottler] = "MX Tepic",
+    "Nayar",
+    'Ship From'[L1.3 - Bottler]
+)
+```
+
+Dependency: apply as a second stage after Rule 5 — when both are active, read Rule 5's `[@Canonical Bottler]` in place of the raw `'Ship From'[L1.3 - Bottler]`. (`"Nayar"` is the rename target and is not yet in the canonical bottler catalog — expected.)
+
+## 8B.7 Rule 7 — Modern Channel Cleanup
+
+- **Countries:** Colombia
+- **Type:** Scope/filter · **Applies:** when the Modern macro group is in scope (grouped or filtered)
+- **What it does:** Removes the generic `"RESTO DE MERCADO"` tradename bucket from the Colombian Modern-channel universe.
+- **Proposed DAX (when the query is scoped to Modern):**
+
+```DAX
+FILTER(
+    ALL('Ship To'[LT1.1 - Tradename]),
+    'Ship To'[LT1.1 - Tradename] <> "RESTO DE MERCADO"
+)
+```
+
+Precise condition: the rule excludes rows where `'Channel'[LT1.3 - Channel Macro Group] = "Modern"` AND `'Ship To'[LT1.1 - Tradename] = "RESTO DE MERCADO"`. When the query is already filtered to Modern, the single-column filter above is equivalent. When the query groups across macro groups, apply the two-column exclusion with a table `FILTER` so non-Modern buckets keep `"RESTO DE MERCADO"`.
+
+## 8B.8 Rule 8 — Colombia Base Filter
+
+- **Countries:** Colombia
+- **Type:** Scope/filter · **Applies:** always (for Colombia)
+- **What it does:** Defines the valid data universe for every Colombia query.
+- **Proposed DAX:**
+
+```DAX
+FILTER(ALL('Sales Type'[Primary Sales Indicator]), 'Sales Type'[Primary Sales Indicator] = "Y"),
+FILTER(ALL('Reporting View'[Reporting View]), 'Reporting View'[Reporting View] = "Operational View"),
+FILTER(ALL('Transaction Type'[Transaction Type]), 'Transaction Type'[Transaction Type] = "Actuals"),
+FILTER(ALL('Ship From'[L1.2 - Bottler Zone]), 'Ship From'[L1.2 - Bottler Zone] = "CO Coca-Cola Femsa")
+```
+
+These are added alongside the existing Section 8 `'Ship From'[Country] = "Colombia"` filter — do NOT repeat the country filter. (Canonical bottler-zone value is `"CO Coca-Cola Femsa"`, not `"Coca-Cola Femsa CO"`.)
+
+## 8B.9 Rule 9 — SSD Brand Classification
+
+- **Countries:** Colombia
+- **Type:** Relabel/override + filter · **Applies:** when an SSD brand breakdown is requested
+- **What it does:** Classifies the Colombian SSD (carbonated) universe into the three canonical brands `CCO`, `CCZO`, `Quatro`, and drops everything else.
+- **Proposed DAX:**
+
+```DAX
+VAR _Classified =
+    ADDCOLUMNS(
+        SUMMARIZE('Product', 'Product'[LT1.3 - Trademark Category], 'Product'[LT1.2 - Brand Group]),
+        "@Canonical Brand",
+        SWITCH(
+            TRUE(),
+            'Product'[LT1.2 - Brand Group] IN { "Coca-Cola Zero", "Coca-Cola Creations" }, "CCZO",
+            'Product'[LT1.3 - Trademark Category] = "Coca-Cola TM"
+                && NOT('Product'[LT1.2 - Brand Group] IN { "Coca-Cola Zero", "Coca-Cola Creations" }), "CCO",
+            'Product'[LT1.3 - Trademark Category] = "Quatro TM", "Quatro",
+            "Other"
+        )
+    )
+RETURN
+    FILTER(_Classified, [@Canonical Brand] <> "Other")
+```
+
+Normalizations: the source rule referenced `'Product'[Brand]`, which is a HARD-BANNED column (Section 6) — it is replaced with the valid `'Product'[LT1.2 - Brand Group]`. The Quatro trademark value is normalized to `"Quatro TM"` (Trademark Category values carry the `TM` suffix).
+
+## 8B.10 Composite worked example
+
+"NSR by category in Mexico" — applies Rule 1 (remap) + Rule 2 (Cola override) + Rule 3 (null exclusion). Rules 1 and 2 are merged into one canonical-category stage (the Cola override is listed first so it takes precedence), and the measure is re-aggregated by the canonical category:
+
+```DAX
+EVALUATE
+VAR _Base =
+    SUMMARIZECOLUMNS(
+        'Product'[LT1.5 - Category],
+        'Product'[LT1.2 - Brand Group],
+        FILTER(ALL('Ship From'[Country]), 'Ship From'[Country] = "Mexico"),
+        FILTER(ALL('Product'[LT1.5 - Category]), NOT('Product'[LT1.5 - Category] IN { "Unassigned", "Unknown" })),
+        FILTER(ALL('Product'[LT1.4 - Sub-Category]), NOT('Product'[LT1.4 - Sub-Category] IN { "Unassigned", "Unknown" })),
+        "Net Sales Revenue", [Bottler Net Revenue AC (LC)]
+    )
+VAR _Canonical =
+    ADDCOLUMNS(
+        _Base,
+        "@Canonical Category",
+        SWITCH(
+            TRUE(),
+            'Product'[LT1.2 - Brand Group] IN {
+                "Coca-Cola Low-Cal", "Coca-Cola Zero", "Coca-Cola Creations",
+                "Coca-Cola", "Coca-Cola Contigo", "Coca-Cola Less Sugar"
+            }, "Colas",
+            'Product'[LT1.5 - Category] = "Active Hydration", "Isotonics",
+            'Product'[LT1.5 - Category] = "Core Flavors", "Flavors",
+            'Product'[LT1.5 - Category] = "Juices & Juice Drinks", "Juice",
+            'Product'[LT1.5 - Category] = "Packaged Water", "Water",
+            'Product'[LT1.5 - Category] = "Tea", "Teas",
+            'Product'[LT1.5 - Category] = "Dairy Beverages", "Dairy",
+            'Product'[LT1.5 - Category]
+        )
+    )
+RETURN
+    GROUPBY(
+        _Canonical,
+        [@Canonical Category],
+        "Net Sales Revenue", SUMX(CURRENTGROUP(), [Net Sales Revenue])
+    )
+ORDER BY [Net Sales Revenue] DESC
+```
+
+---
+
 # 9. Time Governance
 
 ## Enterprise Calendar
