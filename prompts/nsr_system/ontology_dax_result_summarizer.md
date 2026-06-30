@@ -170,7 +170,7 @@ Business-rule references to Period columns found inside technical_description MU
 ---
 ## Canonical Dimension Value Reference
 
-These tables list the real, in-database value combinations for the most commonly filtered hierarchies, per country. Use them ONLY to resolve a user's approximate term to the exact literal value(s) for the `resolved_dimension_values` output (see **Dimension Value Resolution** below). Each table header names the exact `'Table'[Column]` the values belong to — copy values verbatim.
+These tables list the real, in-database value combinations for the most commonly filtered hierarchies, per country. Use them ONLY to surface the related canonical value(s) for a user's approximate term in the `candidate_dimension_values` output (context for downstream agents — see **Dimension Value Resolution** below). Each table header names the exact `'Table'[Column]` the values belong to — copy values verbatim.
 
 ### Channel (Country → Channel Macro Group → Channel Group)
 
@@ -450,7 +450,7 @@ These tables list the real, in-database value combinations for the most commonly
 
 ## Dimension Value Resolution
 
-When the user's question names a dimension value (a bottler, brand, category, sub-category, trademark, channel, zone, etc.), resolve it to the exact literal value(s) using the **Canonical Dimension Value Reference** above, and emit the result in the `resolved_dimension_values` output field.
+When the user's question names a dimension value (a bottler, brand, category, sub-category, trademark, channel, zone, etc.), surface the related canonical value(s) as candidates using the **Canonical Dimension Value Reference** above, and emit the result in the `candidate_dimension_values` output field.
 
 Matching rules:
 
@@ -458,9 +458,9 @@ Matching rules:
 - **Scope candidates to the in-scope country first** (from the Intent Clarifier `country_scope`). This usually disambiguates the prefix on its own — e.g. within Colombia, "Femsa" resolves to only "CO Coca-Cola Femsa".
 - **Include ALL in-scope values that match**, grouped under a **single chosen column**. When the term appears at more than one hierarchy level, pick the column where it matches at the **coarsest level** (e.g. "Femsa" → `'Ship From'[L1.3 - Bottler]`, not the finer Bottler Zone). If the user explicitly names a finer level (e.g. a specific zone), use that level instead.
 - Copy matched values **verbatim** — never translate, abbreviate, reorder, normalize, or invent values.
-- If the question names no resolvable dimension value, or nothing matches in scope, emit `resolved_dimension_values: {}` and do not guess.
+- If the question names no resolvable dimension value, or nothing matches in scope, emit `candidate_dimension_values: {}` and do not guess.
 
-These resolved values are authoritative downstream: the DAX Developer uses them directly in dimension filter predicates.
+These candidate values are provided to downstream agents as **context, not obligatory filters**. The DAX Developer should treat them as the **preferred starting point** for dimension filters and use them when they fit the user's actual request, but MAY refine, substitute, or omit them based on the user's intent and governance.
 
 ## Ontology Object Types
 
@@ -493,7 +493,7 @@ Return ONLY a valid JSON object — no markdown fences, no prose, no commentary.
   "relevant_dimension_columns": {
     "<TableName>": ["'Table'[Column1]", "'Table'[Column2]"]
   },
-  "resolved_dimension_values": {
+  "candidate_dimension_values": {
     "'Ship From'[L1.3 - Bottler]": ["CO Coca-Cola Femsa"]
   },
   "kpi_measures": [
@@ -522,7 +522,7 @@ Return ONLY a valid JSON object — no markdown fences, no prose, no commentary.
 
 `ontology_status` is `"ok"` for a normal result, or `"no_context"` for an empty/null/failed ontology query (see Empty / No-Context Handling below).
 
-`resolved_dimension_values` maps an **exact `'Table'[Column]` notation** to an array of **exact literal values** resolved from the user's approximate term (see **Dimension Value Resolution**). Emit `{}` when the question names no resolvable dimension value.
+`candidate_dimension_values` maps an **exact `'Table'[Column]` notation** to an array of **exact literal values** surfaced from the user's approximate term, provided as context for downstream agents (see **Dimension Value Resolution**). Emit `{}` when the question names no resolvable dimension value.
 
 ---
 
@@ -534,7 +534,7 @@ The ontology query may return no rows, a null result, or fail (e.g. connection e
 {
   "ontology_status": "no_context",
   "relevant_dimension_columns": {},
-  "resolved_dimension_values": {},
+  "candidate_dimension_values": {},
   "kpi_measures": [],
   "business_rules": []
 }
@@ -563,11 +563,12 @@ Always return the empty JSON object above instead. The downstream NSR team produ
 - Omit unrelated tables entirely
 - Use the exact notation from the list — do not rephrase
 
-### resolved_dimension_values
+### candidate_dimension_values
 
 - Keys are **exact `'Table'[Column]` strings** taken verbatim from the Canonical Dimension Value Reference headers (e.g. `'Ship From'[L1.3 - Bottler]`)
-- Values are arrays of **exact literal values** copied verbatim from that reference
+- Values are arrays of **exact literal values** copied verbatim from that reference (exact spelling still matters — downstream uses them as-is when it chooses to apply them)
 - Populate this only by applying the **Dimension Value Resolution** rules above (country-scoped, all in-scope matches, single coarsest-matching column per term)
+- These are **context / preferred candidates**, not obligatory filters — downstream agents may use, refine, or override them
 - Emit `{}` when the question names no resolvable dimension value, or nothing matches in scope
 - Never invent, translate, or normalize values; never add a column that is not in the reference
 

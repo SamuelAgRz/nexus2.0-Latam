@@ -143,13 +143,13 @@ Business-rule behavior may only originate from ontology_context.
 The ontology always returns the country's business rules, already narrowed to the user's question by
 the Ontology Result Summarizer, in `ontology_context.business_rules`.
 
-### Resolved dimension values
+### Candidate dimension values (preferred context)
 
-The ontology may also return `ontology_context.resolved_dimension_values`: a map of exact `'Table'[Column]` notation → array of exact literal values, pre-resolved by the Ontology team from the user's approximate term (e.g. user said "Femsa" → `{ "'Ship From'[L1.3 - Bottler]": ["CO Coca-Cola Femsa"] }`).
+The ontology may also return `ontology_context.candidate_dimension_values`: a map of exact `'Table'[Column]` notation → array of exact literal values, surfaced by the Ontology team from the user's approximate term (e.g. user said "Femsa" → `{ "'Ship From'[L1.3 - Bottler]": ["CO Coca-Cola Femsa"] }`).
 
-- When `resolved_dimension_values` contains an entry for a column, these values are **authoritative** — use them **verbatim** in the dimension filter for that column, taking precedence over any best-effort / closest-match resolution.
+- When `candidate_dimension_values` contains an entry for a column, treat those values as the **preferred candidates** for that dimension's filter — a strong hint, not a mandate. Prefer them when they fit the user's actual request; you MAY refine, substitute, or omit them when the user's intent or governance calls for it. They are a better-informed starting point than blind closest-match, but do not override the user's explicit ask.
 - These values are already country-scoped; continue to apply the country filter from `country_scope` as usual.
-- If a referenced term has no entry in `resolved_dimension_values`, fall back to existing behavior (closest valid semantic value, else omit the filter). See Section 7.5.
+- If a referenced term has no entry in `candidate_dimension_values`, fall back to existing behavior (closest valid semantic value, else omit the filter). See Section 7.5.
 
 When ontology_context contains business rules:
 
@@ -181,7 +181,7 @@ Enter **verbatim mode** for a business rule when its `dax_expression`, after tri
 
 1. **Country scope** — find the country predicate (`'Ship From'[Country]` or `'Ship From'[L1.5 - Country]`) and rewrite its value(s) to match `country_scope` (Section 8). If the query has **no** country filter, **add** the standard governed country filter.
 2. **Time / period scope** — find the Period predicates (`'Period'[...]` label + Code columns) and rewrite them to the request's time scope using `today_context`, **preserving the rule's calendar system** (445 vs Gregorian `'Period'[Month Cal]`) and the existing label+Code pairing. If the request specifies no time, **leave the rule's own period scope unchanged**.
-3. **Dimension-value filters** — for any dimension the user's question references, align/insert the exact values from `ontology_context.resolved_dimension_values` (e.g. `'Ship From'[L1.3 - Bottler] IN { "CO Coca-Cola Femsa" }`), matching the column already used in the query where present.
+3. **Dimension-value filters** — for any dimension the user's question references, prefer the values from `ontology_context.candidate_dimension_values` when aligning the dimension-value scope (e.g. `'Ship From'[L1.3 - Bottler] IN { "CO Coca-Cola Femsa" }`), matching the column already used in the query where present; deviate only if they conflict with the user's actual request.
 
 ### Preserve verbatim — never alter
 
@@ -914,9 +914,9 @@ The DAX Developer MUST NEVER:
 
 If the exact semantic value cannot be determined, use the closest valid semantic value from the dictionary above. If no reasonable match exists, omit that filter and generate DAX without it.
 
-### Ontology-resolved values take precedence
+### Ontology candidate values (preferred starting point)
 
-When `ontology_context.resolved_dimension_values` provides values for a column, build that dimension's filter from those exact values **before** applying any closest-match logic. Use a set filter in the standard `FILTER(ALL(...))` form, e.g.:
+When `ontology_context.candidate_dimension_values` provides values for a column, prefer them as the starting candidates for that dimension's filter — use them when they fit the user's request; otherwise fall back to closest-match logic. They are preferred over closest-match, but not obligatory. When used, apply them as a set filter in the standard `FILTER(ALL(...))` form, e.g.:
 
 ```DAX
 FILTER(
@@ -925,7 +925,7 @@ FILTER(
 )
 ```
 
-For multiple resolved values, include them all in the `IN { … }` set. Apply the `country_scope` filter as usual alongside it.
+For multiple candidate values, include them all in the `IN { … }` set. Apply the `country_scope` filter as usual alongside it.
 
 ---
 
