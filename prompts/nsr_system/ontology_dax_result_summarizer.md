@@ -416,50 +416,27 @@ These tables list the real, in-database value combinations for the most commonly
 
 | 'Ship From'[Country] | 'Ship From'[L1.3 - Bottler] | 'Ship From'[L1.2 - Bottler Zone] |
 | --- | --- | --- |
-| Brazil | BR Andina | BR Andina-ES |
-| Brazil | BR Andina | BR Andina-RJ |
-| Brazil | BR Andina | BR Andina-RP |
-| Brazil | BR Bandeirantes | BR Bandeirantes |
-| Brazil | BR Brasal | BR Brasal |
-| Brazil | BR Coca-Cola Femsa | BR Femsa-MG |
-| Brazil | BR Coca-Cola Femsa | BR Femsa-MS |
-| Brazil | BR Coca-Cola Femsa | BR Femsa-PR |
-| Brazil | BR Coca-Cola Femsa | BR Femsa-RS |
-| Brazil | BR Coca-Cola Femsa | BR Femsa-SC |
-| Brazil | BR Coca-Cola Femsa | BR Femsa-SPI |
-| Brazil | BR Coca-Cola Femsa | BR Femsa-SPM |
-| Brazil | BR Del Valle | BR Delvalle |
-| Brazil | BR Leao | BR Leao NRTD |
-| Brazil | BR Solar | BR Solar-AL |
-| Brazil | BR Solar | BR Solar-BA |
-| Brazil | BR Solar | BR Solar-CE |
-| Brazil | BR Solar | BR Solar-MA |
-| Brazil | BR Solar | BR Solar-MT |
-| Brazil | BR Solar | BR Solar-Oc |
-| Brazil | BR Solar | BR Solar-Or |
-| Brazil | BR Solar | BR Solar-PB |
-| Brazil | BR Solar | BR Solar-PE |
-| Brazil | BR Solar | BR Solar-PI |
-| Brazil | BR Solar | BR Solar-RN |
-| Brazil | BR Solar | BR Solar-SE |
-| Brazil | BR Sorocaba | BR Sorocaba |
-| Brazil | BR Uberlandia | BR Uberlandia |
-| Colombia | CO Coca-Cola Femsa | CO Centro |
-| Colombia | CO Coca-Cola Femsa | CO Nororiente |
-| Colombia | CO Coca-Cola Femsa | CO Occidente |
+| Brazil | BR Andina | BR Andina |
+| Brazil | BR Coca-Cola Femsa | BR Coca-Cola Femsa |
+| Brazil | BR Delvalle | BR Del Valle |
+| Brazil | BR Leao NRTD | BR Leao |
+| Brazil | BR Private Bottlers | BR Bandeirantes |
+| Brazil | BR Private Bottlers | BR Brasal |
+| Brazil | BR Private Bottlers | BR Sorocaba |
+| Brazil | BR Private Bottlers | BR Uberlandia |
+| Brazil | BR Solar | BR Solar |
+| Colombia | CO Coca-Cola Femsa | CO Coca-Cola Femsa |
 | Colombia | CO Leticia | CO Leticia |
-| Colombia | CO MM Volumen | CO McDonalds MM CO |
-| Colombia | CO Postobon | CO Schweppes Colombia |
+| Colombia | CO MM Volumen | CO MM Volumen |
+| Colombia | CO Postobon | CO Postobon |
 | Colombia | CO Uraba | CO Uraba |
-| Mexico | MX Arca Continental | MX Zona Noreste |
-| Mexico | MX Arca Continental | MX Zona Norte |
-| Mexico | MX Arca Continental | MX Zona Occidente |
-| Mexico | MX Arca Continental | MX Zona Pacifico |
+| Mexico | MX Arca Continental | MX Arca Continental |
 | Mexico | MX Bepensa | MX Bepensa |
 | Mexico | MX CDF | MX CDF |
 | Mexico | MX Coca-Cola Femsa | MX Bajio |
 | Mexico | MX Coca-Cola Femsa | MX Centro-Pacifico |
 | Mexico | MX Coca-Cola Femsa | MX Ciudad de Mexico |
+| Mexico | MX Coca-Cola Femsa | MX Coca-Cola Femsa |
 | Mexico | MX Coca-Cola Femsa | MX Estado de Mexico |
 | Mexico | MX Coca-Cola Femsa | MX Golfo |
 | Mexico | MX Coca-Cola Femsa | MX Monarca |
@@ -467,7 +444,7 @@ These tables list the real, in-database value combinations for the most commonly
 | Mexico | MX Colima | MX Colima |
 | Mexico | MX JDV | MX JDV |
 | Mexico | MX Nogales | MX Nogales |
-| Mexico | MX Rica | MX RICA |
+| Mexico | MX Rica | MX Rica |
 | Mexico | MX Santa Clara | MX Santa Clara |
 | Mexico | MX Tepic | MX Tepic |
 
