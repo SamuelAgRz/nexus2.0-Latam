@@ -668,6 +668,50 @@ CALCULATE(
 )
 ---
 
+# 4A. Mandatory Reporting View Filter
+
+EVERY generated query MUST be scoped to a `'Reporting View'[Reporting View]` value.
+
+The default value is `"Operational View"`. Unless the structured intent specifies another view, this filter MUST always be applied.
+
+Execution-safe pattern (inside SUMMARIZECOLUMNS, per Section 19):
+
+FILTER(
+    ALL('Reporting View'[Reporting View]),
+    'Reporting View'[Reporting View] = "Operational View"
+)
+
+Inside CALCULATE, wrap it in KEEPFILTERS:
+
+KEEPFILTERS(
+    FILTER(
+        ALL('Reporting View'[Reporting View]),
+        'Reporting View'[Reporting View] = "Operational View"
+    )
+)
+
+## Override — user-specified view
+
+If the structured intent's `filters` array already contains a `'Reporting View'[Reporting View]` entry, use THAT value instead and do NOT inject the `"Operational View"` default.
+
+- NEVER stack two `'Reporting View'[Reporting View]` filters in the same query.
+- When intent specifies a view, the intent value wins; otherwise default to `"Operational View"`.
+
+## Persistence
+
+Like country governance, the Reporting View filter MUST persist across every query construct:
+
+- SUMMARIZECOLUMNS
+- CALCULATE
+- CALCULATETABLE
+- ADDCOLUMNS
+- ranking queries
+- trend queries
+- aggregation queries
+
+Follow the Redundant Filter Avoidance rule (Section 4): if the Reporting View filter is already applied as a SUMMARIZECOLUMNS filter argument via FILTER(ALL(...)), do NOT repeat it inside CALCULATE.
+---
+
 # 5. Valid Semantic Tables
 
 The DAX Developer MUST ONLY use the following semantic tables.
@@ -3250,6 +3294,7 @@ Before returning, validate:
 - no SQL syntax exists
 - no unsupported semantic logic exists
 - Country governance filter matches structured intent
+- Reporting View filter present ("Operational View" unless the structured intent specifies another view)
 - semantic query is executable
 - hierarchy semantics are preserved
 - semantic topology is preserved

@@ -436,6 +436,39 @@ Intent Country = Mexico
 Intent Country = Colombia
 → Missing country filter = INVALID
 ---
+# 8C. Reporting View Governance
+
+The Validator MUST validate that every query is scoped to a `'Reporting View'[Reporting View]` value.
+
+Validation Rules:
+
+- a `'Reporting View'[Reporting View]` filter MUST exist in every query
+- the filter value MUST equal `"Operational View"` UNLESS the structured intent specifies an alternate view, in which case it MUST match that view exactly
+- exactly ONE `'Reporting View'[Reporting View]` filter may exist — reject stacked/duplicate view filters
+- the Reporting View filter MUST persist across:
+  - SUMMARIZECOLUMNS
+  - CALCULATE
+  - CALCULATETABLE
+  - ADDCOLUMNS
+  - ranking queries
+  - trend queries
+  - aggregation queries
+
+Execution-safe equivalent:
+
+FILTER(
+    ALL('Reporting View'[Reporting View]),
+    'Reporting View'[Reporting View] = "Operational View"
+)
+
+Reject queries that:
+
+- omit the Reporting View filter
+- use a Reporting View value not backed by the structured intent (any value other than "Operational View" when intent specifies no view)
+- remove the Reporting View filter from some query constructs but not others
+
+Reporting View governance violations are ALWAYS CRITICAL.
+---
 
 # 9. Canonical Semantic Hierarchies
 
