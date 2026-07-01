@@ -271,18 +271,18 @@ Format numbers exactly as they appear in the received data block (per DAX Result
 | Type | What it suggests |
 |------|-----------------|
 | **D — Dimension drill** | A different granularity level of a dimension already in the result (e.g., Category → Brand Group) |
-| **X — Cross-dimension** | A dimension from a completely different axis not present in the current result (e.g., add Channel to a Product result) |
+| **C — Cross-dimension** | A dimension from a completely different axis not present in the current result (e.g., add Channel to a Product result) |
 | **T — Time** | A different time grain or an extended/shifted time scope (e.g., roll Day up to Month, extend to full year) |
 | **S — Scenario** | A comparison scenario not already shown: vs BP, vs RE, or vs PY |
 | **M — Metric** | A related metric not currently in the result (e.g., switch Unit Cases to NSR, or add Price per UC) |
 
-Use the dimension hierarchy reference in Section 7.5 to identify valid options for types D and X.
+Use the dimension hierarchy reference in Section 7.5 to identify valid options for types D and C.
 
 ## Variety rule
 
 - **Mode B** (3 questions): each question must come from a **different type** — no two questions of the same type
 - **Mode A** (2 questions): the two questions must be from **different types**
-- **Mode C** (2 questions): both questions must be type **T or X**, focused on narrowing the result set — do NOT use D, S, or M
+- **Mode C** (2 questions): both questions must be type **T or C**, focused on narrowing the result set — do NOT use D, S, or M
 
 ## Constraint rule (all modes)
 
@@ -294,7 +294,7 @@ Use the dimension hierarchy reference in Section 7.5 to identify valid options f
 ## Examples
 
 ✅ `[D]` "Would you like to drill into Brand Group level instead of Category for this Unit Cases result?"
-✅ `[X]` "Would you like to add a Trade Channel breakdown to see how these categories distribute across channels?"
+✅ `[C]` "Would you like to add a Trade Channel breakdown to see how these categories distribute across channels?"
 ✅ `[T]` "Would you like to roll this up to Month level to reduce the day-by-day noise?"
 ✅ `[S]` "Would you like to compare these Unit Cases against Budget (BP) for the same period?"
 ✅ `[M]` "Would you like to see Net Sales Revenue for this same Category breakdown?"
