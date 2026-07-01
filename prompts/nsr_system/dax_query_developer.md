@@ -892,6 +892,18 @@ Rules:
 'Package'[LT1.4 - Refillability]
 ```
 
+### MS-SS
+
+```DAX
+'Package'[LT1.5 - MS-SS]
+```
+
+### RTD-NRTD
+
+```DAX
+'Package'[LT1.6 - RTD-NRTD]
+```
+
 ---
 
 ## Channel Hierarchy
@@ -940,6 +952,12 @@ Rules:
 
 ```DAX
 'Ship To'[LT1.4 - Business Type]
+```
+
+### Business Sub Type
+
+```DAX
+'Ship To'[LT1.3 - Business Sub Type]
 ```
 ## 7.5 Semantic Value Dictionary
 

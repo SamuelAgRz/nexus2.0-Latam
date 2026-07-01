@@ -1090,6 +1090,14 @@ Refillability:
 
 'Package'[LT1.4 - Refillability]
 
+MS-SS:
+
+'Package'[LT1.5 - MS-SS]
+
+RTD-NRTD:
+
+'Package'[LT1.6 - RTD-NRTD]
+
 ---
 
 ## Customer
@@ -1101,6 +1109,10 @@ Customer:
 Tradename:
 
 'Ship To'[LT1.1 - Tradename]
+
+Business Sub Type:
+
+'Ship To'[LT1.3 - Business Sub Type]
 
 ---
 

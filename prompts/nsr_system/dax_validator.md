@@ -490,6 +490,8 @@ Reporting View governance violations are ALWAYS CRITICAL.
 'Package'[LT1.2 - Package Type]
 'Package'[LT1.3 - Container]
 'Package'[LT1.4 - Refillability]
+'Package'[LT1.5 - MS-SS]
+'Package'[LT1.6 - RTD-NRTD]
 ```
 
 ## Channel Hierarchy
@@ -507,6 +509,7 @@ Reporting View governance violations are ALWAYS CRITICAL.
 'Ship To'[LT1.2 - Customer]
 'Ship To'[LT1.1 - Tradename]
 'Ship To'[LT1.4 - Business Type]
+'Ship To'[LT1.3 - Business Sub Type]
 ```
 
 Validation Rules:

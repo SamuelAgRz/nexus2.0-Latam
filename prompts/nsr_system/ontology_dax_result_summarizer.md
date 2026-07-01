@@ -43,7 +43,7 @@ Preserve the exact notation (e.g. `'Ship From'[L1.5 - Country]`).
 - 'Product'[LT1.8 - Industry]
 - 'Product'[Non-KO Product]
 
-### Package
+### Package (Country → RTD-NRTD → MS-SS → Refillability → Container)
 - 'Package'[Package]
 - 'Package'[Container Type]
 - 'Package'[Primary Container]
@@ -447,6 +447,525 @@ These tables list the real, in-database value combinations for the most commonly
 | Mexico | MX Rica | MX Rica |
 | Mexico | MX Santa Clara | MX Santa Clara |
 | Mexico | MX Tepic | MX Tepic |
+
+### Customer (Country → Business Sub Type → Customer)
+
+| 'Ship From'[Country] | 'Ship To'[LT1.3 - Business Sub Type] | 'Ship To'[LT1.2 - Customer] |
+| --- | --- | --- |
+| Brazil | Airline | Azul |
+| Brazil | Airline | GOL |
+| Brazil | Airline | LATAM Airlines Group |
+| Brazil | Airport | Dufry Yucatan SA DE CV |
+| Brazil | Airport | W PREMIUM |
+| Brazil | Cafeteria | Cencosud |
+| Brazil | Cash & Carry | Assai |
+| Brazil | Cash & Carry | Carrefour Group |
+| Brazil | Cash & Carry | Cencosud |
+| Brazil | Casual Dining | Applebee's |
+| Brazil | Casual Dining | Bloomin' |
+| Brazil | Casual Dining | Darden Restaurants |
+| Brazil | Casual Dining | ECE |
+| Brazil | Casual Dining | Fat Boys Concept (M) Sdn Bhd |
+| Brazil | Casual Dining | Grupo Aresta / Carlson |
+| Brazil | Casual Dining | Grupo Madero |
+| Brazil | Casual Dining | Pizza Pizza S.A |
+| Brazil | Casual Dining | UNI-MEC CORPORATION |
+| Brazil | Catering | Gran Sapore |
+| Brazil | Catering | Grupo GPS |
+| Brazil | Catering | IGA Inc |
+| Brazil | Catering | Sodexo |
+| Brazil | Cinema | All Other Customer |
+| Brazil | Cinema | Arteplex |
+| Brazil | Cinema | Brahims Holdings Berhad |
+| Brazil | Cinema | Centerplex |
+| Brazil | Cinema | Cine Araujo |
+| Brazil | Cinema | Cinemark |
+| Brazil | Cinema | Cinepolis |
+| Brazil | Cinema | Grupo Severiano Ribeiro |
+| Brazil | Cinema | Moviecom |
+| Brazil | Coffee Shops | Casa Pao De Queijo |
+| Brazil | Coffee Shops | Frans Cafe |
+| Brazil | Coffee Shops | Grao Espresso |
+| Brazil | Coffee Shops | Havanna |
+| Brazil | Coffee Shops | Rei Do Mate |
+| Brazil | C-Store | Ale Sat |
+| Brazil | C-Store | Chevron |
+| Brazil | C-Store | Exxon Mobil Corporation |
+| Brazil | C-Store | GPA |
+| Brazil | C-Store | Graal |
+| Brazil | C-Store | Ipiranga |
+| Brazil | C-Store | Oxxo |
+| Brazil | C-Store | Select Food |
+| Brazil | C-Store | Shell |
+| Brazil | Drug Store | Extrafarma |
+| Brazil | Drug Store | Grupo DPSP |
+| Brazil | Drug Store | Pague Menos |
+| Brazil | Gas Station | Petrobras |
+| Brazil | Hotel | Accor |
+| Brazil | Hotel | Accor Hotels |
+| Brazil | Hotel | Club Med |
+| Brazil | Hotel | Hilton Group Plc |
+| Brazil | Hotel | Marriott International |
+| Brazil | Hypermarket | All Other Customer |
+| Brazil | Hypermarket | Carrefour Group |
+| Brazil | Hypermarket | Operadora de Cd Juarez |
+| Brazil | Hypermarket | Wal-Mart Inc. |
+| Brazil | Non KKAA | 100%Video |
+| Brazil | Non KKAA | Ahold Delhaize |
+| Brazil | Non KKAA | All Other Customer |
+| Brazil | Non KKAA | Atlantic |
+| Brazil | Non KKAA | Autozone |
+| Brazil | Non KKAA | Bebelu |
+| Brazil | Non KKAA | Big Mart Pvt Ltd |
+| Brazil | Non KKAA | Cafe Do Ponto |
+| Brazil | Non KKAA | Carioca |
+| Brazil | Non KKAA | Casino Group |
+| Brazil | Non KKAA | Cia Do Churrasco |
+| Brazil | Non KKAA | Eldorado |
+| Brazil | Non KKAA | Mama Mia Pizza Ltd |
+| Brazil | Non KKAA | Micromarket |
+| Brazil | Non KKAA | Millenium Torg |
+| Brazil | Non KKAA | Movenpick Group |
+| Brazil | Non KKAA | Nevada |
+| Brazil | Non KKAA | Piccadilly |
+| Brazil | Non KKAA | President |
+| Brazil | Non KKAA | Rewe Zentral AG |
+| Brazil | Non KKAA | Tengelmann |
+| Brazil | Non KKAA | TT INTERNATIONAL LIMITED |
+| Brazil | Non KKAA | ZENSHO HOLDINGS |
+| Brazil | Other OP | FOODOLOGY |
+| Brazil | Proximity | GPA |
+| Brazil | QSR | Andiamo |
+| Brazil | QSR | ATW Delivery |
+| Brazil | QSR | BFFC |
+| Brazil | QSR | Bigxpicanha |
+| Brazil | QSR | Bonanza |
+| Brazil | QSR | Brasileirinho Delivery |
+| Brazil | QSR | Camarao & Cia |
+| Brazil | QSR | Croasonho |
+| Brazil | QSR | D Angelo Inc |
+| Brazil | QSR | Dairy Queen |
+| Brazil | QSR | Divino Fogao |
+| Brazil | QSR | Domino's Pizza Inc. |
+| Brazil | QSR | Dunkin Donuts |
+| Brazil | QSR | EPA |
+| Brazil | QSR | FabricadeBolosVoAlzira |
+| Brazil | QSR | FRANGO NO POTE |
+| Brazil | QSR | FranqueadoraOBurguesLTDA |
+| Brazil | QSR | G&N Brands |
+| Brazil | QSR | Giraffas |
+| Brazil | QSR | Grupo Trigo |
+| Brazil | QSR | Habib's |
+| Brazil | QSR | IMC |
+| Brazil | QSR | ITAL IN HOUSE |
+| Brazil | QSR | Konzum |
+| Brazil | QSR | Krispy Kreme |
+| Brazil | QSR | McDonald's |
+| Brazil | QSR | Mr. Pretzel |
+| Brazil | QSR | MUNDO ANIMAL |
+| Brazil | QSR | Parmeggio |
+| Brazil | QSR | Patroni Pizza |
+| Brazil | QSR | Pizza Cesar |
+| Brazil | QSR | Sforza |
+| Brazil | QSR | Subway |
+| Brazil | QSR | WORLD FOOD GESTAO LTDA |
+| Brazil | Restaurant | All Other Customer |
+| Brazil | Restaurant | Fast Food |
+| Brazil | Restaurant | Firehouse Restaurant Group |
+| Brazil | Restaurant | Lug's |
+| Brazil | Restaurant | VivendadoCamarao |
+| Brazil | Supermarket | All Other Customer |
+| Brazil | Supermarket | Cadena Real S.A. |
+| Brazil | Supermarket | Carrefour Group |
+| Brazil | Supermarket | Cencosud |
+| Brazil | Supermarket | Europa |
+| Brazil | Supermarket | GPA |
+| Brazil | Supermarket | Rede Dia |
+| Brazil | Supermarket | Santa Clara Mercantil de Pachuca SA de C |
+| Brazil | Supermarket | Wal-Mart Inc. |
+| Brazil | Unassigned | Unassigned |
+| Colombia | Airline | All Other Customer |
+| Colombia | Airline | TACA Airlines |
+| Colombia | Airport | All Other Customer |
+| Colombia | Airport | Dufry Yucatan SA DE CV |
+| Colombia | Bakeries | All Other Customer |
+| Colombia | Cafeteria | All Other Customer |
+| Colombia | Cafeteria | Cencosud |
+| Colombia | Cash & Carry | All Other Customer |
+| Colombia | Cash & Carry | Grupo Exito |
+| Colombia | Cash & Carry | Metro Group |
+| Colombia | Cash & Carry | PriceSmart |
+| Colombia | Casual Dining | All Other Customer |
+| Colombia | Casual Dining | Bagatelle |
+| Colombia | Casual Dining | Crepes & Waffles |
+| Colombia | Casual Dining | Hooters |
+| Colombia | Casual Dining | Piccolo |
+| Colombia | Casual Dining | Teriyaki |
+| Colombia | Catering | All Other Customer |
+| Colombia | Catering | Compass Group Plc |
+| Colombia | Catering | Sodexo |
+| Colombia | Cinema | All Other Customer |
+| Colombia | Cinema | Cinemark |
+| Colombia | Cinema | Cinepolis |
+| Colombia | Coffee Shops | All Other Customer |
+| Colombia | Coffee Shops | Juan Valdez |
+| Colombia | Coffee Shops | Starbuck's Coffee Co. |
+| Colombia | C-Store | Oxxo |
+| Colombia | Discount | Ahold Delhaize |
+| Colombia | Discount | All Other Customer |
+| Colombia | Drug Store | All Other Customer |
+| Colombia | Gas Station | Petrobras |
+| Colombia | Gas Station | Primax |
+| Colombia | Gas Station | Terpel S.A. |
+| Colombia | Hotel | Accor Hotels |
+| Colombia | Hotel | All Other Customer |
+| Colombia | Hotel | Decameron |
+| Colombia | Hotel | Hilton Group Plc |
+| Colombia | Hotel | Hyatt Hotels Corporation |
+| Colombia | Hotel | Marriott International |
+| Colombia | Hypermarket | Cencosud |
+| Colombia | Hypermarket | Grupo Exito |
+| Colombia | Non KKAA | 100%Video |
+| Colombia | Non KKAA | All Other Customer |
+| Colombia | Non KKAA | Grupo Falabella |
+| Colombia | Other Entertainment | All Other Customer |
+| Colombia | Other OP | All Other Customer |
+| Colombia | Other OP | FOODOLOGY |
+| Colombia | Other Retail | All Other Customer |
+| Colombia | Proximity | Grupo Exito |
+| Colombia | QSR | All Other Customer |
+| Colombia | QSR | Bonanza |
+| Colombia | QSR | Buffalo S.A. |
+| Colombia | QSR | Buffalo Wild Wings |
+| Colombia | QSR | Domino's Pizza Inc. |
+| Colombia | QSR | Dunkin Donuts |
+| Colombia | QSR | Grupo Trigo |
+| Colombia | QSR | Little Ceasars |
+| Colombia | QSR | McDonald's |
+| Colombia | QSR | Papa John's Pizza |
+| Colombia | QSR | Pizza Factory |
+| Colombia | QSR | Pizza Mania |
+| Colombia | QSR | Wingstop |
+| Colombia | Restaurant | All Other Customer |
+| Colombia | Supermarket | All Other Customer |
+| Colombia | Supermarket | Bodega Latina Corporation |
+| Colombia | Supermarket | Cencosud |
+| Colombia | Supermarket | Dominican Republic |
+| Colombia | Supermarket | Grupo Exito |
+| Colombia | Supermarket | MERQUEO |
+| Colombia | Supermarket | Mulliez Group (Non Grocery) |
+| Colombia | Supermarket | Olimpica |
+| Colombia | Supermarket | Sentry Markets |
+| Colombia | Vending | All Other Customer |
+| Colombia | Warehouse | All Other Customer |
+| Mexico | Airline | Aeroenlaces Nacionales S.A. de C.V. |
+| Mexico | Airline | Aeromexico |
+| Mexico | Airline | American Airlines |
+| Mexico | Airline | Areas Group |
+| Mexico | Airline | CINTRA |
+| Mexico | Airline | Concesionaria Vuela Compania de Aviacion |
+| Mexico | Airline | Linea Aerea Azteca |
+| Mexico | Airline | United Airlines |
+| Mexico | Airport | Operadora Aeroboutiques SA de CV |
+| Mexico | Cafeteria | LA ESPERANZA |
+| Mexico | Cash & Carry | City Club |
+| Mexico | Cash & Carry | Costco Wholesale |
+| Mexico | Cash & Carry | Smart & Final Dev Noroeste SA de CV |
+| Mexico | Cash & Carry | Waldo?s Dollar Mart de Mexico S. de R.L. |
+| Mexico | Cash & Carry | Wal-Mart Inc. |
+| Mexico | Casual Dining | Applebee's |
+| Mexico | Casual Dining | Brinker International Inc. |
+| Mexico | Casual Dining | California Pizza Kitchen Inc. |
+| Mexico | Casual Dining | Carlson |
+| Mexico | Casual Dining | Carso |
+| Mexico | Casual Dining | Cheesecake Factory |
+| Mexico | Casual Dining | Corp. Mexicana de Restaurantes |
+| Mexico | Casual Dining | ECE |
+| Mexico | Casual Dining | Gastrosur SA de CV |
+| Mexico | Casual Dining | Grupo Madero |
+| Mexico | Casual Dining | Hooters |
+| Mexico | Casual Dining | Johnny Rockets Group Inc |
+| Mexico | Casual Dining | Outback Steakhouse |
+| Mexico | Casual Dining | Piccolo |
+| Mexico | Casual Dining | Tony Roma's |
+| Mexico | Catering | Aramark |
+| Mexico | Catering | Compass Group Plc |
+| Mexico | Catering | Comunicaciones Nextel de Mexico, S.A. de |
+| Mexico | Catering | Eric Kayser |
+| Mexico | Catering | Eurest Proper Meals de Mexico S.A. de CV |
+| Mexico | Catering | GRUPO PRESIDENTE |
+| Mexico | Catering | NEWREST |
+| Mexico | Catering | Sodexo |
+| Mexico | Catering | SONORA |
+| Mexico | Cinema | All Other Customer |
+| Mexico | Cinema | Amor por el Cine SA de CV |
+| Mexico | Cinema | CINE MADERO |
+| Mexico | Cinema | Cinemex |
+| Mexico | Cinema | Cinepolis |
+| Mexico | Cinema | GO CINEMA |
+| Mexico | Cinema | Hermelinda P?rez Cruz |
+| Mexico | Cinema | Multimedios Estrellas de Oro |
+| Mexico | Coffee Shops | Panaderia y Servicios Tradicionales SA |
+| Mexico | C-Store | 7-Eleven, Inc. |
+| Mexico | C-Store | ADO/GL UNO |
+| Mexico | C-Store | AMOXXO |
+| Mexico | C-Store | CERVECENTRO |
+| Mexico | C-Store | Circle K Corp |
+| Mexico | C-Store | Grupo ADO |
+| Mexico | C-Store | Modelorama |
+| Mexico | C-Store | Oxxo |
+| Mexico | C-Store | Shell |
+| Mexico | C-Store | Six |
+| Mexico | C-Store | SUPER JOEL |
+| Mexico | C-Store | Tesco Plc |
+| Mexico | Discount | TIENDAS NETO |
+| Mexico | Discount | Tiendas Tresb, SA. De C.V. |
+| Mexico | Drug Store | All Other Customer |
+| Mexico | Drug Store | Commercializadora Farmaceutica de Chiapa |
+| Mexico | Drug Store | FARMACIA SERVI EXPRESS |
+| Mexico | Drug Store | FARMACIA YIREH |
+| Mexico | Drug Store | Farmacias Benavides |
+| Mexico | Drug Store | FARMACIAS COFAR |
+| Mexico | Drug Store | Farmacias El Fenix |
+| Mexico | Drug Store | FARMACIAS ESQUIVAR |
+| Mexico | Drug Store | Farmacias Gi S.A. de C.V. |
+| Mexico | Drug Store | Farmacias Guadalajara |
+| Mexico | Drug Store | FARMACIAS MEDINA |
+| Mexico | Drug Store | FARMACIAS PDC |
+| Mexico | Drug Store | FARMACIAS PUREX |
+| Mexico | Drug Store | FEMSA Comercio |
+| Mexico | Fitness & Sport | SPORTWAY |
+| Mexico | Hotel | Accor |
+| Mexico | Hotel | All Other Customer |
+| Mexico | Hotel | BATLE GROUP |
+| Mexico | Hotel | Carlson |
+| Mexico | Hotel | Club Med |
+| Mexico | Hotel | Flamingo |
+| Mexico | Hotel | Grupo Posadas |
+| Mexico | Hotel | Hilton Group Plc |
+| Mexico | Hotel | Hilton Hotel Corporation |
+| Mexico | Hotel | HOTEL CAMINO REAL |
+| Mexico | Hotel | Hotel Las Brisas |
+| Mexico | Hotel | HOTEL NYX |
+| Mexico | Hotel | Hoteles Quinta Real |
+| Mexico | Hotel | Hyatt Hotels Corporation |
+| Mexico | Hotel | InterContinental Hotels Group |
+| Mexico | Hotel | Marriott International |
+| Mexico | Hotel | NH Hotels |
+| Mexico | Hotel | Princess |
+| Mexico | Hotel | Prohomi SA de CV |
+| Mexico | Hotel | Xcaret |
+| Mexico | Hypermarket | Comercial Mexicana (CCM) |
+| Mexico | Hypermarket | Operadora de Cd Juarez |
+| Mexico | Hypermarket | Tiendas de Descuento Arteli Sa de Cv |
+| Mexico | Hypermarket | Tiendas Grand S.A. de C.V. |
+| Mexico | Hypermarket | Wal-Mart Inc. |
+| Mexico | Non KKAA | Alimentos Selectos del Noroeste |
+| Mexico | Non KKAA | All Other Customer |
+| Mexico | Non KKAA | Alsea |
+| Mexico | Non KKAA | Coorporacion El Asturiano S.A. |
+| Mexico | Non KKAA | Edeka |
+| Mexico | Non KKAA | El Porton |
+| Mexico | Non KKAA | Industrial De Alimentos De Linares S.A. |
+| Mexico | Non KKAA | Operadora De Reynosa S.A. De C.V. |
+| Mexico | Non KKAA | SITYF |
+| Mexico | Non KKAA | Stephen Martin Go |
+| Mexico | Non KKAA | Texas Roadhouse |
+| Mexico | Non KKAA | The Home Depot |
+| Mexico | Non KKAA | Tim Horton's |
+| Mexico | Non KKAA | Wyndham Worldwide |
+| Mexico | Other Entertainment | AISA Inmuebles S.A. de C.V. |
+| Mexico | Other Entertainment | ALTABRISA BOWLING |
+| Mexico | Other Entertainment | AMF Bowling |
+| Mexico | Other Entertainment | Coco Bongo |
+| Mexico | Other Entertainment | Franquicias Recorcholis S.A. de C.V. |
+| Mexico | Other Entertainment | Multimedios Estrellas de Oro |
+| Mexico | Other Entertainment | Six Flags, Inc. |
+| Mexico | Other OP | Ace Hardware International, Inc. |
+| Mexico | Other OP | CL?SICO |
+| Mexico | Other OP | DE LA MANCHA |
+| Mexico | Other OP | El Palacio de Hierro SA de CV |
+| Mexico | Other OP | Estrella Blanca |
+| Mexico | Other OP | FOODOLOGY |
+| Mexico | Other OP | MANANITAS |
+| Mexico | Other OP | Omni |
+| Mexico | Other OP | RINC?N & GPO GUAVOS |
+| Mexico | Other OP | ZOOLOGICO DE ZACANGO |
+| Mexico | Other Retail | ABARROTES DUNO |
+| Mexico | Other Retail | Amazon Inc |
+| Mexico | Other Retail | Bodegas Alianza |
+| Mexico | Other Retail | Oxxo |
+| Mexico | Other Travel & Leisure | Grupo Flecha Amarilla |
+| Mexico | Proximity | Wal-Mart Inc. |
+| Mexico | QSR | Afc Enterprises Inc. |
+| Mexico | QSR | Andiamo |
+| Mexico | QSR | ANTOJITOS ANITA |
+| Mexico | QSR | Applebee's |
+| Mexico | QSR | BRASILEIRINHO |
+| Mexico | QSR | Buffalo Wild Wings |
+| Mexico | QSR | CALIFA |
+| Mexico | QSR | CKE |
+| Mexico | QSR | Corp. Mexicana de Restaurantes |
+| Mexico | QSR | Dairy Queen |
+| Mexico | QSR | DON GIOVANNI |
+| Mexico | QSR | EL FAROLITO |
+| Mexico | QSR | El Pollo Loco |
+| Mexico | QSR | FLAUTAS DEL ARCE |
+| Mexico | QSR | Franquicias Maso En Expansion SA DE CV |
+| Mexico | QSR | Krispy Kreme |
+| Mexico | QSR | LUPILLOS |
+| Mexico | QSR | McDonald's |
+| Mexico | QSR | MR SUSHI |
+| Mexico | QSR | Oriental Wok SA de CV |
+| Mexico | QSR | Panda Restaurant Group |
+| Mexico | QSR | Papa John's Pizza |
+| Mexico | QSR | PASTES KIKOS |
+| Mexico | QSR | PERROS Y BURROS |
+| Mexico | QSR | Peter Piper Pizza |
+| Mexico | QSR | PIZZAS DE LA LE?A |
+| Mexico | QSR | SIA COMEDORES |
+| Mexico | QSR | SPORT CITY & CITY CAF? |
+| Mexico | QSR | Subway |
+| Mexico | QSR | SUPER FASTY |
+| Mexico | QSR | TACOS EL RODEO |
+| Mexico | QSR | TAQUERIA LA UNICA |
+| Mexico | QSR | THE FOOD BOX |
+| Mexico | QSR | TORTAS HIPOCAMPO |
+| Mexico | QSR | VELERO TIA LICHA |
+| Mexico | QSR | Wendy's |
+| Mexico | QSR | WINGS CITY |
+| Mexico | QSR | Wingstop |
+| Mexico | QSR | Yum! Brands, Inc. |
+| Mexico | Restaurant | Afc Enterprises Inc. |
+| Mexico | Restaurant | All Other Customer |
+| Mexico | Restaurant | Alsea |
+| Mexico | Restaurant | Arrachera House S.A. de C.V. |
+| Mexico | Restaurant | ASADERO CIEN |
+| Mexico | Restaurant | ASADERO LOS TROMPOS |
+| Mexico | Restaurant | BELLINHAUSEN |
+| Mexico | Restaurant | Bennigans |
+| Mexico | Restaurant | Cabo Grill S.A. de C.V. |
+| Mexico | Restaurant | CAIPIRINHA |
+| Mexico | Restaurant | CASA MAYA |
+| Mexico | Restaurant | Chazz |
+| Mexico | Restaurant | COLORINES TEPOZTL?N |
+| Mexico | Restaurant | Comicx Franquicias CX SA DE CV |
+| Mexico | Restaurant | Corp. Mexicana de Restaurantes |
+| Mexico | Restaurant | Distribuidora Liverpool, S.A. de C.V. |
+| Mexico | Restaurant | DON MANOLITO |
+| Mexico | Restaurant | DONA TOTA |
+| Mexico | Restaurant | EL PESCAU |
+| Mexico | Restaurant | EL PORTAL DE LA JAIBA |
+| Mexico | Restaurant | EL PUNTO |
+| Mexico | Restaurant | FISHER?S |
+| Mexico | Restaurant | GARABATOS |
+| Mexico | Restaurant | Grupo Restaurantero del Centro S.A.de CV |
+| Mexico | Restaurant | IHOP |
+| Mexico | Restaurant | Impulsora de Restaurantes el Fogoncito |
+| Mexico | Restaurant | Inmobiliaria Hascor S.A. de C.V. |
+| Mexico | Restaurant | Las Alitas |
+| Mexico | Restaurant | LAS PARRILLAS |
+| Mexico | Restaurant | LOS ARBOLITOS DE CAJEME |
+| Mexico | Restaurant | LOS PACOS |
+| Mexico | Restaurant | MANKA FOODS |
+| Mexico | Restaurant | MARISCOS VILLA RICA |
+| Mexico | Restaurant | MC CARTHY?S IRISH PUB |
+| Mexico | Restaurant | Nikkori |
+| Mexico | Restaurant | Oriental Grill S.A. de C.V. |
+| Mexico | Restaurant | P Tsakiris |
+| Mexico | Restaurant | Paris Baguette Singapore Pte Ltd |
+| Mexico | Restaurant | POLLOS RIO |
+| Mexico | Restaurant | POTZOLLCALLI |
+| Mexico | Restaurant | PriceSmart |
+| Mexico | Restaurant | REBEL WINGS |
+| Mexico | Restaurant | S S Global SA de CV |
+| Mexico | Restaurant | Taco Inn |
+| Mexico | Supermarket | All Other Customer |
+| Mexico | Supermarket | Almacenes Distribuidores de La frontera |
+| Mexico | Supermarket | Calimax |
+| Mexico | Supermarket | Chedraui |
+| Mexico | Supermarket | Grupo Super Cream S.A. de C.V. |
+| Mexico | Supermarket | HEB |
+| Mexico | Supermarket | Operadora Futurama |
+| Mexico | Supermarket | S?per Oui de San Rafael S.A. de C.V |
+| Mexico | Supermarket | Safeway |
+| Mexico | Supermarket | Soriana |
+| Mexico | Supermarket | SUPER 2000 |
+| Mexico | Supermarket | Super Gutierrez, SA De C.V. |
+| Mexico | Supermarket | SUPER IBERIA VECINO |
+| Mexico | Supermarket | Super Q S.A. |
+| Mexico | Supermarket | TIENDAS COMERCIAL MEXICANA SA DE CV |
+| Mexico | Supermarket | Tiendas Garces S.A .de C.V. |
+| Mexico | Unassigned | Unassigned |
+| Mexico | Vending | Grupo Bimbo |
+| Mexico | Vending | Instituto Tecn de Estd Supr Monterrey AC |
+| Mexico | Vending | Wal-Mart Inc. |
+| Mexico | Warehouse | Almacenes Ibarra, S.A. de C.V |
+| Mexico | Warehouse | Comercializadora Merco |
+| Mexico | Warehouse | JOY |
+| Mexico | Warehouse | LA EUROPEA |
+| Mexico | Warehouse | LA HOJALDRA |
+| Mexico | Warehouse | Office Depot, Inc |
+| Mexico | Warehouse | SERVICIO COMERCIAL GARIS S.A. DE C.V. |
+| Mexico | Warehouse | Wal-Mart Inc. |
+
+### Package (Country → RTD-NRTD → MS-SS → Refillability → Container)
+
+| 'Ship From'[Country] | 'Package'[LT1.6 - RTD-NRTD] | 'Package'[LT1.5 - MS-SS] | 'Package'[LT1.4 - Refillability] | 'Package'[LT1.3 - Container] |
+| --- | --- | --- | --- | --- |
+| Brazil | NRTD | Dry | Non Returnable | Bag |
+| Brazil | NRTD | Dry | Non Returnable | Powder |
+| Brazil | RTD | MS | Non Returnable | Brick-Pack |
+| Brazil | RTD | MS | Non Returnable | Bulk |
+| Brazil | RTD | MS | Non Returnable | Glass Bottle |
+| Brazil | RTD | MS | Non Returnable | PET |
+| Brazil | RTD | MS | Returnable | Bulk |
+| Brazil | RTD | MS | Returnable | Glass Bottle |
+| Brazil | RTD | MS | Returnable | PET |
+| Brazil | RTD | SS | Fountain | BIB |
+| Brazil | RTD | SS | Non Returnable | Brick-Pack |
+| Brazil | RTD | SS | Non Returnable | Can |
+| Brazil | RTD | SS | Non Returnable | Cup |
+| Brazil | RTD | SS | Non Returnable | Glass Bottle |
+| Brazil | RTD | SS | Non Returnable | PET |
+| Brazil | RTD | SS | Returnable | Glass Bottle |
+| Brazil | Unassigned | Unassigned | Unassigned | Unassigned |
+| Colombia | RTD | MS | Non Returnable | PET |
+| Colombia | RTD | MS | Non Returnable | Pouch |
+| Colombia | RTD | MS | Returnable | Bulk |
+| Colombia | RTD | MS | Returnable | Glass Bottle |
+| Colombia | RTD | MS | Returnable | PET |
+| Colombia | RTD | SS | Fountain | BIB |
+| Colombia | RTD | SS | Non Returnable | Brick-Pack |
+| Colombia | RTD | SS | Non Returnable | Can |
+| Colombia | RTD | SS | Non Returnable | Glass Bottle |
+| Colombia | RTD | SS | Non Returnable | PET |
+| Colombia | RTD | SS | Non Returnable | Pouch |
+| Colombia | RTD | SS | Returnable | Glass Bottle |
+| Colombia | Unassigned | Unassigned | Unassigned | Unassigned |
+| Mexico | NRTD | Dry | Non Returnable | Bag |
+| Mexico | NRTD | Dry | Non Returnable | Can |
+| Mexico | NRTD | Dry | Non Returnable | Glass Jar |
+| Mexico | NRTD | Dry | Non Returnable | Powder |
+| Mexico | RTD | Dry | Non Returnable | Powder |
+| Mexico | RTD | MS | Non Returnable | Brick-Pack |
+| Mexico | RTD | MS | Non Returnable | Bulk |
+| Mexico | RTD | MS | Non Returnable | PET |
+| Mexico | RTD | MS | Non Returnable | Pouch |
+| Mexico | RTD | MS | Returnable | Bulk |
+| Mexico | RTD | MS | Returnable | Glass Bottle |
+| Mexico | RTD | MS | Returnable | PET |
+| Mexico | RTD | SS | Fountain | BIB |
+| Mexico | RTD | SS | Non Returnable | Aluminum Bottle |
+| Mexico | RTD | SS | Non Returnable | Brick-Pack |
+| Mexico | RTD | SS | Non Returnable | Can |
+| Mexico | RTD | SS | Non Returnable | Glass Bottle |
+| Mexico | RTD | SS | Non Returnable | PET |
+| Mexico | RTD | SS | Non Returnable | Pouch |
+| Mexico | RTD | SS | Returnable | Glass Bottle |
+| Mexico | RTD | SS | Returnable | PET |
+| Mexico | Unassigned | Unassigned | Unassigned | Unassigned |
+
 
 ## Dimension Value Resolution
 
