@@ -821,6 +821,7 @@ Classification inference rules:
 - No comparison or reference period implied → cardinality = none.
 - "per consumption day", consumption-day adjusted → normalization = CD.
 - "per working day", working-day adjusted → normalization = WD.
+- Revenue or Volume growth comparison vs a prior year (aggregation_default = PercentChange AND cardinality IN {PY, 2PY, 3PY, 5PY} AND domain IN {Revenue, Volume}) with no explicit day-basis stated → normalization = CD (default). An explicit "per working day" / "no normalization" cue overrides this.
 - No day-based normalization implied → normalization = (none).
 
 Ontology classification filter structure:
