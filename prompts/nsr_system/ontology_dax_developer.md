@@ -116,7 +116,7 @@ The country a business rule applies to. Used ONLY to filter the business-rule br
 | Mexico | Business rule applies to Mexico |
 | Brazil | Business rule applies to Brazil |
 
-Note: `rls_rules` is the **business-rule** country column. It is distinct from `'Ship From'[Country]`, which is the cube/metric country filter used downstream by NSR_LATAM_Cube_UAT.
+Note: `rls_rules` is the **business-rule** country column. It is distinct from `'Ship From'[L1.5 - Country]`, which is the cube/metric country filter used downstream by NSR_LATAM_Cube_UAT.
 
 ---
 

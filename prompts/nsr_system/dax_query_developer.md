@@ -179,7 +179,7 @@ Enter **verbatim mode** for a business rule when its `dax_expression`, after tri
 
 ### What to auto-detect and adapt
 
-1. **Country scope** — find the country predicate (`'Ship From'[Country]` or `'Ship From'[L1.5 - Country]`) and rewrite its value(s) to match `country_scope` (Section 8). If the query has **no** country filter, **add** the standard governed country filter.
+1. **Country scope** — find the country predicate (`'Ship From'[L1.5 - Country]`) and rewrite its value(s) to match `country_scope` (Section 8). If the query has **no** country filter, **add** the standard governed country filter.
 2. **Time / period scope** — find the Period predicates (`'Period'[...]` label + Code columns) and rewrite them to the request's time scope using `today_context`, **preserving the rule's calendar system** (445 vs Gregorian `'Period'[Month Cal]`) and the existing label+Code pairing. If the request specifies no time, **leave the rule's own period scope unchanged**.
 3. **Dimension-value filters** — for any dimension the user's question references, prefer the values from `ontology_context.candidate_dimension_values` when aligning the dimension-value scope (e.g. `'Ship From'[L1.3 - Bottler] IN { "CO Coca-Cola Femsa" }`), matching the column already used in the query where present; deviate only if they conflict with the user's actual request.
 
@@ -664,7 +664,7 @@ Avoid:
 "Net Sales Revenue",
 CALCULATE(
     [Bottler Net Revenue AC (LC)],
-    KEEPFILTERS('Ship From'[Country] = "<resolved country>")
+    KEEPFILTERS('Ship From'[L1.5 - Country] = "<resolved country>")
 )
 ---
 
@@ -798,7 +798,7 @@ Inside SUMMARIZECOLUMNS, NEVER use direct boolean filter expressions like:
 
 KEEPFILTERS('Period'[Day 445] = "Jan 02 2026")
 
-KEEPFILTERS('Ship From'[Country] = "Colombia")
+KEEPFILTERS('Ship From'[L1.5 - Country] = "Colombia")
 
 These patterns may fail in the NSR LATAM semantic model with:
 
@@ -814,8 +814,8 @@ FILTER(
 )
 
 FILTER(
-    ALL('Ship From'[Country]),
-    'Ship From'[Country] = "Colombia"
+    ALL('Ship From'[L1.5 - Country]),
+    'Ship From'[L1.5 - Country] = "Colombia"
 )
 
 Rules:
@@ -1969,22 +1969,22 @@ Rules:
 * If intent country = Colombia, generate only:
 
 FILTER(
-ALL('Ship From'[Country]),
-'Ship From'[Country] = "Colombia"
+ALL('Ship From'[L1.5 - Country]),
+'Ship From'[L1.5 - Country] = "Colombia"
 )
 
 * If intent country = Mexico, generate only:
 
 FILTER(
-ALL('Ship From'[Country]),
-'Ship From'[Country] = "Mexico"
+ALL('Ship From'[L1.5 - Country]),
+'Ship From'[L1.5 - Country] = "Mexico"
 )
 
 * If intent country = Brazil, generate only:
 
 FILTER(
-ALL('Ship From'[Country]),
-'Ship From'[Country] = "Brazil"
+ALL('Ship From'[L1.5 - Country]),
+'Ship From'[L1.5 - Country] = "Brazil"
 )
 
 * NEVER include more than one supported country in the same query unless the structured intent explicitly requests a multi-country comparison.
@@ -1995,7 +1995,7 @@ ALL('Ship From'[Country]),
 
 * NEVER add Brazil as a fallback country.
 
-* NEVER stack multiple country filters on 'Ship From'[Country] for a single-country request.
+* NEVER stack multiple country filters on 'Ship From'[L1.5 - Country] for a single-country request.
 
 * The generated country filter MUST exactly match the country resolved by the Intent Clarifier.
 
@@ -2010,8 +2010,8 @@ Intent Country = Colombia
 Valid:
 
 FILTER(
-ALL('Ship From'[Country]),
-'Ship From'[Country] = "Colombia"
+ALL('Ship From'[L1.5 - Country]),
+'Ship From'[L1.5 - Country] = "Colombia"
 )
 
 Intent Country = Mexico
@@ -2019,8 +2019,8 @@ Intent Country = Mexico
 Valid:
 
 FILTER(
-ALL('Ship From'[Country]),
-'Ship From'[Country] = "Mexico"
+ALL('Ship From'[L1.5 - Country]),
+'Ship From'[L1.5 - Country] = "Mexico"
 )
 
 Intent Country = Brazil
@@ -2028,19 +2028,19 @@ Intent Country = Brazil
 Valid:
 
 FILTER(
-ALL('Ship From'[Country]),
-'Ship From'[Country] = "Brazil"
+ALL('Ship From'[L1.5 - Country]),
+'Ship From'[L1.5 - Country] = "Brazil"
 )
 
 Invalid:
 
 FILTER(
-ALL('Ship From'[Country]),
-'Ship From'[Country] = "Colombia"
+ALL('Ship From'[L1.5 - Country]),
+'Ship From'[L1.5 - Country] = "Colombia"
 ),
 FILTER(
-ALL('Ship From'[Country]),
-'Ship From'[Country] = "Mexico"
+ALL('Ship From'[L1.5 - Country]),
+'Ship From'[L1.5 - Country] = "Mexico"
 )
 
 # 8A. Business Rule Governance
@@ -2426,7 +2426,7 @@ Use `today_context.day_445` = `"Jun 04 2026"`:
 EVALUATE
 SUMMARIZECOLUMNS(
     'Channel'[LT1.3 - Channel Macro Group],
-    FILTER(ALL('Ship From'[Country]), 'Ship From'[Country] = "Colombia"),
+    FILTER(ALL('Ship From'[L1.5 - Country]), 'Ship From'[L1.5 - Country] = "Colombia"),
     FILTER(ALL('Period'[Day 445]), 'Period'[Day 445] = "Jun 04 2026"),
     "Net Sales Revenue", [Bottler Net Revenue AC (LC)]
 )
@@ -2444,7 +2444,7 @@ ADDCOLUMNS(
     "YTD Revenue",
     CALCULATE(
         [Bottler Net Revenue AC (LC) YTD],
-        KEEPFILTERS(FILTER(ALL('Ship From'[Country]), 'Ship From'[Country] = "Colombia")),
+        KEEPFILTERS(FILTER(ALL('Ship From'[L1.5 - Country]), 'Ship From'[L1.5 - Country] = "Colombia")),
         KEEPFILTERS(FILTER(ALL('Period'[Year 445]), 'Period'[Year 445] = "2026")),
         KEEPFILTERS(FILTER(ALL('Period'[Month 445]), 'Period'[Month 445] <> ""))
     )
@@ -2624,7 +2624,7 @@ SUMMARIZECOLUMNS(
     'Period'[Month 445],
     'Period'[Month 445 Code],
     FILTER(ALL('Period'[Month 445 Code]), 'Period'[Month 445 Code] >= "202604" && 'Period'[Month 445 Code] <= "202606"),
-    FILTER(ALL('Ship From'[Country]), 'Ship From'[Country] = "Colombia"),
+    FILTER(ALL('Ship From'[L1.5 - Country]), 'Ship From'[L1.5 - Country] = "Colombia"),
     "Net Sales Revenue", [Bottler Net Revenue AC (LC)]
 )
 ORDER BY 'Period'[Month 445 Code] ASC
@@ -2737,7 +2737,7 @@ ADDCOLUMNS(
     "YTD Revenue",
     CALCULATE(
         [Bottler Net Revenue AC (LC) YTD],
-        KEEPFILTERS(FILTER(ALL('Ship From'[Country]), 'Ship From'[Country] = "Colombia")),
+        KEEPFILTERS(FILTER(ALL('Ship From'[L1.5 - Country]), 'Ship From'[L1.5 - Country] = "Colombia")),
         KEEPFILTERS(FILTER(ALL('Period'[Year 445 Code]), 'Period'[Year 445 Code] = "2026")),
         KEEPFILTERS(FILTER(ALL('Period'[Month 445]), 'Period'[Month 445] <> ""))
     )

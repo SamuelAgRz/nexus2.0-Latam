@@ -371,8 +371,8 @@ Validation Rules:
 Execution-safe equivalent:
 
 FILTER(
-    ALL('Ship From'[Country]),
-    'Ship From'[Country] = <Requested Country>
+    ALL('Ship From'[L1.5 - Country]),
+    'Ship From'[L1.5 - Country] = <Requested Country>
 )
 
 Reject queries that:
@@ -400,23 +400,23 @@ Validation Rules:
 
 VALID:
 
-'Ship From'[Country] = "Colombia"
+'Ship From'[L1.5 - Country] = "Colombia"
 
 VALID:
 
-'Ship From'[Country] = "Mexico"
+'Ship From'[L1.5 - Country] = "Mexico"
 
 VALID:
 
-'Ship From'[Country] = "Brazil"
+'Ship From'[L1.5 - Country] = "Brazil"
 
 INVALID:
 
-'Ship From'[Country] = "México"
+'Ship From'[L1.5 - Country] = "México"
 
 INVALID:
 
-'Ship From'[Country] = "MX"
+'Ship From'[L1.5 - Country] = "MX"
 ---
 # 8B. Geography Intent Alignment
 
@@ -776,7 +776,7 @@ Reject:
 ```DAX
 SUMMARIZECOLUMNS(
     'Channel'[LT1.3 - Channel Macro Group],
-    FILTER(ALL('Ship From'[Country]), 'Ship From'[Country] = "Colombia"),
+    FILTER(ALL('Ship From'[L1.5 - Country]), 'Ship From'[L1.5 - Country] = "Colombia"),
     "YTD Revenue", [Bottler Net Revenue AC (LC) YTD]
 )
 ```
@@ -789,7 +789,7 @@ ADDCOLUMNS(
     "YTD Revenue",
     CALCULATE(
         [Bottler Net Revenue AC (LC) YTD],
-        KEEPFILTERS(FILTER(ALL('Ship From'[Country]), 'Ship From'[Country] = "Colombia")),
+        KEEPFILTERS(FILTER(ALL('Ship From'[L1.5 - Country]), 'Ship From'[L1.5 - Country] = "Colombia")),
         KEEPFILTERS(FILTER(ALL('Period'[Year 445]), 'Period'[Year 445] = "2026")),
         KEEPFILTERS(FILTER(ALL('Period'[Month 445]), 'Period'[Month 445] <> ""))
     )
@@ -1126,8 +1126,8 @@ SUMMARIZECOLUMNS(
     ),
 
     FILTER(
-        ALL('Ship From'[Country]),
-        'Ship From'[Country] = "Colombia"
+        ALL('Ship From'[L1.5 - Country]),
+        'Ship From'[L1.5 - Country] = "Colombia"
     ),
 
     "Unit Cases", [Unit Cases AC]
@@ -1147,8 +1147,8 @@ SUMMARIZECOLUMNS(
     ),
 
     FILTER(
-        ALL('Ship From'[Country]),
-        'Ship From'[Country] = "Colombia"
+        ALL('Ship From'[L1.5 - Country]),
+        'Ship From'[L1.5 - Country] = "Colombia"
     ),
 
     "Unit Cases",
@@ -1167,8 +1167,8 @@ SUMMARIZECOLUMNS(
     ),
 
     FILTER(
-        ALL('Ship From'[Country]),
-        'Ship From'[Country] = "Mexico"
+        ALL('Ship From'[L1.5 - Country]),
+        'Ship From'[L1.5 - Country] = "Mexico"
     ),
 
     "Unit Cases", [Unit Cases AC]
@@ -1188,8 +1188,8 @@ SUMMARIZECOLUMNS(
     ),
 
     FILTER(
-        ALL('Ship From'[Country]),
-        'Ship From'[Country] = "Mexico"
+        ALL('Ship From'[L1.5 - Country]),
+        'Ship From'[L1.5 - Country] = "Mexico"
     ),
 
     "Unit Cases",
@@ -1436,8 +1436,8 @@ SUMMARIZECOLUMNS(
     ),
 
     FILTER(
-        ALL('Ship From'[Country]),
-        'Ship From'[Country] = "Colombia"
+        ALL('Ship From'[L1.5 - Country]),
+        'Ship From'[L1.5 - Country] = "Colombia"
     ),
 
     "Net Sales Revenue",
@@ -1459,7 +1459,7 @@ FILTER(
 Use this approved pattern for:
 
 - `'Period'[Day 445]`
-- `'Ship From'[Country]`
+- `'Ship From'[L1.5 - Country]`
 - explicit dimension filters
 - governance filters
 - day-level filtering
@@ -1488,7 +1488,7 @@ SUMMARIZECOLUMNS(
 
     KEEPFILTERS('Period'[Day 445] = "Jan 02 2026"),
 
-    KEEPFILTERS('Ship From'[Country] = "Colombia"),
+    KEEPFILTERS('Ship From'[L1.5 - Country] = "Colombia"),
 
     "Net Sales Revenue",
     [Bottler Net Revenue AC (LC)]
@@ -1524,8 +1524,8 @@ If the query contains:
 
 ```DAX
 FILTER(
-    ALL('Ship From'[Country]),
-    'Ship From'[Country] = <Requested Country>
+    ALL('Ship From'[L1.5 - Country]),
+    'Ship From'[L1.5 - Country] = <Requested Country>
 )
 ```
 
@@ -1594,8 +1594,8 @@ EVALUATE
 SUMMARIZECOLUMNS(
     'Channel'[LT1.1 - Trade Channel],
     FILTER(
-        ALL('Ship From'[Country]),
-        'Ship From'[Country] = "Colombia"
+        ALL('Ship From'[L1.5 - Country]),
+        'Ship From'[L1.5 - Country] = "Colombia"
     ),
     "Net Sales Revenue",
     [Bottler Net Revenue AC (LC)]
@@ -1704,7 +1704,7 @@ ROW(
     "Net Sales Revenue",
     CALCULATE(
         [Bottler Net Revenue AC (LC)],
-        KEEPFILTERS('Ship From'[Country] = "Colombia")
+        KEEPFILTERS('Ship From'[L1.5 - Country] = "Colombia")
     )
 )
 ```
@@ -1716,8 +1716,8 @@ EVALUATE
 SUMMARIZECOLUMNS(
     'Channel'[LT1.3 - Channel Macro Group],
     FILTER(
-        ALL('Ship From'[Country]),
-        'Ship From'[Country] = "Colombia"
+        ALL('Ship From'[L1.5 - Country]),
+        'Ship From'[L1.5 - Country] = "Colombia"
     ),
     "Net Sales Revenue",
     [Bottler Net Revenue AC (LC)]
@@ -1732,8 +1732,8 @@ EVALUATE
 SUMMARIZECOLUMNS(
     'Channel'[LT1.1 - Trade Channel],
     FILTER(
-        ALL('Ship From'[Country]),
-        'Ship From'[Country] = "Colombia"
+        ALL('Ship From'[L1.5 - Country]),
+        'Ship From'[L1.5 - Country] = "Colombia"
     ),
     "Net Sales Revenue",
     [Bottler Net Revenue AC (LC)]

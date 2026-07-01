@@ -185,14 +185,14 @@ Country is a mandatory governance dimension.
 
 Use the following governed country filter column:
 
-'Ship From'[Country]
+'Ship From'[L1.5 - Country]
 
 Allowed governed filters:
 
-- 'Ship From'[Country] = "Colombia"
-- 'Ship From'[Country] = "Mexico"
-- 'Ship From'[Country] = "Brazil"
-- 'Ship From'[Country] IN {"Colombia", "Mexico", "Brazil"} (any combination of the supported countries) when the user explicitly asks for multiple supported countries or a supported-country comparison.
+- 'Ship From'[L1.5 - Country] = "Colombia"
+- 'Ship From'[L1.5 - Country] = "Mexico"
+- 'Ship From'[L1.5 - Country] = "Brazil"
+- 'Ship From'[L1.5 - Country] IN {"Colombia", "Mexico", "Brazil"} (any combination of the supported countries) when the user explicitly asks for multiple supported countries or a supported-country comparison.
 
 If the user requests:
 
@@ -224,7 +224,7 @@ Examples:
 
 Mexico:
 "country_scope": {
-  "column": "'Ship From'[Country]",
+  "column": "'Ship From'[L1.5 - Country]",
   "values": ["Mexico"],
   "country_scope_required": true,
   "unsupported_country_requested": false
@@ -232,7 +232,7 @@ Mexico:
 
 Colombia:
 "country_scope": {
-  "column": "'Ship From'[Country]",
+  "column": "'Ship From'[L1.5 - Country]",
   "values": ["Colombia"],
   "country_scope_required": true,
   "unsupported_country_requested": false
@@ -240,7 +240,7 @@ Colombia:
 
 Brazil:
 "country_scope": {
-  "column": "'Ship From'[Country]",
+  "column": "'Ship From'[L1.5 - Country]",
   "values": ["Brazil"],
   "country_scope_required": true,
   "unsupported_country_requested": false
@@ -248,7 +248,7 @@ Brazil:
 
 Supported-country comparison:
 "country_scope": {
-  "column": "'Ship From'[Country]",
+  "column": "'Ship From'[L1.5 - Country]",
   "values": ["Colombia", "Mexico", "Brazil"],
   "country_scope_required": true,
   "unsupported_country_requested": false
@@ -1349,7 +1349,7 @@ LATAM_NSR_Ontology
   "ontology_resolution_reason": [],
   "supported_countries": ["Colombia", "Mexico", "Brazil"],
   "country_scope": {
-    "column": "'Ship From'[Country]",
+    "column": "'Ship From'[L1.5 - Country]",
     "values": [],
     "country_scope_required": true,
     "unsupported_country_requested": false
@@ -1383,7 +1383,7 @@ LATAM_NSR_Ontology
 },
 
 "downstream_constraints": {
-    "allowed_country_column": "'Ship From'[Country]",
+    "allowed_country_column": "'Ship From'[L1.5 - Country]",
     "allowed_country_values": ["Colombia", "Mexico", "Brazil"],
     "calendar": "445 Calendar"
   },

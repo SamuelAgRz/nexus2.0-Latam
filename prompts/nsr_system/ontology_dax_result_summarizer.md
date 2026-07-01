@@ -14,25 +14,12 @@ Use ONLY column names from this list in the `relevant_dimension_columns` output.
 Preserve the exact notation (e.g. `'Ship From'[L1.5 - Country]`).
 
 ### Channel
-- 'Channel'[Trade Channel]
-- 'Channel'[Sub Trade Channel]
-- 'Channel'[Sub Trade Channel Code]
-- 'Channel'[BU Channel Code]
-- 'Channel'[Consumer Activity Cluster]
 - 'Channel'[LT1.0 - Sub Trade Channel]
 - 'Channel'[LT1.1 - Trade Channel]
 - 'Channel'[LT1.2 - Channel Group]
 - 'Channel'[LT1.3 - Channel Macro Group]
 
 ### Product
-- 'Product'[Beverage Category]
-- 'Product'[Beverage Sub Category]
-- 'Product'[Beverage Type]
-- 'Product'[Beverage State]
-- 'Product'[BPP]
-- 'Product'[BPP Code]
-- 'Product'[BU Product]
-- 'Product'[BU Product Code]
 - 'Product'[LT1.1 - Beverage Product]
 - 'Product'[LT1.2 - Brand Group]
 - 'Product'[LT1.3 - Trademark Category]
@@ -44,11 +31,6 @@ Preserve the exact notation (e.g. `'Ship From'[L1.5 - Country]`).
 - 'Product'[Non-KO Product]
 
 ### Package (Country → RTD-NRTD → MS-SS → Refillability → Container)
-- 'Package'[Package]
-- 'Package'[Container Type]
-- 'Package'[Primary Container]
-- 'Package'[Secondary Package]
-- 'Package'[BPP]
 - 'Package'[LT1.1 - Package]
 - 'Package'[LT1.2 - Package Type]
 - 'Package'[LT1.3 - Container]
@@ -57,12 +39,6 @@ Preserve the exact notation (e.g. `'Ship From'[L1.5 - Country]`).
 - 'Package'[LT1.6 - RTD-NRTD]
 
 ### Ship From (Bottler / Geography)
-- 'Ship From'[Country]
-- 'Ship From'[Country Code]
-- 'Ship From'[Business Unit]
-- 'Ship From'[Region]
-- 'Ship From'[Operating Group]
-- 'Ship From'[BU Ship From]
 - 'Ship From'[L1.0 - Bottler Franchise or CEDI]
 - 'Ship From'[L1.1 - Bottler SubZone]
 - 'Ship From'[L1.2 - Bottler Zone]
@@ -125,9 +101,9 @@ Preserve the exact notation (e.g. `'Ship From'[L1.5 - Country]`).
 - 'Other Discount'[Other Discount Code]
 
 ### Business Rules
-- For country/geography filtering, use 'Ship From'[Country] or 'Ship From'[L1.5 - Country]. Do NOT use 'Ship To'[Country] — it does not exist in this model.
-- For channel breakdown, prefer 'Channel'[Trade Channel] unless a more granular level is requested.
-- For product breakdown, prefer 'Product'[Beverage Category] or 'Product'[BPP] unless a hierarchy level is specified.
+- For country/geography filtering, use 'Ship From'[L1.5 - Country]. Do NOT use 'Ship To'[Country] — it does not exist in this model.
+- For channel breakdown, prefer 'Channel'[LT1.1 - Trade Channel] unless a more granular level is requested.
+- For product breakdown, prefer 'Product'[LT1.5 - Category] unless a hierarchy level is specified.
 - The model uses two calendar systems: 445 calendar and Gregorian.
 - Default to 445 unless Gregorian is explicitly specified by the ontology.
 - If a business rule references a Gregorian calendar field (for example Period[Month Cal]), preserve it exactly as ontology context.
@@ -174,7 +150,7 @@ These tables list the real, in-database value combinations for the most commonly
 
 ### Channel (Country → Channel Macro Group → Channel Group)
 
-| 'Ship From'[Country] | 'Channel'[LT1.3 - Channel Macro Group] | 'Channel'[LT1.2 - Channel Group] |
+| 'Ship From'[L1.5 - Country] | 'Channel'[LT1.3 - Channel Macro Group] | 'Channel'[LT1.2 - Channel Group] |
 | --- | --- | --- |
 | Brazil | Intermediaries (b2b) | Off Premise - B2B |
 | Brazil | Modern | Off Premise |
@@ -195,7 +171,7 @@ These tables list the real, in-database value combinations for the most commonly
 
 ### Product (Country → Industry → Category → Sub-Category → Trademark Category → Brand Group)
 
-| 'Ship From'[Country] | 'Product'[LT1.8 - Industry] | 'Product'[LT1.5 - Category] | 'Product'[LT1.4 - Sub-Category] | 'Product'[LT1.3 - Trademark Category] | 'Product'[LT1.2 - Brand Group] |
+| 'Ship From'[L1.5 - Country] | 'Product'[LT1.8 - Industry] | 'Product'[LT1.5 - Category] | 'Product'[LT1.4 - Sub-Category] | 'Product'[LT1.3 - Trademark Category] | 'Product'[LT1.2 - Brand Group] |
 | --- | --- | --- | --- | --- | --- |
 | Brazil | Alcoholic Beverages | ARTD | Flavored Alcoholic Beverages | Lemon-Dou | Lemon-Dou |
 | Brazil | Alcoholic Beverages | ARTD | Hard Seltzers | Schweppes TM | Schweppes Mixed |
@@ -414,7 +390,7 @@ These tables list the real, in-database value combinations for the most commonly
 
 ### Ship From / Bottler (Country → Bottler → Bottler Zone)
 
-| 'Ship From'[Country] | 'Ship From'[L1.3 - Bottler] | 'Ship From'[L1.2 - Bottler Zone] |
+| 'Ship From'[L1.5 - Country] | 'Ship From'[L1.3 - Bottler] | 'Ship From'[L1.2 - Bottler Zone] |
 | --- | --- | --- |
 | Brazil | BR Andina | BR Andina |
 | Brazil | BR Coca-Cola Femsa | BR Coca-Cola Femsa |
@@ -450,7 +426,7 @@ These tables list the real, in-database value combinations for the most commonly
 
 ### Customer (Country → Business Sub Type → Customer)
 
-| 'Ship From'[Country] | 'Ship To'[LT1.3 - Business Sub Type] | 'Ship To'[LT1.2 - Customer] |
+| 'Ship From'[L1.5 - Country] | 'Ship To'[LT1.3 - Business Sub Type] | 'Ship To'[LT1.2 - Customer] |
 | --- | --- | --- |
 | Brazil | Airline | Azul |
 | Brazil | Airline | GOL |
@@ -911,7 +887,7 @@ These tables list the real, in-database value combinations for the most commonly
 
 ### Package (Country → RTD-NRTD → MS-SS → Refillability → Container)
 
-| 'Ship From'[Country] | 'Package'[LT1.6 - RTD-NRTD] | 'Package'[LT1.5 - MS-SS] | 'Package'[LT1.4 - Refillability] | 'Package'[LT1.3 - Container] |
+| 'Ship From'[L1.5 - Country] | 'Package'[LT1.6 - RTD-NRTD] | 'Package'[LT1.5 - MS-SS] | 'Package'[LT1.4 - Refillability] | 'Package'[LT1.3 - Container] |
 | --- | --- | --- | --- | --- |
 | Brazil | NRTD | Dry | Non Returnable | Bag |
 | Brazil | NRTD | Dry | Non Returnable | Powder |
