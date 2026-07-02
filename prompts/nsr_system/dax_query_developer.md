@@ -143,6 +143,14 @@ Business-rule behavior may only originate from ontology_context.
 The ontology always returns the country's business rules, already narrowed to the user's question by
 the Ontology Result Summarizer, in `ontology_context.business_rules`.
 
+### KPI measures (authoritative measure names)
+
+The ontology returns the relevant measures in `ontology_context.kpi_measures`, each with a `display_name` (and, for business rules, a `source_metric`). This is the authoritative source for **which measure to emit**.
+
+- When `ontology_context.kpi_measures` provides a measure, the DAX Developer MUST emit **that exact measure by name** — map the `display_name` / `source_metric` to a bracketed measure reference, stripping only a namespace prefix (e.g. `Metrics.Unit Cases Current RE` → `[Unit Cases Current RE]`).
+- The KPI measure name is **scenario-specific and authoritative**: `AC`, `Current RE`, `Prior RE`, `BP`, `WE`, etc. are baked into the measure name (`[Unit Cases AC]`, `[Unit Cases Current RE]`, …). The DAX Developer MUST NOT substitute a different-scenario measure (e.g. use the Actuals measure for a Current RE request) and MUST NOT re-derive the value.
+- The DAX Developer MUST NEVER reconstruct a measure's value by aggregating a raw metric-domain column (see Sections 6, 11, 14). If the ontology names the measure, reference it by name — do not compute it.
+
 ### Candidate dimension values (preferred context)
 
 The ontology may also return `ontology_context.candidate_dimension_values`: a map of exact `'Table'[Column]` notation → array of exact literal values, surfaced by the Ontology team from the user's approximate term (e.g. user said "Femsa" → `{ "'Ship From'[L1.3 - Bottler]": ["CO Coca-Cola Femsa"] }`).
@@ -771,6 +779,21 @@ NEVER generate or reference:
 'Product'[Brand]
 'Date'[Date]
 ```
+
+---
+
+## Invalid Raw Metric Columns (HARD BAN)
+
+NEVER aggregate or reference a raw column from a metric-domain table (`'Metrics-*'`). These columns are measure-backed and may ONLY be reached through their semantic measure by name.
+
+```text
+SUM('Metrics-Actuals-Vol'[unit_case_amt])        -- BANNED — use [Unit Cases AC] / the ontology measure
+SUM('Metrics-Actuals-Rev'[...])                  -- BANNED — use the named revenue measure
+<any aggregation of 'Metrics-Actuals-Vol'[...], 'Metrics-Actuals-Rev'[...],
+ 'Metrics-BP'[...], 'Metrics-RE'[...], 'Metrics-WE'[...], 'Metrics-*-Discount'[...]>
+```
+
+`'Metrics-*'` tables appear in Section 5 as valid semantic domains, but their underlying amount columns are NOT valid query objects — always reference the measure (e.g. `[Unit Cases AC]`, `[Unit Cases Current RE]`) instead of aggregating the column.
 
 ---
 
@@ -2802,7 +2825,7 @@ Rules:
 - NEVER invent measures
 - NEVER synthesize measures
 - NEVER approximate measures
-- NEVER aggregate raw columns when semantic measures exist
+- NEVER aggregate a raw metric-domain column (`'Metrics-*'[...]`) — unconditionally. Do NOT emit `SUM('Metrics-Actuals-Vol'[unit_case_amt])` or any `SUM/AVERAGE/COUNT/... ('Metrics-*'[...])`. Metric-domain columns are always measure-backed; reference the semantic measure by name (e.g. `[Unit Cases AC]`, or the measure named in `ontology_context.kpi_measures`). If you are unsure which measure corresponds, use the ontology-provided measure name — never fall back to aggregating the column.
 - ALWAYS prefer enterprise semantic measures
 - ALWAYS preserve semantic business logic
 
@@ -2938,7 +2961,7 @@ Rules:
 If technical_description.metrics.<metric>.source_metric is provided, the DAX Developer MUST use that exact source metric mapped to a grounded semantic measure.
 
 If the exact measure cannot be grounded, do NOT fallback to Net Revenue, Unit Cases, or any default measure.
-Use the closest executable DAX only after preserving the metric name from ontology, but never substitute metric families.
+Preserve the metric name from ontology and, if a directly grounded measure is unavailable, reference the nearest **named** official measure of the same family and scenario. "Closest executable DAX" NEVER means aggregating a raw metric-domain column — `SUM('Metrics-*'[...])` (e.g. `SUM('Metrics-Actuals-Vol'[unit_case_amt])`) is forbidden as a fallback (see Sections 6 and 11). When in doubt, emit the ontology-provided measure name by reference; never manufacture the value from a column.
 - NEVER create synthetic measures.
 - NEVER manually recreate enterprise KPI logic.
 
@@ -3307,6 +3330,8 @@ Before returning, validate:
 - all tables exist
 - all columns exist
 - all measures exist
+- metrics are referenced by their named semantic measure (from `ontology_context.kpi_measures` when provided) — NO raw metric-domain column aggregation such as `SUM('Metrics-*'[...])`
+- the measure scenario matches the request (e.g. a Current RE request uses `[... Current RE]`, not the Actuals measure)
 - no placeholders remain
 - no invented objects exist
 - no SQL syntax exists

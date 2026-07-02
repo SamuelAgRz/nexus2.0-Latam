@@ -996,6 +996,8 @@ Actuals Unit Cases / Sales Volume
 
 This is the OFFICIAL enterprise-approved Actuals Volume measure.
 
+> **Definitional only — NOT an authorized query form.** The `SUM('Metrics-Actuals-Vol'[unit_case_amt])` above documents what `[Unit Cases AC]` *means*; it is NOT a valid expression to appear in a generated query. Generated DAX MUST reference the measure **by name** (`[Unit Cases AC]`, `[Unit Cases Current RE]`, etc.). A query that aggregates the raw column directly is INVALID — see Rule 6.
+
 ---
 
 # Official Time-Series Volume Measures
@@ -1111,6 +1113,32 @@ This is the official Macro Channel hierarchy level.
 
 ---
 
+## Rule 6 — No Raw Metric-Column Aggregation
+
+Generated DAX MUST reference metrics through their **named** semantic measure. A query that directly aggregates a raw column from a metric-domain table (`'Metrics-*'`) is INVALID.
+
+Reject and require the named measure when the query contains any of:
+
+```DAX
+SUM('Metrics-Actuals-Vol'[unit_case_amt])        -- must be [Unit Cases AC] / the ontology-named measure
+SUM('Metrics-Actuals-Rev'[...])                  -- must be the named revenue measure
+SUM/AVERAGE/COUNT/MIN/MAX/... ('Metrics-*'[...])  -- any raw metric-domain column aggregation
+```
+
+Return:
+
+```json
+{
+  "type": "INVALID_MEASURE"
+}
+```
+
+with guidance to replace the raw-column aggregation with the correct named measure (scenario-specific — `[Unit Cases AC]`, `[Unit Cases Current RE]`, etc.). The measure name should come from the ontology (`ontology_context.kpi_measures`); the raw column is never an acceptable substitute even when it numerically equals the Actuals measure.
+
+This rule targets **raw-column aggregations**, not measures. It does NOT conflict with the volume-measure grounding above or with the False Positive Prevention Rules: named measures in `Metrics-Actuals-Vol` (and every other domain) remain VALID — only direct aggregation of the underlying columns is rejected.
+
+---
+
 # Approved Query Pattern Example
 
 The following query pattern is VALID and MUST be approved if syntax is correct:
@@ -1212,6 +1240,8 @@ The validator MUST NOT reject a measure ONLY because:
 * the measure uses enterprise naming conventions
 
 If the measure is explicitly listed in this grounding section, it MUST be treated as valid.
+
+These protections apply to **named measures** (bracketed measure references). They do NOT protect a raw-column aggregation such as `SUM('Metrics-Actuals-Vol'[unit_case_amt])` — that is not a measure and is rejected under Rule 6.
 
 ---
 
