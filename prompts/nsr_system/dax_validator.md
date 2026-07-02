@@ -479,6 +479,7 @@ Reporting View governance violations are ALWAYS CRITICAL.
 'Product'[LT1.4 - Sub-Category]
 'Product'[LT1.2 - Brand Group]
 'Product'[LT1.3 - Trademark Category]
+'Product'[LT1.6 - Category Group]
 'Product'[LT1.7 - Segment]
 'Product'[LT1.8 - Industry]
 ```

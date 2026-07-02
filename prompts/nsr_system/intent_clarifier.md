@@ -1007,10 +1007,11 @@ The Intent Clarifier is responsible for semantic temporal interpretation.
 
 Industry
 → Segment
+→ Category Group
 → Category
 → Subcategory
+→ Trademark Category
 → Brand
-→ Package
 
 ---
 
@@ -1041,6 +1042,18 @@ Never:
 # 13. Canonical Semantic Column Mapping
 
 ## Product
+
+Industry:
+
+'Product'[LT1.8 - Industry]
+
+Segment:
+
+'Product'[LT1.7 - Segment]
+
+Category Group:
+
+'Product'[LT1.6 - Category Group]
 
 Category:
 

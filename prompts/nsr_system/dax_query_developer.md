@@ -875,6 +875,12 @@ Rules:
 'Product'[LT1.3 - Trademark Category]
 ```
 
+### Category Group
+
+```DAX
+'Product'[LT1.6 - Category Group]
+```
+
 ### Segment
 
 ```DAX
