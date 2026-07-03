@@ -100,12 +100,13 @@ Example:
   "filters": [],
   "comparison": {},
   "ranking": {},
-  "visualization_required": false
+  "visualization_required": "<pass through the exact value received from the upstream intent — do NOT reset to false>"
 }
 ```
 
 Rules:
 
+- PRESERVE `visualization_required` exactly as received from the upstream intent — NEVER reset it to `false` and NEVER drop the field
 - Follow structured intent EXACTLY
 - NEVER reinterpret intent
 - NEVER inject business assumptions

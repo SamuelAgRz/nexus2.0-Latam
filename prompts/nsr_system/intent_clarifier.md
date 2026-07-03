@@ -1244,6 +1244,7 @@ If the user explicitly requests:
 - plot
 - dashboard
 - visualize
+- gráfica / gráfico
 
 Then:
 
@@ -1252,6 +1253,17 @@ visualization_required = true
 Else:
 
 visualization_required = false
+
+## Binding the flag to the output JSON (MANDATORY)
+
+The `Chart Requested` / `Chart Not Requested` text marker and the JSON field `visualization_required` are the SAME signal and MUST always agree:
+
+- `Chart Requested`  ⇔  `"visualization_required": true`
+- `Chart Not Requested`  ⇔  `"visualization_required": false`
+
+The computed value above MUST be written into the `visualization_required` field of EVERY output JSON produced by the Intent Clarifier (the Ontology Intent Output in §22.1 and the Cube Retrieval Output in §22.2).
+
+You MUST NOT emit the literal default `false` when the user requested a chart. Compute the value from the user's request on every turn — do NOT copy the placeholder verbatim from the template. When the user asks for a chart/graph/plot/visualization/dashboard/gráfica/gráfico, the emitted JSON field MUST be `"visualization_required": true`.
 
 ---
 # 18. Visualization Governance
@@ -1400,7 +1412,7 @@ LATAM_NSR_Ontology
     "allowed_country_values": ["Colombia", "Mexico", "Brazil"],
     "calendar": "445 Calendar"
   },
-  "visualization_required": false
+  "visualization_required": "<true if the user requested a chart/graph/plot/visualization/dashboard/gráfica/gráfico, else false>"
 }
 
 ### Ontology Resolution Reason Rules
@@ -1525,7 +1537,7 @@ NSR_LATAM_Cube_UAT
 
 "ranking": {},
 
-"visualization_required": false
+"visualization_required": "<true if the user requested a chart/graph/plot/visualization/dashboard/gráfica/gráfico, else false>"
 }
 
 ### today_context — Mandatory Population Rules
