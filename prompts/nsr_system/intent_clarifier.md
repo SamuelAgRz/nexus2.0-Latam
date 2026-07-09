@@ -326,7 +326,7 @@ channel, package, customer, geography, or market:
 Default behavior:
 
 - Comparison Type = Trend
-- Time Window = Last 12 available months
+- Time Window = Last 12 completed months (rolling window — resolve per Section 11.1 and emit `time.window`)
 - Group By = Month 445
 - Visualization Requested = Line Chart
 
@@ -986,8 +986,32 @@ The Intent Clarifier is responsible for resolving:
 - QTD
 - latest available month
 - latest available week
+- last N months / weeks / quarters (rolling windows)
+- explicit period ranges (e.g. "from January to June 2026")
 
 into semantic fiscal intent BEFORE downstream retrieval.
+
+### Rolling Window Resolution
+
+A rolling window request ("last 6 months", "últimos 6 meses", "last 4 weeks",
+"últimas 4 semanas", "last 2 quarters", "últimos 2 trimestres") MUST be resolved
+into explicit inclusive start/end boundaries at clarification time.
+
+Rules:
+
+- The window is anchored to TODAY's 445 calendar period (`today_context`),
+  NEVER to the latest period with available data
+- "last N months" = the N completed 445 months immediately BEFORE the current
+  month — the current in-progress month is EXCLUDED
+  (e.g. today = Jun 04 2026 → last 6 months = 2025 Dec → 2026 May)
+- The same completed-periods convention applies at week, quarter, half, and
+  year grain
+- Windows MUST roll across year boundaries correctly
+  (e.g. last 6 months from 2026 Feb = 2025 Aug → 2026 Jan)
+- The resolved boundaries MUST be materialized in the `time.window` field of the
+  Cube Retrieval Output (Section 22.2) — never left for downstream agents to infer
+- Spanish phrasings ("últimos N meses", "últimas N semanas", "pasados N meses")
+  resolve identically — window resolution is language-independent
 
 ---
 
@@ -1525,7 +1549,10 @@ NSR_LATAM_Cube_UAT
 "label": "Actuals"
 },
 
-"time": {},
+"time": {
+"grain": "<Day | Week | Month | Quarter | Half | Year>",
+"window": {}
+},
 
 "geography": {},
 
@@ -1564,6 +1591,58 @@ Example (for today = June 4 2026):
   "year_445": "2026"
 }
 ```
+
+### time.window — Range Population Rules
+
+Populate `time.window` whenever the question requests a multi-period range —
+a rolling window ("last 6 months" / "últimos 6 meses") or an explicit range
+("from January to June 2026"). Leave it as `{}` for single-anchor intents
+(those resolve via `today_context`).
+
+Schema (example for today = Jun 04 2026, question "últimos 6 meses"):
+
+```json
+"time": {
+  "grain": "Month",
+  "window": {
+    "type": "rolling",
+    "requested": "últimos 6 meses",
+    "start_label": "2025 Dec",
+    "end_label": "2026 May",
+    "start_code": "202512",
+    "end_code": "202605"
+  }
+}
+```
+
+Rules:
+
+- `start`/`end` boundaries are INCLUSIVE
+- `type` is `"rolling"` for relative windows, `"explicit_range"` for stated ranges
+- `requested` preserves the user's phrase verbatim (any language)
+- `*_label` values use the exact 445 label formats (same formats as `today_context`)
+- `*_code` values use the fixed-width 445 Code formats below — these match the
+  semantic model's `'Period'[... 445 Code]` columns and are consumed verbatim
+  by the DAX Developer; they MUST be quoted strings
+
+| Grain | Label format | Code format | Example |
+|---|---|---|---|
+| Day | "Jun 04 2026" | YYYYMMDD | "20260604" |
+| Week | "2026 W23" | YYYYWWW | "2026023" |
+| Month | "2026 Jun" | YYYYMM | "202606" |
+| Quarter | "2026 Q2" | YYYYQQ | "202602" |
+| Half | "2026 H1" | YYYYHH | "202601" |
+| Year | "2026" | YYYY | "2026" |
+
+- Rolling windows anchor to `today_context` and contain COMPLETED periods only:
+  end = the period immediately before today's period at the requested grain;
+  start = end stepped back (N − 1) periods, rolling across year boundaries
+
+Example (today = Jun 04 2026, "last 6 months"):
+start = "2025 Dec" / "202512", end = "2026 May" / "202605".
+
+Example crossing a year boundary (today = Feb 2026, "last 6 months"):
+start = "2025 Aug" / "202508", end = "2026 Jan" / "202601".
 
 ---
 ### Visualization Selection Gate

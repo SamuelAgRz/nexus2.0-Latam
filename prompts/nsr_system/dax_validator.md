@@ -701,6 +701,7 @@ Validation rule:
 - If any `'Period'` Code column filter value is an unquoted integer → `INVALID_FILTER`, severity `CRITICAL`
 - If any `'Period'` label column appears inside a `FILTER()` expression → `INVALID_FILTER`, severity `CRITICAL`
 - If any `'Period'` filter value uses a DAX date function → `INVALID_FILTER`, severity `CRITICAL`
+- If any aggregation or ranking function (`MAX`, `MAXX`, `MIN`, `MINX`, `LASTDATE`, `FIRSTDATE`, `LASTNONBLANK`, `FIRSTNONBLANK`, `RANKX`) is applied to any `'Period'` column to derive a filter boundary → `INVALID_PERIOD_DERIVATION`, severity `CRITICAL` (Section 10C)
 - If the query contains `TOPN(` anywhere → `INVALID_TOPN`, severity `CRITICAL` — use `SUMMARIZECOLUMNS` + `ORDER BY` instead
 
 ---
@@ -869,6 +870,73 @@ KEEPFILTERS(FILTER(ALL('Period'[Month 445]), 'Period'[Month 445] <> ""))
 ```
 
 This MUST be present inside `CALCULATE` when filtering only by Year or Quarter.
+
+---
+
+# 10C. Hard Ban — Data-Derived Period Anchors
+
+Period boundaries MUST arrive in the query as quoted string literals resolved upstream by the Intent Clarifier (`today_context`, `time.window`). Deriving them from the data anchors the window to the latest LOADED period instead of today's period and is non-deterministic.
+
+## Banned Functions over 'Period' Columns
+
+Reject any query that applies the following to any `'Period'` column to derive a date, anchor, or filter boundary:
+
+```text
+MAX()
+MAXX()
+MIN()
+MINX()
+LASTDATE()
+FIRSTDATE()
+LASTNONBLANK()
+FIRSTNONBLANK()
+RANKX()
+```
+
+Error type: `INVALID_PERIOD_DERIVATION`
+Severity: `CRITICAL`
+
+Reject:
+
+```DAX
+VAR LatestMonth = CALCULATE(MAX('Period'[Month 445 Code]))
+```
+
+Reject:
+
+```DAX
+FILTER(ALL('Period'[Month 445 Code]), RANKX(ALL('Period'[Month 445 Code]), 'Period'[Month 445 Code],, DESC) <= 6)
+```
+
+Approve — literal Code-column range (Period Column Filter Rules):
+
+```DAX
+FILTER(ALL('Period'[Month 445 Code]), 'Period'[Month 445 Code] >= "202512" && 'Period'[Month 445 Code] <= "202605")
+```
+
+## Validation Rule
+
+If any `'Period'` column is the argument of a banned function used for period resolution, reject immediately with:
+
+```json
+{
+  "status": "NOT_APPROVED",
+  "errors": [
+    {
+      "type": "INVALID_PERIOD_DERIVATION",
+      "severity": "CRITICAL",
+      "message": "Period filter boundary derived from data (MAX/LASTDATE/RANKX-style) instead of quoted string literals.",
+      "fix": "Replace the derived anchor with the literal start/end Code values resolved by the Intent Clarifier (time.window / today_context) using the approved Code-column range pattern."
+    }
+  ]
+}
+```
+
+## False Positive Prevention
+
+- Aggregation functions over measures or non-`'Period'` columns are NOT affected by this rule
+- `MIN`/`MAX` over `'Metrics-*'` raw columns remains governed by its own raw metric-column aggregation rule
+- This rule bans derivation of PERIOD boundaries only
 
 ---
 
@@ -1993,6 +2061,8 @@ UNSUPPORTED_TIME_RANGE
 MISSING_COUNTRY_FILTER
 EXECUTION_UNSAFE_PATTERN
 INVALID_ALIAS_REFERENCE
+INVALID_TOPN
+INVALID_PERIOD_DERIVATION
 ```
 
 Use `INVALID_ALIAS_REFERENCE` only when:

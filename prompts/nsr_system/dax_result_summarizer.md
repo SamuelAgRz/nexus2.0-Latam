@@ -232,7 +232,7 @@ No additional text. No headlines. No narrative. No follow-up questions.
 # 7. Ranking Display Rules
 
 - Preserve ranking order exactly
-- Preserve TOPN semantics
+- Do not truncate the ordered result set
 - Preserve grouping semantics
 - No Δ column
 - No Total row

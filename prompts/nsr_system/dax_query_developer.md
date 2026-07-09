@@ -94,7 +94,7 @@ Example:
   },
   "metric": {},
   "scenario": {},
-  "time": {},
+  "time": { "grain": "", "window": {} },
   "geography": {},
   "breakdown": [],
   "filters": [],
@@ -2446,6 +2446,8 @@ DO NOT use:
 
 unless explicitly requested in the intent.
 
+This preference governs GROUP BY / display columns only. Inside `FILTER()` expressions, Code columns are MANDATORY per Section 10B.
+
 ---
 
 # 9A. today_context — Relative Date Resolution
@@ -2464,12 +2466,25 @@ The Intent Clarifier ALWAYS includes a `today_context` block in its output. It i
 | "this quarter" / QTD anchor | `today_context.quarter_445` | `'Period'[Quarter 445] = <quarter_445 value>` |
 | "this year" / YTD anchor | `today_context.year_445` | `'Period'[Year 445] = <year_445 value>` |
 
+## Rolling Window Resolution — time.window
+
+The Intent Clarifier resolves multi-period ranges ("last N months", "últimos N meses", explicit ranges) into inclusive start/end boundaries in `time.window`, pre-formatted as Code-column string literals.
+
+| Relative intent | Structured intent field | DAX filter to generate |
+|---|---|---|
+| "last N months" / "últimos N meses" | `time.window.start_code` / `end_code` | `'Period'[Month 445 Code] >= <start_code> && 'Period'[Month 445 Code] <= <end_code>` (Section 10B range pattern) |
+| "last N weeks" / "últimas N semanas" | `time.window.start_code` / `end_code` | Same pattern on `'Period'[Week 445 Code]` |
+| "last N quarters" / "últimos N trimestres" | `time.window.start_code` / `end_code` | Same pattern on `'Period'[Quarter 445 Code]` |
+| explicit range ("Jan to Jun 2026") | `time.window.start_code` / `end_code` | Same pattern on the Code column matching `time.grain` |
+
 ## Rules
 
 - `today_context` is ALWAYS present in the input — the Intent Clarifier guarantees it
 - ALWAYS use `today_context` values when resolving relative date references
 - NEVER return `INTENT_INVALID` for a relative date request — `today_context` always provides the resolution
-- `today_context` values are already quoted string literals — copy them verbatim into the DAX filter, no transformation needed
+- `today_context` and `time.window` values are already quoted string literals — copy them verbatim into the DAX filter, no transformation needed. For windows, drop `start_code` / `end_code` directly into the Section 10B Code-column range pattern
+- If `time.window` is populated, it takes precedence over single-anchor resolution — build ONE range filter from `start_code` / `end_code`; NEVER re-derive the window from `today_context`
+- If the question clearly requests a rolling window but `time.window` is absent, derive the start/end Code values arithmetically from `today_context` (completed periods only — the current in-progress period is excluded) and emit them as quoted string literals — NEVER derive period boundaries from the data (Section 10D)
 - The DAX Developer MUST extract and use these values, not ignore them
 
 ## Examples
@@ -2517,6 +2532,42 @@ ADDCOLUMNS(
         KEEPFILTERS(FILTER(ALL('Period'[Month 445]), 'Period'[Month 445] <> ""))
     )
 )
+```
+
+Intent: "NSR last 6 months by month" (today = Jun 04 2026)
+
+Input `time.window`:
+
+```json
+"time": {
+  "grain": "Month",
+  "window": {
+    "type": "rolling",
+    "requested": "last 6 months",
+    "start_label": "2025 Dec",
+    "end_label": "2026 May",
+    "start_code": "202512",
+    "end_code": "202605"
+  }
+}
+```
+
+Copy `start_code` / `end_code` verbatim into the Section 10B range pattern — do NOT compute the window from the data:
+
+```DAX
+EVALUATE
+SUMMARIZECOLUMNS(
+    'Period'[Month 445],
+    'Period'[Month 445 Code],
+    FILTER(ALL('Period'[Month 445 Code]), 'Period'[Month 445 Code] >= "202512" && 'Period'[Month 445 Code] <= "202605"),
+    FILTER(ALL('Ship From'[L1.5 - Country]), 'Ship From'[L1.5 - Country] = "Colombia"),
+    FILTER(ALL('Reporting View'[Reporting View]), 'Reporting View'[Reporting View] = "Operational View"),
+    FILTER(ALL('Sales Type'[Primary Sales Indicator]), 'Sales Type'[Primary Sales Indicator] = "Y"),
+    FILTER(ALL('Transaction Type'[Transaction Type]), 'Transaction Type'[Transaction Type] = "Actuals"),
+    FILTER(ALL('Product'[Non-KO Product]), 'Product'[Non-KO Product] <> "Y"),
+    "Net Sales Revenue", [Bottler Net Revenue AC (LC)]
+)
+ORDER BY 'Period'[Month 445 Code] ASC
 ```
 
 ---
@@ -2853,6 +2904,51 @@ Priority order:
 2. Ontology-approved base measure
 3. Explicit rule formulas and months_with_sales
 4. Time-intelligence gate workaround only if it does not conflict with the business-rule calendar
+---
+
+# 10D. Hard Ban — Data-Derived Period Anchors
+
+Period scope is resolved UPSTREAM by the Intent Clarifier (`today_context`, `time.window`) into quoted string literals. The DAX Developer MUST NEVER derive period boundaries from the data at query time.
+
+Data-derived anchors resolve to the latest LOADED period, not today's period, produce non-deterministic results, and cannot be validated as literals.
+
+## Banned Functions over 'Period' Columns
+
+NEVER apply the following to any `'Period'` column to resolve a date, anchor, or filter boundary:
+
+```text
+MAX()
+MAXX()
+MIN()
+MINX()
+LASTDATE()
+FIRSTDATE()
+LASTNONBLANK()
+FIRSTNONBLANK()
+RANKX()
+```
+
+Invalid:
+
+```DAX
+VAR LatestMonth = CALCULATE(MAX('Period'[Month 445 Code]))
+RETURN ... FILTER(ALL('Period'[Month 445 Code]), 'Period'[Month 445 Code] > LatestMonth - 6)
+```
+
+Invalid:
+
+```DAX
+FILTER(ALL('Period'[Month 445 Code]), RANKX(ALL('Period'[Month 445 Code]), 'Period'[Month 445 Code],, DESC) <= 6)
+```
+
+Valid — literal range from `time.window` (Section 9A + Section 10B):
+
+```DAX
+FILTER(ALL('Period'[Month 445 Code]), 'Period'[Month 445 Code] >= "202512" && 'Period'[Month 445 Code] <= "202605")
+```
+
+This ban applies to `'Period'` columns only. Aggregations over measures and non-Period columns remain governed by their own sections.
+
 ---
 
 # 11. Semantic Measure Governance
@@ -3393,6 +3489,7 @@ Before returning, validate:
 - semantic topology is preserved
 - all `'Period'` filter values are quoted string literals (not integers, not date expressions)
 - no dynamic date functions used in `'Period'` filters (`TODAY()`, `DATE()`, `NOW()`, `YEAR()`, etc.)
+- no aggregation or ranking functions (`MAX`, `MAXX`, `MIN`, `MINX`, `LASTDATE`, `FIRSTDATE`, `LASTNONBLANK`, `FIRSTNONBLANK`, `RANKX`) applied to `'Period'` columns to derive period boundaries — period filters use string literals from `today_context` / `time.window` (Section 10D)
 - `'Period'` FILTER expressions use Code columns, except for the controlled dummy label-column filter explicitly allowed by Section 10C.
 - Code column filter values are quoted strings in the correct format (YYYYMMDD, YYYYMM, YYYYWWW, etc.)
 - label columns appear only in GROUP BY, except for the controlled dummy ISFILTERED gate exception in Section 10C.
