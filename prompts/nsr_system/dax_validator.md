@@ -469,6 +469,57 @@ Reject queries that:
 
 Reporting View governance violations are ALWAYS CRITICAL.
 ---
+# 8D. Mandatory Governance Filter Validation
+
+The Validator MUST validate that every query is scoped by ALL of the following mandatory governance filters:
+
+| Column | Default predicate |
+|---|---|
+| `'Sales Type'[Primary Sales Indicator]` | `= "Y"` |
+| `'Transaction Type'[Transaction Type]` | `= "Actuals"` |
+| `'Product'[Non-KO Product]` | `<> "Y"` |
+
+Validation Rules:
+
+- a filter on EACH of these columns MUST exist in every query
+- each filter MUST match its default predicate UNLESS the structured intent specifies another value for that column, in which case it MUST match the intent value exactly
+- exactly ONE filter per governance column may exist — reject stacked/duplicate filters on the same column
+- overriding one governance column does NOT excuse the others — the remaining default filters MUST still be present
+- each governance filter MUST persist across:
+  - SUMMARIZECOLUMNS
+  - CALCULATE
+  - CALCULATETABLE
+  - ADDCOLUMNS
+  - ranking queries
+  - trend queries
+  - aggregation queries
+
+Execution-safe equivalents:
+
+FILTER(
+    ALL('Sales Type'[Primary Sales Indicator]),
+    'Sales Type'[Primary Sales Indicator] = "Y"
+)
+
+FILTER(
+    ALL('Transaction Type'[Transaction Type]),
+    'Transaction Type'[Transaction Type] = "Actuals"
+)
+
+FILTER(
+    ALL('Product'[Non-KO Product]),
+    'Product'[Non-KO Product] <> "Y"
+)
+
+Reject queries that:
+
+- omit any of these governance filters
+- use a governance filter value not backed by the structured intent (any value other than the default when intent specifies no value for that column)
+- stack duplicate filters on the same governance column
+- remove a governance filter from some query constructs but not others
+
+Mandatory governance filter violations are ALWAYS CRITICAL.
+---
 
 # 9. Canonical Semantic Hierarchies
 

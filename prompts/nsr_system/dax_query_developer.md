@@ -677,38 +677,76 @@ CALCULATE(
 )
 ---
 
-# 4A. Mandatory Reporting View Filter
+# 4A. Mandatory Governance Filters
 
-EVERY generated query MUST be scoped to a `'Reporting View'[Reporting View]` value.
+EVERY generated query MUST be scoped by ALL of the following governance filters.
 
-The default value is `"Operational View"`. Unless the structured intent specifies another view, this filter MUST always be applied.
+Unless the structured intent specifies another value for that column, each default filter MUST always be applied:
 
-Execution-safe pattern (inside SUMMARIZECOLUMNS, per Section 19):
+| Column | Default predicate |
+|---|---|
+| `'Reporting View'[Reporting View]` | `= "Operational View"` |
+| `'Sales Type'[Primary Sales Indicator]` | `= "Y"` |
+| `'Transaction Type'[Transaction Type]` | `= "Actuals"` |
+| `'Product'[Non-KO Product]` | `<> "Y"` |
+
+Execution-safe pattern (inside SUMMARIZECOLUMNS, per Section 19) — ALL FOUR filters:
 
 FILTER(
     ALL('Reporting View'[Reporting View]),
     'Reporting View'[Reporting View] = "Operational View"
+),
+FILTER(
+    ALL('Sales Type'[Primary Sales Indicator]),
+    'Sales Type'[Primary Sales Indicator] = "Y"
+),
+FILTER(
+    ALL('Transaction Type'[Transaction Type]),
+    'Transaction Type'[Transaction Type] = "Actuals"
+),
+FILTER(
+    ALL('Product'[Non-KO Product]),
+    'Product'[Non-KO Product] <> "Y"
 )
 
-Inside CALCULATE, wrap it in KEEPFILTERS:
+Inside CALCULATE, wrap each in KEEPFILTERS:
 
 KEEPFILTERS(
     FILTER(
         ALL('Reporting View'[Reporting View]),
         'Reporting View'[Reporting View] = "Operational View"
     )
+),
+KEEPFILTERS(
+    FILTER(
+        ALL('Sales Type'[Primary Sales Indicator]),
+        'Sales Type'[Primary Sales Indicator] = "Y"
+    )
+),
+KEEPFILTERS(
+    FILTER(
+        ALL('Transaction Type'[Transaction Type]),
+        'Transaction Type'[Transaction Type] = "Actuals"
+    )
+),
+KEEPFILTERS(
+    FILTER(
+        ALL('Product'[Non-KO Product]),
+        'Product'[Non-KO Product] <> "Y"
+    )
 )
 
-## Override — user-specified view
+## Override — user-specified value
 
-If the structured intent's `filters` array already contains a `'Reporting View'[Reporting View]` entry, use THAT value instead and do NOT inject the `"Operational View"` default.
+If the structured intent's `filters` array already contains an entry for one of these columns, use THAT value instead and do NOT inject the default for that column.
 
-- NEVER stack two `'Reporting View'[Reporting View]` filters in the same query.
-- When intent specifies a view, the intent value wins; otherwise default to `"Operational View"`.
+- NEVER stack two filters on the same governance column in the same query.
+- When intent specifies a value for a governance column, the intent value wins; otherwise the default applies.
+- Overriding one governance column does NOT remove the other governance filters — the remaining defaults still apply.
 
 ## Persistence
 
-Like country governance, the Reporting View filter MUST persist across every query construct:
+Like country governance, ALL mandatory governance filters MUST persist across every query construct:
 
 - SUMMARIZECOLUMNS
 - CALCULATE
@@ -718,7 +756,7 @@ Like country governance, the Reporting View filter MUST persist across every que
 - trend queries
 - aggregation queries
 
-Follow the Redundant Filter Avoidance rule (Section 4): if the Reporting View filter is already applied as a SUMMARIZECOLUMNS filter argument via FILTER(ALL(...)), do NOT repeat it inside CALCULATE.
+Follow the Redundant Filter Avoidance rule (Section 4): if a governance filter is already applied as a SUMMARIZECOLUMNS filter argument via FILTER(ALL(...)), do NOT repeat it inside CALCULATE.
 ---
 
 # 5. Valid Semantic Tables
@@ -3344,7 +3382,12 @@ Before returning, validate:
 - no SQL syntax exists
 - no unsupported semantic logic exists
 - Country governance filter matches structured intent
-- Reporting View filter present ("Operational View" unless the structured intent specifies another view)
+- ALL mandatory governance filters present (Section 4A), each with its default value unless the structured intent specifies another value for that column:
+  - 'Reporting View'[Reporting View] = "Operational View"
+  - 'Sales Type'[Primary Sales Indicator] = "Y"
+  - 'Transaction Type'[Transaction Type] = "Actuals"
+  - 'Product'[Non-KO Product] <> "Y"
+- no governance column has stacked/duplicate filters
 - semantic query is executable
 - hierarchy semantics are preserved
 - semantic topology is preserved
