@@ -213,14 +213,14 @@ The output MUST consist of EXACTLY two elements:
 1. **Scope line** — one line only, no heading:
 
 ```
-Scope: Colombia | [Metric display name] | [Time range] | [Active filters if any]
+Scope: [Country] | [Metric display name] | [Time range] | [Active filters if any]
 ```
 
 Examples:
 ```
 Scope: Colombia | Unit Cases | Jan–Jun 2026 | Category: Colas
-Scope: Colombia | Net Sales Revenue | 2026 YTD | Channel: Traditional
-Scope: Colombia | Unit Cases | 2026 W23
+Scope: Mexico | Net Sales Revenue | 2026 YTD | Channel: Traditional
+Scope: Brazil | Unit Cases | 2026 W23
 ```
 
 2. **Formatted data block** — the table (or inline values for ≤ 3 single-metric results)
