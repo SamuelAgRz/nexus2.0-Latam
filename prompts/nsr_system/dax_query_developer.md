@@ -90,7 +90,13 @@ Example:
     "month_445": "2026 Jun",
     "quarter_445": "2026 Q2",
     "half_445": "2026 H1",
-    "year_445": "2026"
+    "year_445": "2026",
+    "day_445_code": "20260604",
+    "week_445_code": "2026023",
+    "month_445_code": "202606",
+    "quarter_445_code": "202602",
+    "half_445_code": "202601",
+    "year_445_code": "2026"
   },
   "metric": {},
   "scenario": {},
@@ -2477,6 +2483,28 @@ The Intent Clarifier resolves multi-period ranges ("last N months", "últimos N 
 | "last N quarters" / "últimos N trimestres" | `time.window.start_code` / `end_code` | Same pattern on `'Period'[Quarter 445 Code]` |
 | explicit range ("Jan to Jun 2026") | `time.window.start_code` / `end_code` | Same pattern on the Code column matching `time.grain` |
 
+## Time-Intelligence Upper Bound — MANDATORY
+
+The cube contains loaded rows for FUTURE periods. A WTD/MTD/QTD/YTD semantic measure evaluated with only an enclosing-period filter accumulates PAST today's period into the future and returns wrong results.
+
+Every query using a WTD/MTD/QTD/YTD measure MUST include a restrictive Code-column upper-bound filter anchored to `today_context`, IN ADDITION TO the enclosing-period filter and the dummy ISFILTERED gate (Section 10C):
+
+| Measure family | Bound column | Mandatory filter |
+|---|---|---|
+| `YTD` | `'Period'[Month 445 Code]` | `KEEPFILTERS(FILTER(ALL('Period'[Month 445 Code]), 'Period'[Month 445 Code] <= <today_context.month_445_code>))` |
+| `QTD` | `'Period'[Month 445 Code]` | Same Month 445 Code pattern |
+| `MTD` | `'Period'[Day 445 Code]` | `KEEPFILTERS(FILTER(ALL('Period'[Day 445 Code]), 'Period'[Day 445 Code] <= <today_context.day_445_code>))` |
+| `WTD` | `'Period'[Day 445 Code]` | Same Day 445 Code pattern |
+
+Rules:
+
+- The upper bound is MANDATORY for EVERY WTD/MTD/QTD/YTD measure — whether or not the query groups by a Period column. A YTD trend by month ALSO needs it, to suppress future-month rows
+- The bound is ADDITIVE — it NEVER replaces the enclosing-period filter and NEVER replaces the dummy ISFILTERED gate
+- The bound still applies when `time.window` is populated — emit the window range filter AND this upper bound (an explicit range may end in the future; the bound caps accumulation at today)
+- Copy the `*_code` value verbatim from `today_context` — quoted string literal, no arithmetic, no data derivation (Section 10D)
+- This bound is a Code-column filter and may NOT satisfy the internal `ISFILTERED()` gate — the dummy label gate (Section 10C) MUST still be present alongside it
+- This bound is NOT manual time intelligence (Section 15) — it scopes the official semantic measure; it does not recreate its accumulation logic
+
 ## Rules
 
 - `today_context` is ALWAYS present in the input — the Intent Clarifier guarantees it
@@ -2485,6 +2513,7 @@ The Intent Clarifier resolves multi-period ranges ("last N months", "últimos N 
 - `today_context` and `time.window` values are already quoted string literals — copy them verbatim into the DAX filter, no transformation needed. For windows, drop `start_code` / `end_code` directly into the Section 10B Code-column range pattern
 - If `time.window` is populated, it takes precedence over single-anchor resolution — build ONE range filter from `start_code` / `end_code`; NEVER re-derive the window from `today_context`
 - If the question clearly requests a rolling window but `time.window` is absent, derive the start/end Code values arithmetically from `today_context` (completed periods only — the current in-progress period is excluded) and emit them as quoted string literals — NEVER derive period boundaries from the data (Section 10D)
+- Every WTD/MTD/QTD/YTD measure MUST carry the `today_context` Code-column upper bound (Time-Intelligence Upper Bound subsection above) — the enclosing-period filter alone is NOT sufficient
 - The DAX Developer MUST extract and use these values, not ignore them
 
 ## Examples
@@ -2497,7 +2526,13 @@ Input `today_context`:
   "month_445": "2026 Jun",
   "quarter_445": "2026 Q2",
   "half_445": "2026 H1",
-  "year_445": "2026"
+  "year_445": "2026",
+  "day_445_code": "20260604",
+  "week_445_code": "2026023",
+  "month_445_code": "202606",
+  "quarter_445_code": "202602",
+  "half_445_code": "202601",
+  "year_445_code": "2026"
 }
 ```
 
@@ -2518,7 +2553,7 @@ ORDER BY [Net Sales Revenue] DESC
 
 Intent: "YTD revenue by brand"
 
-Use `today_context.year_445` = `"2026"`. YTD is a time-intelligence measure → use ADDCOLUMNS pattern with dummy Month 445 filter (Section 10B):
+Use `today_context.year_445_code` = `"2026"` for the year scope and `today_context.month_445_code` = `"202606"` for the mandatory upper bound. YTD is a time-intelligence measure → use ADDCOLUMNS pattern with dummy Month 445 filter (Section 10C):
 
 ```DAX
 EVALUATE
@@ -2528,7 +2563,8 @@ ADDCOLUMNS(
     CALCULATE(
         [Bottler Net Revenue AC (LC) YTD],
         KEEPFILTERS(FILTER(ALL('Ship From'[L1.5 - Country]), 'Ship From'[L1.5 - Country] = "Colombia")),
-        KEEPFILTERS(FILTER(ALL('Period'[Year 445]), 'Period'[Year 445] = "2026")),
+        KEEPFILTERS(FILTER(ALL('Period'[Year 445 Code]), 'Period'[Year 445 Code] = "2026")),
+        KEEPFILTERS(FILTER(ALL('Period'[Month 445 Code]), 'Period'[Month 445 Code] <= "202606")),
         KEEPFILTERS(FILTER(ALL('Period'[Month 445]), 'Period'[Month 445] <> ""))
     )
 )
@@ -2833,6 +2869,7 @@ This dummy filter is allowed only when all of the following are true:
 * the filter is non-restrictive
 * the filter does not define a time range
 * the filter does not replace the real time filter
+* the query ALSO contains the SEPARATE mandatory Code-column upper bound (Section 9A) — the dummy gate satisfies `ISFILTERED()` only; it does NOT bound the accumulation to today and MUST NOT be made restrictive to do so
 
 For actual time filtering, continue using Code columns.
 
@@ -2847,7 +2884,7 @@ KEEPFILTERS(
 )
 ```
 
-Valid YTD pattern with Year scope and Month dummy gate:
+Valid YTD pattern with Year scope, today upper bound, and Month dummy gate:
 
 ```DAX
 EVALUATE
@@ -2858,6 +2895,7 @@ ADDCOLUMNS(
         [Bottler Net Revenue AC (LC) YTD],
         KEEPFILTERS(FILTER(ALL('Ship From'[L1.5 - Country]), 'Ship From'[L1.5 - Country] = "Colombia")),
         KEEPFILTERS(FILTER(ALL('Period'[Year 445 Code]), 'Period'[Year 445 Code] = "2026")),
+        KEEPFILTERS(FILTER(ALL('Period'[Month 445 Code]), 'Period'[Month 445 Code] <= "202606")),
         KEEPFILTERS(FILTER(ALL('Period'[Month 445]), 'Period'[Month 445] <> ""))
     )
 )
@@ -2885,6 +2923,7 @@ Rules:
 * Use label columns only for the dummy `ISFILTERED()` gate exception.
 * The dummy label filter must be non-restrictive.
 * The dummy label filter must not be used for ranges, equality period selection, ordering, or business time scoping.
+* ALWAYS include the mandatory `today_context` Code-column upper bound (Section 9A) alongside the dummy gate — the dummy gate is never a substitute for it.
 
 ## Business Rule Calendar vs Time-Intelligence Gate Precedence
 
@@ -3124,6 +3163,8 @@ DO NOT generate:
 - custom FILTER over Period for QTD
 
 ALWAYS use official semantic measures.
+
+The mandatory `today_context` upper-bound filter and the dummy ISFILTERED gate (Sections 9A and 10C) are NOT manual time intelligence — they scope the official WTD/MTD/QTD/YTD measure and are required alongside it. Manual time intelligence means recreating the accumulation logic instead of using the official measure.
 
 ---
 
@@ -3497,6 +3538,7 @@ Before returning, validate:
 - TOPN is never used — ranking/top/max/min queries use SUMMARIZECOLUMNS + ORDER BY [Metric] DESC
 - time-intelligence measures (WTD/MTD/QTD/YTD) use `ADDCOLUMNS + CALCULATE` pattern, not `SUMMARIZECOLUMNS`
 - ISFILTERED gate is satisfied for each time-intelligence measure (required Period column is filtered or dummy Month 445 filter is present)
+- every WTD/MTD/QTD/YTD measure includes the mandatory `today_context` Code-column upper bound (`'Period'[Month 445 Code] <= <month_445_code>` for YTD/QTD; `'Period'[Day 445 Code] <= <day_445_code>` for MTD/WTD) — Section 9A
 - ontology-approved business rules are preserved without reinterpretation
 - no business-rule thresholds are manually recreated
 - no customer segmentation logic is manually recreated

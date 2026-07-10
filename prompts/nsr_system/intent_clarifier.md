@@ -1021,6 +1021,10 @@ Semantic cumulative measures require fiscal anchor dates.
 
 MTD / QTD / YTD / WTD requests MUST preserve fiscal anchor semantics.
 
+Cumulative grains (WTD / MTD / QTD / YTD) anchor to TODAY's 445 period — the
+DAX Developer bounds them to today using the `today_context` `*_code` fields,
+never to the latest period with loaded data.
+
 The Intent Clarifier is responsible for semantic temporal interpretation.
 
 ---
@@ -1528,7 +1532,13 @@ NSR_LATAM_Cube_UAT
 "month_445": "<YYYY MMM — e.g. 2026 Jun>",
 "quarter_445": "<YYYY Q# — e.g. 2026 Q2>",
 "half_445": "<YYYY H# — e.g. 2026 H1>",
-"year_445": "<YYYY — e.g. 2026>"
+"year_445": "<YYYY — e.g. 2026>",
+"day_445_code": "<YYYYMMDD — e.g. 20260604>",
+"week_445_code": "<YYYYWWW — e.g. 2026023>",
+"month_445_code": "<YYYYMM — e.g. 202606>",
+"quarter_445_code": "<YYYYQQ — e.g. 202602>",
+"half_445_code": "<YYYYHH — e.g. 202601>",
+"year_445_code": "<YYYY — e.g. 2026>"
 },
 
 "ontology_context": {
@@ -1578,6 +1588,10 @@ Rules:
 - The IC derives the 445 week, month, quarter, half, and year from today's Gregorian date using the 445 calendar
 - `today_context` is grounding data for the DAX Developer — it is NOT displayed to the user
 - Values MUST be quoted strings — never integers or date types
+- The six `*_code` fields are as mandatory as the label fields — never omitted
+- `*_code` values use the fixed-width 445 Code formats defined in the grain table under "time.window — Range Population Rules" below — they match the semantic model's `'Period'[... 445 Code]` columns and are consumed verbatim by the DAX Developer
+- `*_code` values MUST be quoted strings, zero-padded to the fixed width — never integers
+- The DAX Developer uses the `*_code` fields as the mandatory upper bound for cumulative (WTD/MTD/QTD/YTD) measures — they anchor "to date" to TODAY, not to the latest loaded period
 
 Example (for today = June 4 2026):
 
@@ -1588,7 +1602,13 @@ Example (for today = June 4 2026):
   "month_445": "2026 Jun",
   "quarter_445": "2026 Q2",
   "half_445": "2026 H1",
-  "year_445": "2026"
+  "year_445": "2026",
+  "day_445_code": "20260604",
+  "week_445_code": "2026023",
+  "month_445_code": "202606",
+  "quarter_445_code": "202602",
+  "half_445_code": "202601",
+  "year_445_code": "2026"
 }
 ```
 

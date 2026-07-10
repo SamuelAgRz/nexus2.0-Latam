@@ -843,7 +843,8 @@ ADDCOLUMNS(
     CALCULATE(
         [Bottler Net Revenue AC (LC) YTD],
         KEEPFILTERS(FILTER(ALL('Ship From'[L1.5 - Country]), 'Ship From'[L1.5 - Country] = "Colombia")),
-        KEEPFILTERS(FILTER(ALL('Period'[Year 445]), 'Period'[Year 445] = "2026")),
+        KEEPFILTERS(FILTER(ALL('Period'[Year 445 Code]), 'Period'[Year 445 Code] = "2026")),
+        KEEPFILTERS(FILTER(ALL('Period'[Month 445 Code]), 'Period'[Month 445 Code] <= "202606")),
         KEEPFILTERS(FILTER(ALL('Period'[Month 445]), 'Period'[Month 445] <> ""))
     )
 )
@@ -870,6 +871,40 @@ KEEPFILTERS(FILTER(ALL('Period'[Month 445]), 'Period'[Month 445] <> ""))
 ```
 
 This MUST be present inside `CALCULATE` when filtering only by Year or Quarter.
+
+---
+
+## Validation Rule 3 — Missing Upper Bound
+
+WTD/MTD/QTD/YTD measures accumulate over FUTURE loaded periods unless bounded to today. The dummy Month 445 gate is non-restrictive and does NOT bound the accumulation.
+
+If a time-intelligence measure is used and the query does NOT contain a restrictive `<=` upper-bound filter on the required Code column, anchored to the `today_context` code value from the structured intent, then reject.
+
+| Measure family | Required upper-bound column | Bound literal |
+|---|---|---|
+| `YTD` / `QTD` | `'Period'[Month 445 Code]` | `<= today_context.month_445_code` |
+| `MTD` / `WTD` | `'Period'[Day 445 Code]` | `<= today_context.day_445_code` |
+
+The bound is required IN ADDITION TO the enclosing-period filter and the dummy ISFILTERED gate — even when the query groups by a Period column (trend queries), and even when a `time.window` range filter is present.
+
+Error type: `INVALID_TIME_LOGIC`
+Severity: `CRITICAL`
+
+Reject with:
+
+```json
+{
+  "status": "NOT_APPROVED",
+  "errors": [
+    {
+      "type": "INVALID_TIME_LOGIC",
+      "severity": "CRITICAL",
+      "message": "Time-intelligence measure used without the mandatory today-anchored upper bound. Without it the measure accumulates future loaded periods.",
+      "fix": "Add KEEPFILTERS(FILTER(ALL('Period'[Month 445 Code]), 'Period'[Month 445 Code] <= <today_context.month_445_code>)) for YTD/QTD, or the Day 445 Code equivalent with <today_context.day_445_code> for MTD/WTD, alongside the existing period filter and dummy gate."
+    }
+  ]
+}
+```
 
 ---
 
@@ -1429,6 +1464,8 @@ Reject:
 - manual MTD filtering
 
 when equivalent semantic measures already exist.
+
+The mandatory today-anchored upper bound and the dummy ISFILTERED gate (Section 10B) applied ALONGSIDE an official semantic measure are NOT manual time-intelligence filtering.
 
 ## 14A. Business Rule Time-Intelligence Exception
 
@@ -2169,6 +2206,8 @@ Exception:
 * time-intelligence measures (WTD/MTD/QTD/YTD) use approved execution-safe patterns
 
 * ISFILTERED gate is satisfied for each time-intelligence measure (required Period column filtered, or approved dummy gate filter present)
+
+* every WTD/MTD/QTD/YTD measure carries the mandatory today-anchored Code-column upper bound (Month 445 Code for YTD/QTD, Day 445 Code for MTD/WTD) resolved from `today_context` (Validation Rule 3, Section 10B)
 
 * business-rule filters from structured intent are represented in the generated DAX
 
