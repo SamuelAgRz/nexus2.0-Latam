@@ -26,8 +26,8 @@ Check ALL of the following:
 "known_pitfalls"
 ```
 
-`object_type` is the only filter column allowed as output (the Summarizer uses it to split measures
-from business rules). All other classification/filter columns (`domain`, `grain`, `source_system`,
+`object_type` is the only filter column allowed as output (the Summarizer uses it to split
+measures, business rules, and dimension value references). All other classification/filter columns (`domain`, `grain`, `source_system`,
 `aggregation_default`, `cardinality`, `normalization`, `synonyms`, `rule_scope`, `rls_rules`) MUST
 NOT appear as SELECTCOLUMNS output aliases — reject the query if any does.
 
@@ -62,21 +62,28 @@ object_type
 rls_rules
 ```
 
+Dimension-value-reference filter predicates (the dimension-value-reference branch) may likewise use
+ONLY `object_type` + `rls_rules` — reject any other predicate on that branch (including `table_name`).
+
 8. `object_type` values may only be:
 
 ```text
 measure
 business_rule
+dimension_value_reference
 ```
 
-9. Business rules are filtered by country ONLY, via exact equality on `rls_rules` (e.g.
-   `'agent_nsr metrics'[rls_rules] = "Colombia"` or `IN {"Colombia", "Mexico", "Brazil"}`).
+9. Business rules and dimension value references are filtered by country ONLY, via exact equality on
+   `rls_rules` (e.g. `'agent_nsr metrics'[rls_rules] = "Colombia"` or `IN {"Colombia", "Mexico", "Brazil"}`).
    `synonyms` and `rule_scope` MUST NOT be used as FILTER predicates (they are output columns only).
-   `CONTAINSSTRING`/`LOWER` synonym matching for business rules is NO LONGER allowed and MUST be rejected.
+   `CONTAINSSTRING`/`LOWER` synonym matching for business rules or dimension value references is NO
+   LONGER allowed and MUST be rejected.
 
-10. Every ontology query MUST include a business-rule branch (`object_type = "business_rule"` with an
-   `rls_rules` country filter), OR-combined with the metric branch. Reject a query that retrieves
-   metrics but omits the business-rule branch.
+10. Every ontology query MUST include BOTH always-on branches, each OR-combined with the metric branch:
+   - a business-rule branch (`object_type = "business_rule"` with an `rls_rules` country filter)
+   - a dimension-value-reference branch (`object_type = "dimension_value_reference"` with an
+     `rls_rules` country filter)
+   Reject a query that retrieves metrics but omits either branch.
 
 11. Filter values come only from the approved ontology values listed below
 12. No invented tables
@@ -183,11 +190,12 @@ WD
 ```text
 measure
 business_rule
+dimension_value_reference
 ```
 
 ### rls_rules
 
-`rls_rules` is valid ONLY on a business-rule branch (combined with `object_type = "business_rule"`), using exact equality. The validator MUST reject `rls_rules` used on a metric branch.
+`rls_rules` is valid ONLY on a business-rule branch (combined with `object_type = "business_rule"`) or a dimension-value-reference branch (combined with `object_type = "dimension_value_reference"`), using exact equality. The validator MUST reject `rls_rules` used on a metric branch.
 
 ```text
 Colombia
@@ -251,9 +259,9 @@ combined with the country filter:
 
 ---
 
-## Metric + Business Rule Retrieval Pattern
+## Metric + Business Rule + Dimension Value Reference Retrieval Pattern
 
-Every valid query has BOTH branches, OR-combined.
+Every valid query has ALL THREE branches, OR-combined.
 
 ### Metric branch
 
@@ -275,7 +283,16 @@ Every valid query has BOTH branches, OR-combined.
 )
 ```
 
-### Metric + Business Rule (the required shape)
+### Dimension-value-reference branch (always present, country-filtered)
+
+```DAX
+(
+    'agent_nsr metrics'[object_type] = "dimension_value_reference" &&
+    'agent_nsr metrics'[rls_rules] = "Colombia"
+)
+```
+
+### Metric + Business Rule + Dimension Value Reference (the required shape)
 
 ```DAX
 FILTER(
@@ -291,11 +308,19 @@ FILTER(
         'agent_nsr metrics'[object_type] = "business_rule" &&
         'agent_nsr metrics'[rls_rules] = "Colombia"
     )
+    ||
+    (
+        'agent_nsr metrics'[object_type] = "dimension_value_reference" &&
+        'agent_nsr metrics'[rls_rules] = "Colombia"
+    )
 )
 ```
 
-Business-rule retrieval is additive to metric retrieval and must never replace it. The business-rule
-branch must be present even when the request is a plain metric query with no segmentation term.
+Business-rule and dimension-value-reference retrieval are additive to metric retrieval and must
+never replace it. Both always-on branches must be present even when the request is a plain metric
+query with no segmentation term and no dimension value mentioned. Dimension value references are
+filtered by country ONLY — reject any dimension-value-reference predicate other than `object_type`
+and `rls_rules`, and reject synonym/`table_name` filtering on that branch.
 
 ---
 
@@ -314,8 +339,10 @@ Reject queries that:
 * use unsupported object_type values
 * use unsupported rls_rules values (only Colombia, Mexico, Brazil)
 * use `synonyms` or `rule_scope` as a FILTER predicate
-* use `CONTAINSSTRING`/`LOWER` synonym matching for business rules
+* use `CONTAINSSTRING`/`LOWER` synonym matching for business rules or dimension value references
 * omit the business-rule branch on an ontology query (business rules are always retrieved)
+* omit the dimension-value-reference branch on an ontology query (dimension value references are always retrieved)
+* filter the dimension-value-reference branch by anything other than `object_type` + `rls_rules` (e.g. `table_name`)
 * output any classification/filter column as a SELECTCOLUMNS alias — `domain`, `grain`, `source_system`, `aggregation_default`, `cardinality`, `normalization`, `synonyms`, `rule_scope`, `rls_rules` are filter-only and must never be returned (only `object_type` may be both filtered and output)
 * invent ontology metadata
 * infer business-rule logic
