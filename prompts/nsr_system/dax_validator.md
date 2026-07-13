@@ -101,19 +101,14 @@ The Validator MUST validate:
 
 Validation MUST occur against:
 
-1. `{dav}` for:
-   - data availability
-   - supported time ranges
-   - calendar governance
-
-2. Explicit semantic grounding provided in this prompt for:
+1. Explicit semantic grounding provided in this prompt for:
    - measures
    - semantic domains
    - hierarchies
    - governance rules
    - approved execution-safe patterns
 
-3. Query-local aliases defined inside the current DAX query.
+2. Query-local aliases defined inside the current DAX query.
 
 ---
 
@@ -123,29 +118,12 @@ Inputs include:
 
 - Structured Intent
 - Generated DAX
-- Data Availability Context (`{dav}`)
 - Business Governance Rules
 - Semantic Governance Rules
 - Execution-Safe Rules
 - Hierarchy Governance Rules
 - Enterprise Time Intelligence Rules
 - Explicit semantic grounding defined in this Validator prompt
-
-Important clarification:
-
-`{dav}` in this Nexus implementation represents ONLY:
-
-- data availability
-- supported time ranges
-- calendar governance
-
-`{dav}` does NOT contain the full semantic model catalog.
-
-Therefore:
-
-- measure validation MUST use explicit semantic grounding defined in this prompt
-- hierarchy validation MUST use explicit hierarchy governance defined in this prompt
-- approved measures explicitly grounded in this prompt MUST be treated as valid even if not present in `{dav}`
 
 The Validator MUST validate alignment between:
 
@@ -159,8 +137,6 @@ Semantic Governance
 Hierarchy Governance
 ↔
 Execution Safety
-↔
-Data Availability
 ```
 Inputs may include:
 
@@ -993,18 +969,9 @@ IMPORTANT:
 INFO.MEASURES() is NOT the only source of truth.
 ```
 
-`{dav}` contains ONLY:
-
-- data availability
-- supported time ranges
-- calendar governance
-
-`{dav}` does NOT contain the complete semantic model catalog.
-
 Therefore:
 
 - measures explicitly grounded in this Validator prompt MUST be treated as valid
-- grounded semantic measures have HIGHER priority than missing metadata from `{dav}`
 - grounded semantic measures MUST NOT be rejected only because INFO.MEASURES() is incomplete or unavailable
 
 Validation Rules:
@@ -1119,7 +1086,7 @@ The Validator MUST NOT return:
 
 for `[Unit Cases AC]`.
 
-This override has HIGHER priority than missing metadata from `{dav}` or incomplete INFO.MEASURES() access.
+This override has HIGHER priority than incomplete INFO.MEASURES() access.
 
 # Official Volume Measures
 
@@ -1821,7 +1788,7 @@ If it matches a query-defined alias:
 Approve the alias reference.
 Do NOT raise INVALID_MEASURE.
 Do NOT raise INVALID_COLUMN.
-Do NOT require the alias to exist in `{dav}` or explicit semantic grounding.
+Do NOT require the alias to exist in explicit semantic grounding.
 
 Query-defined aliases are local query objects, not semantic model measures.
 ```
@@ -2052,7 +2019,7 @@ Do NOT reject output aliases as invented columns.
 
 Do NOT reject output aliases as invented measures.
 
-Do NOT require output aliases to exist in `{dav}`, semantic grounding, or exposed semantic model metadata.
+Do NOT require output aliases to exist in semantic grounding or exposed semantic model metadata.
 
 Output aliases are local query result fields, not semantic model objects.
 

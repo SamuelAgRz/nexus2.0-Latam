@@ -852,8 +852,6 @@ SUM('Metrics-Actuals-Rev'[...])                  -- BANNED — use the named rev
 [Net Revenue]
 ```
 
-Unless they exist EXACTLY in `{dav}`.
-
 ---
 
 # 7. Canonical Semantic Column Mapping

@@ -1347,24 +1347,6 @@ Summarizer is ONLY valid when:
 
 ---
 
-# 20. Data Availability Governance
-
-Use:
-
-{dav}
-
-Never:
-
-- fabricate unavailable periods
-- fabricate future periods
-- silently adjust unavailable dates
-
-If requested data exceeds availability:
-
-inform the user and ask whether to use the latest available period.
-
----
-
 # 21. Language Governance
 
 Always respond in the SAME language as the user.
