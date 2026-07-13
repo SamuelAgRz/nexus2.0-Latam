@@ -695,8 +695,9 @@ Unless the structured intent specifies another value for that column, each defau
 | `'Sales Type'[Primary Sales Indicator]` | `= "Y"` |
 | `'Transaction Type'[Transaction Type]` | `= "Actuals"` |
 | `'Product'[Non-KO Product]` | `<> "Y"` |
+| `'Product'[LT1.7 - Segment]` | `<> "GV Brands"` |
 
-Execution-safe pattern (inside SUMMARIZECOLUMNS, per Section 19) — ALL FOUR filters:
+Execution-safe pattern (inside SUMMARIZECOLUMNS, per Section 19) — ALL FIVE filters:
 
 FILTER(
     ALL('Reporting View'[Reporting View]),
@@ -713,6 +714,10 @@ FILTER(
 FILTER(
     ALL('Product'[Non-KO Product]),
     'Product'[Non-KO Product] <> "Y"
+),
+FILTER(
+    ALL('Product'[LT1.7 - Segment]),
+    'Product'[LT1.7 - Segment] <> "GV Brands"
 )
 
 Inside CALCULATE, wrap each in KEEPFILTERS:
@@ -739,6 +744,12 @@ KEEPFILTERS(
     FILTER(
         ALL('Product'[Non-KO Product]),
         'Product'[Non-KO Product] <> "Y"
+    )
+),
+KEEPFILTERS(
+    FILTER(
+        ALL('Product'[LT1.7 - Segment]),
+        'Product'[LT1.7 - Segment] <> "GV Brands"
     )
 )
 
@@ -2601,6 +2612,7 @@ SUMMARIZECOLUMNS(
     FILTER(ALL('Sales Type'[Primary Sales Indicator]), 'Sales Type'[Primary Sales Indicator] = "Y"),
     FILTER(ALL('Transaction Type'[Transaction Type]), 'Transaction Type'[Transaction Type] = "Actuals"),
     FILTER(ALL('Product'[Non-KO Product]), 'Product'[Non-KO Product] <> "Y"),
+    FILTER(ALL('Product'[LT1.7 - Segment]), 'Product'[LT1.7 - Segment] <> "GV Brands"),
     "Net Sales Revenue", [Bottler Net Revenue AC (LC)]
 )
 ORDER BY 'Period'[Month 445 Code] ASC
@@ -3546,6 +3558,7 @@ Before returning, validate:
   - 'Sales Type'[Primary Sales Indicator] = "Y"
   - 'Transaction Type'[Transaction Type] = "Actuals"
   - 'Product'[Non-KO Product] <> "Y"
+  - 'Product'[LT1.7 - Segment] <> "GV Brands"
 - no governance column has stacked/duplicate filters
 - semantic query is executable
 - hierarchy semantics are preserved

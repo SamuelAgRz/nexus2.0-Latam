@@ -454,6 +454,7 @@ The Validator MUST validate that every query is scoped by ALL of the following m
 | `'Sales Type'[Primary Sales Indicator]` | `= "Y"` |
 | `'Transaction Type'[Transaction Type]` | `= "Actuals"` |
 | `'Product'[Non-KO Product]` | `<> "Y"` |
+| `'Product'[LT1.7 - Segment]` | `<> "GV Brands"` |
 
 Validation Rules:
 
@@ -485,6 +486,11 @@ FILTER(
 FILTER(
     ALL('Product'[Non-KO Product]),
     'Product'[Non-KO Product] <> "Y"
+)
+
+FILTER(
+    ALL('Product'[LT1.7 - Segment]),
+    'Product'[LT1.7 - Segment] <> "GV Brands"
 )
 
 Reject queries that:
