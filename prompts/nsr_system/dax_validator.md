@@ -949,6 +949,29 @@ If any `'Period'` column is the argument of a banned function used for period re
 - `MIN`/`MAX` over `'Metrics-*'` raw columns remains governed by its own raw metric-column aggregation rule
 - This rule bans derivation of PERIOD boundaries only
 
+## Rolling Window Anchor Validation
+
+For rolling-window intents ("last N months" and equivalents), the window MUST be anchored to `today_context` from the structured intent:
+
+- the window's end period MUST equal the period immediately before `today_context`'s current period at the window grain (e.g. `today_context.month_445_code = "202607"` → a "last 6 months" window MUST end at `"202606"` and start at `"202601"`)
+- a window anchored to any other date — including dates copied from prompt examples instead of the actual `today_context` — MUST be rejected
+
+Reject with:
+
+```json
+{
+  "status": "NOT_APPROVED",
+  "errors": [
+    {
+      "type": "INVALID_TIME_LOGIC",
+      "severity": "CRITICAL",
+      "message": "Rolling window is not anchored to today_context — the window end does not equal the period immediately before today's current period at the window grain.",
+      "fix": "Recompute the window from today_context: end = the period immediately before today's period at the requested grain; start = end stepped back (N - 1) periods."
+    }
+  ]
+}
+```
+
 ---
 
 

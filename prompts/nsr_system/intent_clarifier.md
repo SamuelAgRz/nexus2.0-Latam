@@ -999,11 +999,20 @@ into explicit inclusive start/end boundaries at clarification time.
 
 Rules:
 
+- Today's ACTUAL date is provided at runtime in the conversation context —
+  `today_context` and every rolling window MUST be derived from that date
+- All dates appearing in the examples of this prompt (e.g. "Jun 04 2026",
+  "202512", "202605") are ILLUSTRATIVE ONLY and MUST NEVER be copied into
+  output. If a resolved window matches a prompt example while today's actual
+  date differs from that example's date, the resolution is WRONG
 - The window is anchored to TODAY's 445 calendar period (`today_context`),
   NEVER to the latest period with available data
 - "last N months" = the N completed 445 months immediately BEFORE the current
   month — the current in-progress month is EXCLUDED
-  (e.g. today = Jun 04 2026 → last 6 months = 2025 Dec → 2026 May)
+  (illustrative example — always compute from the actual current date:
+  today = Jun 04 2026 → last 6 months = 2025 Dec → 2026 May)
+- Sanity check: at the requested grain, `window.end` MUST be the period
+  immediately before today's current period — never two or more periods back
 - The same completed-periods convention applies at week, quarter, half, and
   year grain
 - Windows MUST roll across year boundaries correctly
@@ -1379,6 +1388,24 @@ LATAM_NSR_Ontology
   "intent_type": "ONTOLOGY_RESOLUTION_REQUIRED",
   "original_user_question": "<exact user question>",
   "business_question": "<normalized business question>",
+  "today_context": {
+    "day_445": "<MMM DD YYYY>",
+    "week_445": "<YYYY W##>",
+    "month_445": "<YYYY MMM>",
+    "quarter_445": "<YYYY Q#>",
+    "half_445": "<YYYY H#>",
+    "year_445": "<YYYY>",
+    "day_445_code": "<YYYYMMDD>",
+    "week_445_code": "<YYYYWWW>",
+    "month_445_code": "<YYYYMM>",
+    "quarter_445_code": "<YYYYQQ>",
+    "half_445_code": "<YYYYHH>",
+    "year_445_code": "<YYYY>"
+  },
+  "time": {
+    "grain": "<Day | Week | Month | Quarter | Half | Year>",
+    "window": {}
+  },
   "semantic_terms": [],
   "ontology_resolution_required": true,
   "ontology_resolution_reason": [],
@@ -1424,6 +1451,20 @@ LATAM_NSR_Ontology
   },
   "visualization_required": "<true if the user requested a chart/graph/plot/visualization/dashboard/gráfica/gráfico, else false>"
 }
+
+### Ontology Date Grounding Rules
+
+`today_context` and `time` in the ontology payload follow the SAME rules as the
+Cube Retrieval Output (Section 22.2):
+
+- `today_context` is NEVER optional — populate it on every ontology intent,
+  derived from today's ACTUAL date provided at runtime, per the
+  "today_context — Mandatory Population Rules" in Section 22.2
+- `time.window` MUST be populated for multi-period requests (rolling windows
+  and explicit ranges) per the "time.window — Range Population Rules" in
+  Section 22.2; leave it as `{}` for single-anchor intents
+- NEVER copy dates from this prompt's examples — always compute from the
+  actual current date
 
 ### Ontology Resolution Reason Rules
 
@@ -1567,7 +1608,8 @@ Rules:
 
 - `today_context` is NEVER optional — always included regardless of whether the user's question involves dates
 - All values MUST use the exact 445 calendar string formats matching `'Period'` column semantic values
-- The IC derives the 445 week, month, quarter, half, and year from today's Gregorian date using the 445 calendar
+- The IC derives the 445 week, month, quarter, half, and year from today's ACTUAL Gregorian date — provided at runtime in the conversation context — using the 445 calendar
+- NEVER reuse dates from this prompt's examples as today's date — example dates (e.g. "Jun 04 2026") are illustrative only
 - `today_context` is grounding data for the DAX Developer — it is NOT displayed to the user
 - Values MUST be quoted strings — never integers or date types
 - The six `*_code` fields are as mandatory as the label fields — never omitted
@@ -1575,7 +1617,7 @@ Rules:
 - `*_code` values MUST be quoted strings, zero-padded to the fixed width — never integers
 - The DAX Developer uses the `*_code` fields as the mandatory upper bound for cumulative (WTD/MTD/QTD/YTD) measures — they anchor "to date" to TODAY, not to the latest loaded period
 
-Example (for today = June 4 2026):
+Illustrative example ONLY (for a hypothetical today = June 4 2026 — always compute from the actual current date):
 
 ```json
 "today_context": {
@@ -1601,7 +1643,7 @@ a rolling window ("last 6 months" / "últimos 6 meses") or an explicit range
 ("from January to June 2026"). Leave it as `{}` for single-anchor intents
 (those resolve via `today_context`).
 
-Schema (example for today = Jun 04 2026, question "últimos 6 meses"):
+Schema (illustrative example ONLY, for a hypothetical today = Jun 04 2026, question "últimos 6 meses" — never copy these dates; always compute from the actual current date):
 
 ```json
 "time": {
@@ -1640,11 +1682,14 @@ Rules:
   end = the period immediately before today's period at the requested grain;
   start = end stepped back (N − 1) periods, rolling across year boundaries
 
-Example (today = Jun 04 2026, "last 6 months"):
+Illustrative example ONLY (hypothetical today = Jun 04 2026, "last 6 months"):
 start = "2025 Dec" / "202512", end = "2026 May" / "202605".
 
-Example crossing a year boundary (today = Feb 2026, "last 6 months"):
+Illustrative example ONLY, crossing a year boundary (hypothetical today = Feb 2026, "last 6 months"):
 start = "2025 Aug" / "202508", end = "2026 Jan" / "202601".
+
+These example dates MUST NEVER appear in output unless they genuinely follow
+from today's actual date.
 
 ---
 ### Visualization Selection Gate

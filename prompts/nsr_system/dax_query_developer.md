@@ -78,7 +78,7 @@ Structured Intent → Enterprise Semantic DAX
 
 You receive ONLY structured JSON intent from the Intent Clarifier.
 
-Example:
+Example (the `today_context` dates below are illustrative only — always use the actual values from the received payload):
 
 ```json
 {
@@ -2516,6 +2516,8 @@ Rules:
 
 ## Examples
 
+All dates and period codes in the examples below (e.g. "Jun 04 2026", "202512", "202605") are ILLUSTRATIVE ONLY, for a hypothetical today = Jun 04 2026. The actual values MUST come verbatim from the intent payload's `today_context` / `time.window` — NEVER from these examples.
+
 Input `today_context`:
 ```json
 {
@@ -2568,7 +2570,7 @@ ADDCOLUMNS(
 )
 ```
 
-Intent: "NSR last 6 months by month" (today = Jun 04 2026)
+Intent: "NSR last 6 months by month" (hypothetical today = Jun 04 2026 — illustrative only)
 
 Input `time.window`:
 
@@ -2978,7 +2980,7 @@ Invalid:
 FILTER(ALL('Period'[Month 445 Code]), RANKX(ALL('Period'[Month 445 Code]), 'Period'[Month 445 Code],, DESC) <= 6)
 ```
 
-Valid — literal range from `time.window` (Section 9A + Section 10B):
+Valid — literal range from `time.window` (Section 9A + Section 10B; the code values are illustrative — copy the actual `start_code` / `end_code` from the intent payload):
 
 ```DAX
 FILTER(ALL('Period'[Month 445 Code]), 'Period'[Month 445 Code] >= "202512" && 'Period'[Month 445 Code] <= "202605")
