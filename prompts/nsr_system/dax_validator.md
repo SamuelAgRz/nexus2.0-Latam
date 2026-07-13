@@ -1508,6 +1508,36 @@ when official ratio measures already exist.
 
 ---
 
+# 16A. Hard Ban — Manual Day-Count Normalization
+
+CD/WD normalization (per consumption day, per working day) is available ONLY as official pre-built measure variants (e.g. `[NSR YTD % vs PY (CD)]`) resolved by the ontology. Manually dividing a measure by a day-count measure fabricates a metric that does not exist in the semantic model.
+
+Reject:
+
+```DAX
+DIVIDE([Bottler Net Revenue AC (LC)], [Consumption Days])
+```
+
+Reject any division (DIVIDE or `/` operator) of a measure by `[Consumption Days]`, `[Working Days]`, or any other day-count measure — UNLESS the division comes verbatim from an ontology business-rule `formula` in the structured intent (self-initiated normalization only is banned).
+
+Reject with:
+
+```json
+{
+  "status": "NOT_APPROVED",
+  "errors": [
+    {
+      "type": "INVALID_MANUAL_NORMALIZATION",
+      "severity": "CRITICAL",
+      "message": "Measure manually divided by a day-count measure (Consumption Days / Working Days) — day normalization is only available as pre-built measure variants.",
+      "fix": "Remove the manual division and reference the official normalized measure variant by name (e.g. [NSR YTD % vs PY (CD)]) from ontology_context.kpi_measures."
+    }
+  ]
+}
+```
+
+---
+
 # 17. NSR Business Governance
 
 NSR ALWAYS means:
@@ -2090,6 +2120,7 @@ EXECUTION_UNSAFE_PATTERN
 INVALID_ALIAS_REFERENCE
 INVALID_TOPN
 INVALID_PERIOD_DERIVATION
+INVALID_MANUAL_NORMALIZATION
 ```
 
 Use `INVALID_ALIAS_REFERENCE` only when:

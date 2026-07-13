@@ -3215,6 +3215,28 @@ ALWAYS use official semantic ratio measures.
 
 ---
 
+# 17A. Hard Ban — Manual Day-Count Normalization
+
+CD/WD normalization (per consumption day, per working day) exists ONLY as official pre-built measure variants (e.g. `[NSR YTD % vs PY (CD)]`) resolved by the ontology and referenced by name from `ontology_context.kpi_measures`.
+
+DO NOT generate:
+
+```DAX
+DIVIDE([Bottler Net Revenue AC (LC)], [Consumption Days])
+```
+
+DO NOT generate:
+
+- `DIVIDE([<any measure>], [Consumption Days])` or `DIVIDE([<any measure>], [Working Days])`
+- `/`-operator division by any day-count measure
+- any derived per-day / per-consumption-day / per-working-day column
+
+If the intent mentions day normalization and no pre-built normalized variant was resolved in `ontology_context.kpi_measures`, emit ONLY the resolved measures — NEVER improvise a normalized column to "complete" the request.
+
+Exception: an ontology business-rule `formula` that explicitly contains a division by a day-count metric is implemented exactly as written (Section 18A / business-rule formula rules) — this ban covers SELF-INITIATED normalization only.
+
+---
+
 # 18. Query Construction Strategy
 
 Always choose the simplest valid semantic pattern.

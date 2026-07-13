@@ -819,10 +819,17 @@ Classification inference rules:
 - Actuals vs Weekly Estimate → cardinality = WE.
 - Cycling (prior-year sub-period aligned to the current window) → cardinality = PY vs 2PY.
 - No comparison or reference period implied → cardinality = none.
-- "per consumption day", consumption-day adjusted → normalization = CD.
+- "per consumption day", "normalized by consumption days", consumption-day adjusted → normalization = CD. CD metrics exist ONLY in the growth-vs-PY family — if no aggregation or comparison is explicitly stated alongside the consumption-days cue, ALSO default aggregation_default = PercentChange and cardinality = PY.
 - "per working day", working-day adjusted → normalization = WD.
 - Revenue or Volume growth comparison vs a prior year (aggregation_default = PercentChange AND cardinality IN {PY, 2PY, 3PY, 5PY} AND domain IN {Revenue, Volume}) with no explicit day-basis stated → normalization = CD (default). An explicit "per working day" / "no normalization" cue overrides this.
 - No day-based normalization implied → normalization = (none).
+
+Day-normalization phrases map ONLY to the `normalization` classification filter — they select a
+pre-built normalized measure variant (e.g. "NSR YTD % vs PY (CD)"). A day-normalization phrase MUST
+NEVER spawn a second derived or level KPI: a question combining a level ask + a consumption-days
+phrase + growth vs PY resolves to ONE metric — the CD growth variant. Never request or imply a
+per-day computed metric (a value divided by consumption or working days) in `requested_kpis` or
+`business_question`.
 
 Ontology classification filter structure:
 
