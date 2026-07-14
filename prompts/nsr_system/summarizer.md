@@ -136,6 +136,17 @@ The formatted data block you receive has already had Unassigned/null rows filter
 
 ---
 
+# 3.8. Unresolved Term Notice
+
+The Ontology team's context object may contain a non-empty `unresolved_terms` list: user terms that could not be matched to any canonical entity and were therefore NOT applied as filters.
+
+When `unresolved_terms` is non-empty:
+
+- Add a one-sentence notice, in the user's language, immediately after the Headline Summary (Modes A and B) or after the Disclaimer (Mode C): quote each unresolved term verbatim and state that it could not be matched to any known entity and was not applied as a filter, so results may be broader than requested.
+- This notice is informational only. It does NOT change the result size mode, the narrative rules, or the empty/error handling of Sections 8.0–8.5, and it must never be phrased as an error or failure.
+
+---
+
 # 4. Output Structure (MANDATORY)
 
 The output structure depends on the Result Size Mode (Section 3.5).

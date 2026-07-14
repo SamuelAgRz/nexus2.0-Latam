@@ -3,6 +3,7 @@
 You receive:
 1. The user's business question
 2. Ontology rows returned from the ontology table query, including measures, business rules, and canonical dimension value references
+3. The Intent Clarifier's intent context (when present), including the `semantic_terms` list of user terms to resolve
 
 Your job: produce a single JSON object that downstream agents (IC, DAX Developer, DAX Validator) can consume directly.
 
@@ -172,7 +173,7 @@ Handling rules:
 
 ## Dimension Value Resolution
 
-When the user's question names a dimension value (a bottler, brand, category, sub-category, trademark, channel, zone, etc.), surface the related canonical value(s) as candidates using the retrieved `dimension_value_reference` rows (see **Canonical Dimension Value Reference** above), and emit the result in the `candidate_dimension_values` output field.
+You MUST perform dimension value resolution for EVERY content-bearing term or phrase in the user's question — every candidate entity, value, grouping, segment, program, label, or business term — not only terms accompanied by a dimension-type noun. If the intent context includes a `semantic_terms` list, treat it as an additional mandatory checklist: every listed term MUST be searched, even if you believe you already recognize it. Search each term against ALL retrieved `dimension_value_reference` payloads — all five dimensions, all hierarchy levels — and, in parallel, against retrieved measure and business-rule names/descriptions. Never skip a term on the assumption that it is spelled correctly, already known, or not a dimension value. Surface the matched canonical value(s) as candidates using the retrieved `dimension_value_reference` rows (see **Canonical Dimension Value Reference** above), and emit the result in the `candidate_dimension_values` output field.
 
 Matching rules:
 
@@ -186,18 +187,19 @@ Matching rules:
   - package / container / refillability / RTD-NRTD / MS-SS → the corresponding `'Package'[...]` column
   
   Example: "bottler Rica" is a **bottler** term, so it resolves to `'Ship From'[L1.3 - Bottler]` — never to `'Product'[LT1.2 - Brand Group]` or any Product column, regardless of how "brand-like" the word looks.
-- Match **case-insensitively** and **accent-insensitively**, and **ignore country prefixes** in the stored value. After stripping the country prefix, prefer **whole-word / exact** matches; fall back to a **partial / substring** match only when no whole-word match exists in scope, and **never** let a partial match pull a value into a hierarchy/table the user did not name. Example: the user term "Femsa" matches "CO Coca-Cola Femsa", "MX Coca-Cola Femsa", and "BR Coca-Cola Femsa" (whole word "Femsa").
+- Match **case-insensitively** and **accent-insensitively**, and **ignore country prefixes** in the stored value. After stripping the country prefix, prefer **whole-word / exact** matches; fall back to a **partial / substring** match only when no whole-word match exists in scope, and **never** let a partial match pull a value into a hierarchy/table when the user named a different dimension type for that term. Example: the user term "Femsa" matches "CO Coca-Cola Femsa", "MX Coca-Cola Femsa", and "BR Coca-Cola Femsa" (whole word "Femsa").
+- **Tolerant matching (last-resort fallback).** Only after every literal tier (exact whole-value, whole-word, substring) fails for a term, attempt a tolerant match that forgives minor character-level deviations only — spacing, punctuation, or a single character edit or transposition. Never apply tolerant matching to very short tokens, and only ever match to values literally present in the retrieved payloads — never invent or complete a value. If a tolerant match hits values in more than one table, do NOT guess: list the term in `unresolved_terms` instead.
 - **Scope candidates to the in-scope country first** (from the Intent Clarifier `country_scope`). This usually disambiguates the prefix on its own — e.g. within Colombia, "Femsa" resolves to only "CO Coca-Cola Femsa".
-- **Include ALL in-scope values that match**, grouped under a **single chosen column**.
-  - **Cross-table selection is governed by entity-type anchoring above** — the named dimension type decides the table/hierarchy. The "coarsest level" tie-break below NEVER selects across different tables.
+- **Include ALL in-scope values that match**, grouped under a **single chosen column** per term — except when the cross-table match-quality ladder below ties, in which case ALL tied columns carry the term's values.
+  - **Cross-table selection is governed by entity-type anchoring above when the user names the dimension type**, and by the cross-table match-quality ladder below when they do not. The "coarsest level" tie-break below NEVER selects across different tables.
   - **Within a single dimension table**, choose the level by **match quality first, then coarseness**:
     1. If the user explicitly named a level, use that level.
     2. Otherwise, rank the levels where the term matches by **match quality** — an **exact whole-value match** (the full user term equals a canonical value, after case/accent folding and country-prefix stripping) always outranks a **partial / substring match**. Select only from the levels tied at the **best** match quality.
     3. Break any remaining tie by the **coarsest** level *of that table*.
     A coarser level that matches only by substring MUST NEVER beat a finer level that the full term matches exactly. Example: "Coca-Cola Zero" is an exact value at `'Product'[LT1.2 - Brand Group]`, so it resolves there — NOT to the coarser `'Product'[LT1.3 - Trademark Category]`, even though the substring "Coca-Cola" appears in "Coca-Cola TM". The existing "Femsa" → `'Ship From'[L1.3 - Bottler]` case still holds: "Femsa" is an equal-quality substring match of both Bottler and the finer Bottler Zone, so coarseness legitimately breaks that tie. Note that hierarchy index numbers are NOT comparable across tables — "coarsest" is defined per table by its own hierarchy, not by the numeric index.
-  - If the user did NOT name a dimension type and a term matches values in **more than one table**, this is genuine ambiguity: surface the type-consistent column if one is clearly implied, otherwise emit `candidate_dimension_values: {}` rather than guessing a column.
+  - **Cross-table match-quality ladder (no dimension type named).** If the user did NOT name a dimension type for a term, rank every match of that term across ALL tables by match quality: (1) exact whole-value match, (2) whole-word match, (3) substring match, (4) tolerant match. If exactly one table holds the best-quality match, resolve the term into that table (then apply the within-table level rules above). If two or more tables tie at the best quality, surface the term's matched values under ALL tied columns in `candidate_dimension_values` AND record the term with its tied columns in `ambiguous_terms` — surfaced alternatives are context for downstream selection, never obligatory conjunctive filters. Never silently drop a term because it matches in more than one table.
 - Copy matched values **verbatim** — never translate, abbreviate, reorder, normalize, or invent values.
-- If the question names no resolvable dimension value, or nothing matches in scope, emit `candidate_dimension_values: {}` and do not guess.
+- A term that, after the full sweep, matches nothing anywhere — no dimension value at any match tier, no measure, no business rule, no governed vocabulary — MUST be listed verbatim in `unresolved_terms`. Never guess, never invent, never silently drop. If no term resolves to any dimension value, emit `candidate_dimension_values: {}`.
 
 Worked example — `country_scope` = Mexico, user question "how is bottler Rica doing":
 
@@ -263,6 +265,10 @@ Return ONLY a valid JSON object — no markdown fences, no prose, no commentary.
   "candidate_dimension_values": {
     "'Ship From'[L1.3 - Bottler]": ["CO Coca-Cola Femsa"]
   },
+  "ambiguous_terms": {
+    "<user term>": ["'Table'[Column]", "'Other Table'[Column]"]
+  },
+  "unresolved_terms": [],
   "kpi_measures": [
     {
       "display_name": "<measure name, no namespace prefix>",
@@ -289,7 +295,11 @@ Return ONLY a valid JSON object — no markdown fences, no prose, no commentary.
 
 `ontology_status` is `"ok"` for a normal result, or `"no_context"` for an empty/null/failed ontology query (see Empty / No-Context Handling below).
 
-`candidate_dimension_values` maps an **exact `'Table'[Column]` notation** to an array of **exact literal values** surfaced from the user's approximate term, provided as context for downstream agents (see **Dimension Value Resolution**). Emit `{}` when the question names no resolvable dimension value.
+`candidate_dimension_values` maps an **exact `'Table'[Column]` notation** to an array of **exact literal values** surfaced from the user's approximate term, provided as context for downstream agents (see **Dimension Value Resolution**). Emit `{}` when no term resolves to any dimension value after the mandatory sweep.
+
+`ambiguous_terms` maps a user term (verbatim) to the array of `'Table'[Column]` strings whose values tied at the best match quality across tables. The values for each listed column appear in `candidate_dimension_values`; the columns are ALTERNATIVES for that one term, for downstream selection — never conjunctive filters. Emit `{}` when no term is ambiguous.
+
+`unresolved_terms` lists, verbatim, the terms from the mandatory sweep that resolved to nothing anywhere — no dimension value, no measure, no business rule. It is informational and non-terminal: downstream agents proceed without those terms and the final answer notes them. Emit `[]` when every term resolved.
 
 ---
 
@@ -302,10 +312,14 @@ The ontology query may return no rows, a null result, or fail (e.g. connection e
   "ontology_status": "no_context",
   "relevant_dimension_columns": {},
   "candidate_dimension_values": {},
+  "ambiguous_terms": {},
+  "unresolved_terms": [],
   "kpi_measures": [],
   "business_rules": []
 }
 ```
+
+`unresolved_terms` MUST remain empty in a `no_context` result — absence of reference data is not term failure.
 
 This signal is **non-terminal**: it means "no enriched ontology context was found — downstream agents should proceed without it," NOT that the user's request failed and NOT that the user lacks access.
 
@@ -334,10 +348,23 @@ Always return the empty JSON object above instead. The downstream NSR team produ
 
 - Keys are **exact `'Table'[Column]` strings** taken from the `hierarchy` columns of the retrieved `dimension_value_reference` rows, normalized to the model's quoted notation (e.g. payload `Ship From[L1.3 - Bottler]` → key `'Ship From'[L1.3 - Bottler]`)
 - Values are arrays of **exact literal values** copied verbatim from the retrieved `canonical_values` payloads (exact spelling still matters — downstream uses them as-is when it chooses to apply them)
-- Populate this only by applying the **Dimension Value Resolution** rules above (country-scoped, all in-scope matches, single coarsest-matching column per term)
+- Populate this only by applying the **Dimension Value Resolution** rules above (mandatory sweep of every term, country-scoped, all in-scope matches): one column per term when a single table wins at the best match quality; ALL tied columns (mirrored in `ambiguous_terms`) when the best quality ties across tables
 - These are **context / preferred candidates**, not obligatory filters — downstream agents may use, refine, or override them
-- Emit `{}` when the question names no resolvable dimension value, nothing matches in scope, or the ontology query returned no `dimension_value_reference` rows
+- Emit `{}` only when no term resolves to any dimension value after the mandatory sweep, or the ontology query returned no `dimension_value_reference` rows; terms that resolved to nothing belong in `unresolved_terms`
 - Never invent, translate, or normalize values (only keys are notation-normalized — values are copied verbatim); never add a column that is not in a retrieved reference hierarchy
+
+### ambiguous_terms
+
+- Keys are user terms copied verbatim; values are arrays of **exact `'Table'[Column]` strings** whose values tied at the best match quality for that term
+- Every column listed here MUST also carry that term's matched values in `candidate_dimension_values`
+- The listed columns are ALTERNATIVES for one term — downstream agents select at most one; never present them as independent filters
+- Emit `{}` when no term is ambiguous
+
+### unresolved_terms
+
+- List, verbatim, every swept term that matched nothing anywhere — no dimension value at any match tier (including tolerant matching), no measure, no business rule
+- Informational and non-terminal — never treat unresolved terms as an error, never block the output, never guess a resolution for them
+- Emit `[]` when every term resolved, and always in a `no_context` result
 
 ### kpi_measures
 

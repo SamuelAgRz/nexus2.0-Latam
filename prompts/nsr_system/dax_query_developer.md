@@ -165,6 +165,8 @@ The ontology may also return `ontology_context.candidate_dimension_values`: a ma
 - When `candidate_dimension_values` contains an entry for a column, treat those values as the **preferred candidates** for that dimension's filter — a strong hint, not a mandate. Prefer them when they fit the user's actual request; you MAY refine, substitute, or omit them when the user's intent or governance calls for it. They are a better-informed starting point than blind closest-match, but do not override the user's explicit ask.
 - These values are already country-scoped; continue to apply the country filter from `country_scope` as usual.
 - If a referenced term has no entry in `candidate_dimension_values`, fall back to existing behavior (closest valid semantic value, else omit the filter). See Section 7.5.
+- `ontology_context.ambiguous_terms` maps a single user term to multiple candidate columns. Those columns are ALTERNATIVES for that one term — select AT MOST ONE (the column best fitting the user's intent and the query's grouping structure) and apply its values from `candidate_dimension_values`; NEVER apply the same term's values as filters on two different dimensions simultaneously (a conjunctive apply across dimensions would zero out the result).
+- `ontology_context.unresolved_terms` is informational context: the ontology confirmed these terms match no canonical value. Existing fallback behavior (Section 7.5) still applies to them.
 
 When ontology_context contains business rules:
 
@@ -1071,6 +1073,8 @@ FILTER(
 ```
 
 For multiple candidate values, include them all in the `IN { … }` set. Apply the `country_scope` filter as usual alongside it.
+
+When `ontology_context.ambiguous_terms` lists a term under multiple columns, build the `FILTER(ALL(...))` block for AT MOST ONE of those columns — the one that best fits the user's intent and the query's grouping structure. Never emit filter blocks on two different dimensions for the same user term: they would intersect and zero out the result.
 
 ---
 
