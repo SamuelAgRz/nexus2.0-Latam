@@ -366,11 +366,13 @@ APPROVED
 If ANY check fails:
 
 ```text
-NOT APPROVED
+REQUIRES_CHANGES
 - issue 1
 - issue 2
 - issue 3
 ```
+
+The word "APPROVED" must NEVER appear in a failure output — the orchestrator routes on that word.
 
 Never return anything else.
 
