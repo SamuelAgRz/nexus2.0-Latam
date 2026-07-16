@@ -39,6 +39,19 @@ Unless the structured intent specifies another value for that column, the filter
 | `'Product'[Non-KO Product]` | `<> "Y"` |
 | `'Product'[LT1.7 - Segment]` | `<> "GV Brands"` |
 
+## Colombia-only filters
+
+When the country resolved in the structured intent is `Colombia`, the query MUST ALSO contain a filter on EACH of these columns:
+
+| Column | Default predicate (Colombia only) |
+|---|---|
+| `'Channel'[LT1.3 - Channel Macro Group]` | `= "Modern"` |
+| `'Ship To'[LT1.1 - Tradename]` | `<> "RESTO DE MERCADO"` |
+
+- The Override rules below apply to these columns too: an intent-specified value replaces the default, and there must be exactly ONE filter per column.
+- When the resolved country is NOT Colombia: these filters are NOT required — their absence is correct. Reject only if the Colombia defaults appear as injected filters without the structured intent specifying them.
+- Error type for a missing or wrong Colombia-only filter: `INVALID_GOVERNANCE`. Severity: `CRITICAL`.
+
 ## Country rules
 
 - The country filter value MUST exactly match the country resolved in the structured intent.

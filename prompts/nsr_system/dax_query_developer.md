@@ -755,6 +755,45 @@ KEEPFILTERS(
     )
 )
 
+## Colombia-only governance filters
+
+When (and ONLY when) the resolved intent country is `Colombia`, TWO additional governance filters MUST be applied on top of the five above:
+
+| Column | Default predicate (Colombia only) |
+|---|---|
+| `'Channel'[LT1.3 - Channel Macro Group]` | `= "Modern"` |
+| `'Ship To'[LT1.1 - Tradename]` | `<> "RESTO DE MERCADO"` |
+
+For any other country (Mexico, Brazil), these filters MUST NOT be injected.
+
+Execution-safe pattern (inside SUMMARIZECOLUMNS) — BOTH Colombia-only filters:
+
+FILTER(
+    ALL('Channel'[LT1.3 - Channel Macro Group]),
+    'Channel'[LT1.3 - Channel Macro Group] = "Modern"
+),
+FILTER(
+    ALL('Ship To'[LT1.1 - Tradename]),
+    'Ship To'[LT1.1 - Tradename] <> "RESTO DE MERCADO"
+)
+
+Inside CALCULATE, wrap each in KEEPFILTERS:
+
+KEEPFILTERS(
+    FILTER(
+        ALL('Channel'[LT1.3 - Channel Macro Group]),
+        'Channel'[LT1.3 - Channel Macro Group] = "Modern"
+    )
+),
+KEEPFILTERS(
+    FILTER(
+        ALL('Ship To'[LT1.1 - Tradename]),
+        'Ship To'[LT1.1 - Tradename] <> "RESTO DE MERCADO"
+    )
+)
+
+The Override and Persistence rules below apply to these two columns exactly as they do to the five default governance columns: an intent-specified value for the column wins over the default, and never stack two filters on the same column. For a Colombia query with no overrides, the total governance filter count is SEVEN (plus the country filter).
+
 ## Override — user-specified value
 
 If the structured intent's `filters` array already contains an entry for one of these columns, use THAT value instead and do NOT inject the default for that column.
@@ -2617,6 +2656,8 @@ SUMMARIZECOLUMNS(
     FILTER(ALL('Transaction Type'[Transaction Type]), 'Transaction Type'[Transaction Type] = "Actuals"),
     FILTER(ALL('Product'[Non-KO Product]), 'Product'[Non-KO Product] <> "Y"),
     FILTER(ALL('Product'[LT1.7 - Segment]), 'Product'[LT1.7 - Segment] <> "GV Brands"),
+    FILTER(ALL('Channel'[LT1.3 - Channel Macro Group]), 'Channel'[LT1.3 - Channel Macro Group] = "Modern"),
+    FILTER(ALL('Ship To'[LT1.1 - Tradename]), 'Ship To'[LT1.1 - Tradename] <> "RESTO DE MERCADO"),
     "Net Sales Revenue", [Bottler Net Revenue AC (LC)]
 )
 ORDER BY 'Period'[Month 445 Code] ASC
@@ -3563,6 +3604,9 @@ Before returning, validate:
   - 'Transaction Type'[Transaction Type] = "Actuals"
   - 'Product'[Non-KO Product] <> "Y"
   - 'Product'[LT1.7 - Segment] <> "GV Brands"
+- Colombia-only governance filters (Section 4A): if the resolved country is Colombia, BOTH are present (unless the structured intent specifies another value for that column); if the resolved country is NOT Colombia, neither appears as an injected default:
+  - 'Channel'[LT1.3 - Channel Macro Group] = "Modern"
+  - 'Ship To'[LT1.1 - Tradename] <> "RESTO DE MERCADO"
 - no governance column has stacked/duplicate filters
 - semantic query is executable
 - hierarchy semantics are preserved
