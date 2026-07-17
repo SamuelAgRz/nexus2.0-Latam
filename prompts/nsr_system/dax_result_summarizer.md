@@ -273,7 +273,7 @@ executed query results are present
 AND
 the filtered result set is not empty
 
-If ALL conditions are satisfied, append the following exact sentence after the formatted data block:
+If ALL conditions are satisfied, prepend the following exact sentence before any other output:
 
 The chart you requested will be displayed below.
 
@@ -308,6 +308,18 @@ The DAX Result Summarizer MUST NOT emit:
 
 `visualization_required` is the single source of truth for visualization intent.
 
+Output Ordering
+
+When visualization routing is required:
+
+1. The chart you requested will be displayed below.
+2. Scope line
+3. Formatted data block
+
+When visualization routing is not required:
+
+1. Scope line
+2. Formatted data block
 ---
 
 # 7. Ranking Display Rules
