@@ -763,6 +763,8 @@ If the structured intent's `filters` array already contains an entry for one of 
 - When intent specifies a value for a governance column, the intent value wins; otherwise the default applies.
 - Overriding one governance column does NOT remove the other governance filters — the remaining defaults still apply.
 
+**Caveat — excluding Primary Sales:** If the user specifies they do NOT want to see primary sales, apply `'Sales Type'[Primary Sales Indicator] <> "Y"`. Do NOT filter with `= "N"`.
+
 ## Persistence
 
 Like country governance, ALL mandatory governance filters MUST persist across every query construct:
