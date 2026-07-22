@@ -1017,6 +1017,10 @@ Rules:
 'Channel'[LT1.0 - Sub Trade Channel]
 ```
 
+### Default channel level
+
+For a generic channel request (grouping OR filter) with no explicit level and no specific channel value, group/filter by **Channel Macro Group** (`'Channel'[LT1.3 - Channel Macro Group]`) — the coarsest level. Use a finer level only when the intent/ontology context resolved one (explicit level named, or a specific channel value that belongs to a finer level). Never silently change a granularity the user explicitly requested.
+
 ---
 
 ## Customer Hierarchy
@@ -3229,6 +3233,16 @@ Examples:
 
 ALWAYS use official semantic ratio measures.
 
+### Exception — Mix / Share / Contribution ratios
+
+This ban does NOT apply to a **mix / share / contribution** ratio, i.e. a group's value divided by the total of the current query selection:
+
+```DAX
+DIVIDE([Measure], CALCULATE([Measure], ALL(<grouped dimension column(s)>)))
+```
+
+This construction is REQUIRED for mix/share/contribution and is NOT a banned "Percentage KPI", because share-of-selection is not a static, pre-built measure — it depends on the query's own grouping and filters (the denominator is "the total across the rows being shown"), so no official ratio measure can express it. See Section 20 pattern **F. Mix / Share / Contribution** for the full pattern. The ban above continues to cover per-UC / per-day / revenue-per-volume ratios that DO have official semantic measures.
+
 ---
 
 # 17A. Hard Ban — Manual Day-Count Normalization
@@ -3461,6 +3475,61 @@ SUMMARIZECOLUMNS(
     "Variance", [Variance Measure]
 )
 ```
+
+---
+
+## F. Mix / Share / Contribution
+
+Use this pattern whenever the intent is a **mix**, **share**, **contribution**, **composition**, or "% of total" of a measure across a breakdown — for ANY dimension (channel, brand, category, customer, package, geography, …) and ANY measure. A group's mix = its measure divided by the total of that measure across the current query selection.
+
+**Core rule — the denominator removes ONLY the grouped dimension column(s) with `ALL`**, so the measure re-computes over the whole selection while every other filter (country, period, governance, other slicers) stays applied:
+
+```DAX
+"Share", DIVIDE([Measure], CALCULATE([Measure], ALL(<grouped dimension column>)))
+```
+
+- `ALL(...)` targets **exactly the column(s) in `<group_by>`** — not the whole table, not other dimensions. If the breakdown groups by multiple columns, pass each grouped column to `ALL`: `ALL(<col1>, <col2>)`.
+- Do NOT wrap the mandatory governance / country / period filters into the denominator differently — they remain as the query's `<filters>`; the mix `ALL` only neutralizes the grouped dimension inside the `CALCULATE`.
+
+**Adaptive output — emit only what the request needs:**
+
+Plain "mix" / "share" / "contribution" (no comparison) — emit the measure and its share:
+
+```DAX
+EVALUATE
+SUMMARIZECOLUMNS(
+    <group_by>,
+    <filters>,
+    "Measure", [Measure],
+    "Share", DIVIDE([Measure], CALCULATE([Measure], ALL(<grouped dimension column>)))
+)
+ORDER BY [Share] DESC
+```
+
+"mix variation" / "mix change" vs a baseline (PY, budget, plan, …) — emit current & baseline measures, both shares, and the variation:
+
+```DAX
+EVALUATE
+SUMMARIZECOLUMNS(
+    <group_by>,
+    <filters>,
+    "Measure", [Measure],
+    "Measure Baseline", [Measure Baseline],
+    "Share", DIVIDE([Measure], CALCULATE([Measure], ALL(<grouped dimension column>))),
+    "Share Baseline", DIVIDE([Measure Baseline], CALCULATE([Measure Baseline], ALL(<grouped dimension column>))),
+    "Mix Variation",
+        DIVIDE([Measure], CALCULATE([Measure], ALL(<grouped dimension column>)))
+        - DIVIDE([Measure Baseline], CALCULATE([Measure Baseline], ALL(<grouped dimension column>)))
+)
+ORDER BY [Mix Variation] DESC
+```
+
+Rules:
+
+- The baseline is a **resolved semantic measure name** (e.g. `[<Measure> PY]`), per the PY / vs-PY conventions (Section on comparative suffixes). NEVER build the baseline with manual `DATEADD` / `SAMEPERIODLASTYEAR` / manual PY filtering — Section 16 still applies. `[Measure Baseline]` above is a placeholder for that resolved measure.
+- Mix Variation is `Share − Share_Baseline` (difference of shares, in share points), computed inline from the same `DIVIDE(..., CALCULATE(..., ALL(...)))` expressions — do not invent a separate variance measure for it.
+- `ORDER BY` the most relevant emitted column: `Mix Variation DESC` for variation, `Share DESC` for plain mix (`ASC` for smallest-first). Follow Section 21 ranking governance.
+- Keep the mandatory governance filters (Section 4A) and any `FILTER(ALL(...))` selection filters exactly as in every other query.
 
 ---
 

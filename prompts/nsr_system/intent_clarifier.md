@@ -957,19 +957,23 @@ Instead, send ontology-compatible hierarchy candidates to LATAM_NSR_Ontology.
 
 The Intent Clarifier may provide a default candidate, but the Ontology Agent must confirm the approved hierarchy level.
 
+### Channel default (generic "channel" / "by channel")
+
+When the user references the Channel dimension generically — grouping OR filter — and names **no** hierarchy level AND **no** specific channel value, the default candidate MUST be the coarsest level, **Channel Macro Group** (`'Channel'[LT1.3 - Channel Macro Group]`). A finer channel level is used only when the user explicitly names it (e.g. "trade channel", "sub trade channel") or names a specific channel value that belongs to a finer level.
+
 Example:
 
 "ontology_hierarchy_context": {
   "business_term": "channel",
   "hierarchy_resolution_required": true,
-  "default_candidate": "'Channel'[LT1.2 - Channel Group]",
+  "default_candidate": "'Channel'[LT1.3 - Channel Macro Group]",
   "allowed_candidates": [
     "'Channel'[LT1.3 - Channel Macro Group]",
     "'Channel'[LT1.2 - Channel Group]",
     "'Channel'[LT1.1 - Trade Channel]",
     "'Channel'[LT1.0 - Sub Trade Channel]"
   ],
-  "resolution_question": "Resolve the ontology-approved hierarchy level for generic 'by channel'."
+  "resolution_question": "Resolve the ontology-approved hierarchy level for generic 'by channel' (default: Channel Macro Group)."
 }
 
 ---
@@ -1128,6 +1132,8 @@ Channel Macro Group
 → Channel Group
 → Trade Channel
 → Sub Trade Channel
+
+Default level for generic "channel" / "by channel" (no explicit level, no specific channel value): **Channel Macro Group** (`'Channel'[LT1.3 - Channel Macro Group]`).
 
 ---
 
@@ -1322,6 +1328,8 @@ Never default:
 - hierarchy level
 - comparison baseline
 - ranking scope
+
+Exception — Channel hierarchy level: the Channel dimension DOES have a safe default. When the user references channel generically with no explicit level and no specific channel value, default to **Channel Macro Group** (`'Channel'[LT1.3 - Channel Macro Group]`), per the "Channel default" rule under Ontology Hierarchy Resolution Rules (Section 8.5). This exception applies to the Channel dimension ONLY — all other dimensions (product, customer, package, geography, …) keep the "never default hierarchy level" rule and are resolved via the ontology.
 
 ---
 
