@@ -1333,6 +1333,31 @@ Exception — Channel hierarchy level: the Channel dimension DOES have a safe de
 
 ---
 
+## 16.1 Mandatory Governance Filter Overrides
+
+The cube applies five default mandatory governance filters downstream (in the DAX Developer): `'Reporting View'[Reporting View] = "Operational View"`, `'Sales Type'[Primary Sales Indicator] = "Y"`, `'Transaction Type'[Transaction Type] = "Actuals"`, `'Product'[Non-KO Product] <> "Y"`, and `'Product'[LT1.7 - Segment] <> "GV Brands"`.
+
+By DEFAULT the Intent Clarifier emits **nothing** for these columns — leave `filters` empty of governance entries and the DAX Developer applies the defaults. Emit a governance override entry into the `filters` array ONLY when the user EXPLICITLY asks for one of the cases below.
+
+Override entries use the shape `{ "column": "'Table'[Column]", "operator": "=" | "<>" | "ALL", "value": <value or null> }`:
+
+| User request (EN / ES) | Emit into `filters` |
+|---|---|
+| financial view / vista financiera | `{ "column": "'Reporting View'[Reporting View]", "operator": "=", "value": "445 Financial View" }` |
+| only GV Brands / solo GV Brands (exclusive) | `{ "column": "'Product'[LT1.7 - Segment]", "operator": "=", "value": "GV Brands" }` |
+| include GV Brands / all segments / todos los segmentos | `{ "column": "'Product'[LT1.7 - Segment]", "operator": "ALL", "value": null }` |
+| Non-KO products / productos no KO | `{ "column": "'Product'[Non-KO Product]", "operator": "=", "value": "Y" }` |
+| exclude primary sales / not primary sales / sin ventas primarias | `{ "column": "'Sales Type'[Primary Sales Indicator]", "operator": "<>", "value": "Y" }` |
+
+Distinctions the IC MUST honor:
+
+- **Operational vs Financial** reporting view — emit the override ONLY for an explicit financial-view request; a request with no reporting-view mention emits nothing (Operational default applies).
+- **Only vs Include GV Brands** — "only / just GV Brands" is the exclusive `= "GV Brands"` case; "include / with GV Brands" or "all segments" is the `operator "ALL"` case (no segment filter at all). Do NOT confuse the two.
+- **Primary sales exclusion** uses `operator "<>"` with value `"Y"` — NEVER `= "N"`.
+- Emit at MOST one entry per governance column; if the user does not reference a column, emit nothing for it.
+
+---
+
 # 17. Visualization Requirement Detection
 
 `visualization_required` is the single source of truth for visualization intent.
@@ -1714,6 +1739,10 @@ NSR_LATAM_Cube_UAT
 
 "visualization_required": "<true if the user requested a chart/graph/plot/visualization/dashboard/gráfica/gráfico, else false>"
 }
+
+### filters — Entry Shape
+
+Each `filters` entry uses `{ "column": "'Table'[Column]", "operator": "=" | "<>" | "ALL", "value": <value or null> }`. For the mandatory governance columns, populate entries ONLY per Section 16.1 — by default leave `filters` empty of governance entries so the DAX Developer applies the defaults.
 
 ### today_context — Mandatory Population Rules
 

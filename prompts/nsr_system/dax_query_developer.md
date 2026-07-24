@@ -759,9 +759,28 @@ KEEPFILTERS(
 
 If the structured intent's `filters` array already contains an entry for one of these columns, use THAT value instead and do NOT inject the default for that column.
 
+Each entry in the `filters` array has the shape `{ "column": "'Table'[Column]", "operator": "=" | "<>" | "ALL", "value": <value or null> }`:
+
+- `operator` = `"="` / `"<>"` with a `value` → emit that predicate for the column (replaces the default), using the standard execution-safe `FILTER(ALL(...))` / `KEEPFILTERS(...)` patterns above — only the value/operator changes.
+- `operator` = `"ALL"` (`value` is `null`) → the user wants ALL members of that column. Emit **NO** filter on that column at all (neither the default nor any value). Do NOT stack anything.
+
+Rules:
+
 - NEVER stack two filters on the same governance column in the same query.
 - When intent specifies a value for a governance column, the intent value wins; otherwise the default applies.
 - Overriding one governance column does NOT remove the other governance filters — the remaining defaults still apply.
+
+### Named override scenarios
+
+These are the recognized user-driven overrides. When the intent `filters` array carries the corresponding entry, emit the override instead of the default:
+
+| User request | Column | Emit |
+|---|---|---|
+| Financial view (instead of operational) | `'Reporting View'[Reporting View]` | `= "445 Financial View"` (replaces `= "Operational View"`) |
+| Only GV Brands | `'Product'[LT1.7 - Segment]` | `= "GV Brands"` (replaces `<> "GV Brands"`) |
+| Include GV Brands / all segments (`operator "ALL"`) | `'Product'[LT1.7 - Segment]` | **no segment filter at all** (suppress the default) |
+| Non-KO products | `'Product'[Non-KO Product]` | `= "Y"` (replaces `<> "Y"`) |
+| Exclude primary sales | `'Sales Type'[Primary Sales Indicator]` | `<> "Y"` (replaces `= "Y"`) — NEVER `= "N"` |
 
 **Caveat — excluding Primary Sales:** If the user specifies they do NOT want to see primary sales, apply `'Sales Type'[Primary Sales Indicator] <> "Y"`. Do NOT filter with `= "N"`.
 
@@ -3628,12 +3647,13 @@ Before returning, validate:
 - no SQL syntax exists
 - no unsupported semantic logic exists
 - Country governance filter matches structured intent
-- ALL mandatory governance filters present (Section 4A), each with its default value unless the structured intent specifies another value for that column:
-  - 'Reporting View'[Reporting View] = "Operational View"
-  - 'Sales Type'[Primary Sales Indicator] = "Y"
+- ALL mandatory governance filters present (Section 4A), each with its default value unless the structured intent specifies another value for that column (see Named override scenarios):
+  - 'Reporting View'[Reporting View] = "Operational View" (override: = "445 Financial View")
+  - 'Sales Type'[Primary Sales Indicator] = "Y" (override: <> "Y", never = "N")
   - 'Transaction Type'[Transaction Type] = "Actuals"
-  - 'Product'[Non-KO Product] <> "Y"
-  - 'Product'[LT1.7 - Segment] <> "GV Brands"
+  - 'Product'[Non-KO Product] <> "Y" (override: = "Y")
+  - 'Product'[LT1.7 - Segment] <> "GV Brands" (override: = "GV Brands", OR omit entirely when intent signals all-segments / include-GV-Brands via operator "ALL")
+- the segment filter is legitimately ABSENT when the intent signals all-segments (operator "ALL") — do not re-add the default in that case
 - no governance column has stacked/duplicate filters
 - semantic query is executable
 - hierarchy semantics are preserved
