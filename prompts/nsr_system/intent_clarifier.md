@@ -1356,6 +1356,8 @@ Distinctions the IC MUST honor:
 - **Primary sales exclusion** uses `operator "<>"` with value `"Y"` — NEVER `= "N"`.
 - Emit at MOST one entry per governance column; if the user does not reference a column, emit nothing for it.
 
+**GV Brands is segment-governance ONLY — never an ontology term.** "GV Brands" is a Segment (`'Product'[LT1.7 - Segment]`) governance concept, fully handled by the override above. When the user references GV Brands (any surface form — "GV Brands", "gv brands", "GV", "solo GV Brands"), the IC MUST NOT also place that term into `semantic_terms`. Do NOT send GV Brands to LATAM_NSR_Ontology for dimension-value resolution: it is not a Brand Group or Category value, and resolving it there is what produces a spurious extra product filter. Handle it exclusively via the segment override in the table above (see also the Semantic Terms Population Rules).
+
 ---
 
 # 17. Visualization Requirement Detection
@@ -1621,7 +1623,7 @@ Use one or more values depending on the user request. Include "dimension_value_r
 - Copy each term or phrase VERBATIM as the user wrote it — original spelling, casing, accents, and language, including apparent misspellings. Never correct, normalize, or translate a term.
 - Prefer the longest contiguous phrase that names one thing over splitting it into fragments.
 - Include terms the Intent Clarifier believes it already recognizes — recognition is not resolution.
-- Exclude only governed vocabulary and function words (Section 6.6).
+- Exclude only governed vocabulary and function words (Section 6.6). This exclusion includes governance-handled segment terms — specifically **"GV Brands"** (any surface form), which is owned by the segment governance override (Section 16.1) and MUST NEVER appear in `semantic_terms`. The "recognition is not resolution" clause above does NOT force GV Brands back in: it is resolved by the segment override, not by the ontology.
 - Never classify a term by presumed dimension type, and never resolve it locally: listing terms verbatim is lexical extraction, not interpretation (consistent with Section 6.4). Resolution belongs exclusively to LATAM_NSR_Ontology.
 - Emit `semantic_terms: []` only when the question contains no content-bearing candidate references.
 ### Business Rule Context Rules

@@ -166,6 +166,7 @@ The ontology may also return `ontology_context.candidate_dimension_values`: a ma
 - These values are already country-scoped; continue to apply the country filter from `country_scope` as usual.
 - If a referenced term has no entry in `candidate_dimension_values`, fall back to existing behavior (closest valid semantic value, else omit the filter). See Section 7.5.
 - `ontology_context.ambiguous_terms` maps a single user term to multiple candidate columns. Those columns are ALTERNATIVES for that one term — select AT MOST ONE (the column best fitting the user's intent and the query's grouping structure) and apply its values from `candidate_dimension_values`; NEVER apply the same term's values as filters on two different dimensions simultaneously (a conjunctive apply across dimensions would zero out the result).
+- **"GV Brands" is Segment-locked.** If `candidate_dimension_values` or `ambiguous_terms` maps "GV Brands" to `'Product'[LT1.2 - Brand Group]`, `'Product'[LT1.5 - Category]`, or any product column other than `'Product'[LT1.7 - Segment]`, IGNORE those mappings. "GV Brands" is a Segment value and is governed entirely by the segment governance filter (Section 4A); never emit a Brand Group or Category predicate for it.
 - `ontology_context.unresolved_terms` is informational context: the ontology confirmed these terms match no canonical value. Existing fallback behavior (Section 7.5) still applies to them.
 
 When ontology_context contains business rules:
@@ -783,6 +784,8 @@ These are the recognized user-driven overrides. When the intent `filters` array 
 | Exclude primary sales | `'Sales Type'[Primary Sales Indicator]` | `<> "Y"` (replaces `= "Y"`) — NEVER `= "N"` |
 
 **Caveat — excluding Primary Sales:** If the user specifies they do NOT want to see primary sales, apply `'Sales Type'[Primary Sales Indicator] <> "Y"`. Do NOT filter with `= "N"`.
+
+**Segment-lock — "GV Brands" is a Segment value ONLY:** "GV Brands" exists exclusively at `'Product'[LT1.7 - Segment]`. When a GV Brands override is applied (either `= "GV Brands"` or the `operator "ALL"` suppression), the DAX Developer MUST NOT emit any additional product predicate for "GV Brands" on `'Product'[LT1.2 - Brand Group]`, `'Product'[LT1.5 - Category]`, or any other product column — regardless of what the ontology surfaces. GV Brands maps to the segment granularity and nothing else. See Section 1.1 for the corresponding ontology-side rule.
 
 ## Persistence
 
