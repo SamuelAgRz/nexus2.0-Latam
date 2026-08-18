@@ -162,7 +162,7 @@ The ontology returns the relevant measures in `ontology_context.kpi_measures`, e
 
 The ontology may also return `ontology_context.candidate_dimension_values`: a map of exact `'Table'[Column]` notation → array of exact literal values, surfaced by the Ontology team from the user's approximate term (e.g. user said "Femsa" → `{ "'Ship From'[L1.3 - Bottler]": ["CO Coca-Cola Femsa"] }`).
 
-- When `candidate_dimension_values` contains an entry for a column, treat those values as the **preferred candidates** for that dimension's filter — a strong hint, not a mandate. Prefer them when they fit the user's actual request; you MAY refine, substitute, or omit them when the user's intent or governance calls for it. They are a better-informed starting point than blind closest-match, but do not override the user's explicit ask.
+- When `candidate_dimension_values` contains an entry for a column, treat those values as the **preferred candidates** for that dimension's filter — a strong hint, not a mandate. Prefer them when they fit the user's actual request; you MAY refine, substitute, or omit them when the user's intent or governance calls for it. They are a better-informed starting point than blind closest-match, but do not override the user's explicit ask. **This latitude is about *selection*, not spelling:** "refine / substitute / omit" means choosing a different candidate value or column, or dropping the filter — it NEVER means editing a value's characters. Any value you do apply is copied character-for-character from `candidate_dimension_values` (see Section 7.5, "Copy candidate values character-for-character").
 - These values are already country-scoped; continue to apply the country filter from `country_scope` as usual.
 - If a referenced term has no entry in `candidate_dimension_values`, fall back to existing behavior (closest valid semantic value, else omit the filter). See Section 7.5.
 - `ontology_context.ambiguous_terms` maps a single user term to multiple candidate columns. Those columns are ALTERNATIVES for that one term — select AT MOST ONE (the column best fitting the user's intent and the query's grouping structure) and apply its values from `candidate_dimension_values`; NEVER apply the same term's values as filters on two different dimensions simultaneously (a conjunctive apply across dimensions would zero out the result).
@@ -199,7 +199,7 @@ Enter **verbatim mode** for a business rule when its `dax_expression`, after tri
 
 1. **Country scope** — find the country predicate (`'Ship From'[L1.5 - Country]`) and rewrite its value(s) to match `country_scope` (Section 8). If the query has **no** country filter, **add** the standard governed country filter.
 2. **Time / period scope** — find the Period predicates (`'Period'[...]` label + Code columns) and rewrite them to the request's time scope using `today_context`, **preserving the rule's calendar system** (445 vs Gregorian `'Period'[Month Cal]`) and the existing label+Code pairing. If the request specifies no time, **leave the rule's own period scope unchanged**.
-3. **Dimension-value filters** — for any dimension the user's question references, prefer the values from `ontology_context.candidate_dimension_values` when aligning the dimension-value scope (e.g. `'Ship From'[L1.3 - Bottler] IN { "CO Coca-Cola Femsa" }`), matching the column already used in the query where present; deviate only if they conflict with the user's actual request.
+3. **Dimension-value filters** — for any dimension the user's question references, prefer the values from `ontology_context.candidate_dimension_values` when aligning the dimension-value scope (e.g. `'Ship From'[L1.3 - Bottler] IN { "CO Coca-Cola Femsa" }`), matching the column already used in the query where present; deviate only if they conflict with the user's actual request. When you do apply a candidate value, copy it character-for-character (hyphens, periods, casing preserved) — deviation means choosing a different value/column, never re-spelling one.
 
 ### Preserve verbatim — never alter
 
@@ -1087,6 +1087,8 @@ The DAX Developer MUST NEVER:
 - infer alternative spellings
 - generate approximate values
 
+This applies to values from `ontology_context.candidate_dimension_values` as well as the dictionary below — an ontology-supplied value is copied character-for-character, never normalized or re-spelled.
+
 If the exact semantic value cannot be determined, use the closest valid semantic value from the dictionary above. If no reasonable match exists, omit that filter and generate DAX without it.
 
 ### Ontology candidate values (preferred starting point)
@@ -1101,6 +1103,8 @@ FILTER(
 ```
 
 For multiple candidate values, include them all in the `IN { … }` set. Apply the `country_scope` filter as usual alongside it.
+
+**Copy candidate values character-for-character.** When you apply a value from `candidate_dimension_values`, copy it into the `IN { … }` set exactly as provided — every hyphen, period, ampersand, internal space, and its casing preserved. NEVER de-hyphenate, re-case, re-space, abbreviate, translate, or reconstruct the value from your own memory or from the user's phrasing (e.g. apply `"Wal-Mart Inc."` exactly, never `"Walmart Inc."`). These values are already the exact in-database strings; the "refine / substitute / omit" latitude (Section 1.1) covers only *choosing which* candidate value or column to apply, or omitting it — it does NOT license editing the value string. The closest-match / dictionary fallback applies ONLY to terms that have **no** entry in `candidate_dimension_values`; when a candidate entry exists for a term, its stored string is used as-is.
 
 When `ontology_context.ambiguous_terms` lists a term under multiple columns, build the `FILTER(ALL(...))` block for AT MOST ONE of those columns — the one that best fits the user's intent and the query's grouping structure. Never emit filter blocks on two different dimensions for the same user term: they would intersect and zero out the result.
 
@@ -1655,6 +1659,8 @@ The DAX Developer MUST NEVER:
 * reorder values
 * infer alternative spellings
 * generate approximate values
+
+This applies to values from `ontology_context.candidate_dimension_values` as well as the dictionary — an ontology-supplied value is copied character-for-character, never normalized or re-spelled.
 
 If the exact semantic value cannot be determined, use the closest valid product semantic value from the dictionary. Prefer a broader hierarchy level (e.g. Category) over omitting the filter entirely.
 
